@@ -178,6 +178,42 @@ class Announcement extends Model
     }
 
     /**
+     * Whether this notice is published *now*.
+     *
+     * Not just "has a date" - a notice dated ahead is scheduled, and the public
+     * page must not show it yet. This is the same test the published() scope
+     * applies, written once so a screen and a query cannot disagree about whether
+     * a notice is live.
+     */
+    public function isPublished(): bool
+    {
+        return $this->published_at !== null && $this->published_at->isPast();
+    }
+
+    /**
+     * Whether this notice is dated ahead and waiting.
+     */
+    public function isScheduled(): bool
+    {
+        return $this->published_at !== null && $this->published_at->isFuture();
+    }
+
+    /**
+     * One word for the state, for a management screen.
+     *
+     * A draft and a scheduled notice are both "not live", and an operator needs
+     * to tell them apart to know which one to fix.
+     */
+    public function publicationStateLabel(): string
+    {
+        return match (true) {
+            $this->isPublished() => 'Published',
+            $this->isScheduled() => 'Scheduled',
+            default => 'Draft',
+        };
+    }
+
+    /**
      * Narrow to notices that are actually published.
      *
      * A notice with no published_at is still a draft, and one dated ahead is

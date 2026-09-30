@@ -7,7 +7,12 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
 use App\Http\Controllers\Resident\VerificationController as ResidentVerificationController;
+use App\Http\Controllers\Staff\AnnouncementController as StaffAnnouncementController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
+use App\Http\Controllers\Staff\DocumentReviewController as StaffDocumentReviewController;
+use App\Http\Controllers\Staff\ReliefBatchController as StaffReliefBatchController;
+use App\Http\Controllers\Staff\ResidentDirectoryController as StaffResidentDirectoryController;
+use App\Http\Controllers\Staff\ResidentVerificationController as StaffResidentVerificationController;
 use App\Models\DocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -157,26 +162,81 @@ Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'
     });
 
 /*
- * A document request is resolved through its owner, not by id.
+ * Resolving a document request.
  *
- * Implicit binding would find the row and hand it to the controller, and the
- * controller would then have to remember to check the owner. Scoping it here
- * means a request belonging to somebody else is not found at all, so it 404s
- * through exactly the same path as an id that never existed - which is what
- * "a wrong reference and another user's reference give identical output" needs.
+ * Route::bind() is global, so this one closure serves both areas and branches on
+ * which one is asking. The branch is not optional: a resident may only reach
+ * their own, while a Secretary and an Admin read every request in the barangay.
+ * A single resident-scoped resolver would 404 the staff desk on every row, and a
+ * single plain resolver would let a resident read a neighbour's by editing the
+ * id in the URL.
+ *
+ * The resident branch scopes through the owner rather than resolving and then
+ * checking, so another resident's request is not found at all and 404s through
+ * exactly the same path as an id that never existed - which is what "a wrong
+ * reference and another user's reference give identical output" needs.
  */
 Route::bind('documentRequest', function (string $value) {
     $user = request()->user();
 
     abort_if($user === null, 403);
 
-    $documentRequest = DocumentRequest::query()
-        ->whereBelongsTo($user)
-        ->find($value);
+    $request_ = DocumentRequest::query();
+
+    if (! request()->routeIs('staff.*')) {
+        $request_->whereBelongsTo($user);
+    }
+
+    $documentRequest = $request_->find($value);
 
     abort_if($documentRequest === null, 404);
 
     return $documentRequest;
 });
+
+Route::middleware(['auth', 'verified', 'role:admin,secretary', 'no-store-authenticated'])
+    ->prefix('staff')
+    ->name('staff.')
+    ->group(function () {
+        // Resident verification. The queue, the record behind a queue entry, the
+        // uploaded ID, and the two decisions.
+        Route::get('/verifications', [StaffResidentVerificationController::class, 'index'])->name('verifications.index');
+        Route::get('/verifications/{profile}', [StaffResidentVerificationController::class, 'show'])->name('verifications.show');
+        Route::post('/verifications/{profile}/approve', [StaffResidentVerificationController::class, 'approve'])->name('verifications.approve');
+        Route::post('/verifications/{profile}/reject', [StaffResidentVerificationController::class, 'reject'])->name('verifications.reject');
+        Route::get('/resident-verifications/{profile}/id-photo', [StaffResidentVerificationController::class, 'idPhoto'])
+            ->name('resident-verifications.id-photo');
+
+        // Residents directory.
+        Route::get('/residents', [StaffResidentDirectoryController::class, 'index'])->name('residents.index');
+        Route::get('/residents/{profile}', [StaffResidentDirectoryController::class, 'show'])->name('residents.show');
+
+        // Document requests.
+        Route::get('/requests', [StaffDocumentReviewController::class, 'index'])->name('requests.index');
+        Route::get('/requests/{documentRequest}', [StaffDocumentReviewController::class, 'show'])->name('requests.show');
+        Route::post('/requests/{documentRequest}/review', [StaffDocumentReviewController::class, 'review'])->name('requests.review');
+        Route::post('/requests/{documentRequest}/ready', [StaffDocumentReviewController::class, 'ready'])->name('requests.ready');
+        Route::post('/requests/{documentRequest}/claim', [StaffDocumentReviewController::class, 'claim'])->name('requests.claim');
+        Route::post('/requests/{documentRequest}/reject', [StaffDocumentReviewController::class, 'reject'])->name('requests.reject');
+
+        // Relief batches.
+        Route::get('/batches', [StaffReliefBatchController::class, 'index'])->name('batches.index');
+        Route::get('/batches/create', [StaffReliefBatchController::class, 'create'])->name('batches.create');
+        Route::post('/batches', [StaffReliefBatchController::class, 'store'])->name('batches.store');
+        Route::get('/batches/{reliefBatch}', [StaffReliefBatchController::class, 'show'])->name('batches.show');
+        Route::post('/batches/{reliefBatch}/close', [StaffReliefBatchController::class, 'close'])->name('batches.close');
+        Route::post('/batches/{reliefBatch}/reopen', [StaffReliefBatchController::class, 'reopen'])->name('batches.reopen');
+
+        // Announcements.
+        Route::get('/announcements', [StaffAnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('/announcements/create', [StaffAnnouncementController::class, 'create'])->name('announcements.create');
+        Route::post('/announcements', [StaffAnnouncementController::class, 'store'])->name('announcements.store');
+        Route::get('/announcements/{announcement}/edit', [StaffAnnouncementController::class, 'edit'])->name('announcements.edit');
+        Route::put('/announcements/{announcement}', [StaffAnnouncementController::class, 'update'])->name('announcements.update');
+        Route::post('/announcements/{announcement}/publish', [StaffAnnouncementController::class, 'publish'])->name('announcements.publish');
+        Route::post('/announcements/{announcement}/pin', [StaffAnnouncementController::class, 'pin'])->name('announcements.pin');
+        Route::post('/announcements/{announcement}/unpin', [StaffAnnouncementController::class, 'unpin'])->name('announcements.unpin');
+        Route::delete('/announcements/{announcement}', [StaffAnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    });
 
 require __DIR__.'/auth.php';

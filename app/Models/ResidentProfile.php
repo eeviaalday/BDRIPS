@@ -37,6 +37,42 @@ class ResidentProfile extends Model
         ];
     }
 
+    /**
+     * The three states a profile can be in, as a closed list.
+     *
+     * A closed set rather than whatever is in the column, so the queue's status
+     * filter is a fixed set of choices and a value nobody expected cannot widen
+     * it into "everything".
+     *
+     * @return array<string, string> value => label
+     */
+    public static function verificationStates(): array
+    {
+        return [
+            self::VERIFICATION_PENDING => 'Pending review',
+            self::VERIFICATION_VERIFIED => 'Verified',
+            self::VERIFICATION_REJECTED => 'Rejected',
+        ];
+    }
+
+    public function statusLabel(): string
+    {
+        return static::verificationStates()[$this->verification_status] ?? ucfirst((string) $this->verification_status);
+    }
+
+    /**
+     * Whether a decision is still worth making.
+     *
+     * A verified profile is not in the queue, so the approve and reject controls
+     * are not offered for one. The server checks the same thing: an approval is
+     * refused on a profile that is already verified, because otherwise a second
+     * click would quietly re-verify somebody and re-stamp the time.
+     */
+    public function isAwaitingDecision(): bool
+    {
+        return $this->verification_status !== self::VERIFICATION_VERIFIED;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
