@@ -1,4 +1,4 @@
-@props(['status', 'size' => 'md', 'label' => null])
+@props(['status', 'size' => 'md', 'label' => null, 'soft' => false])
 
 @php
     /*
@@ -41,6 +41,22 @@
 
     if ($label !== null) {
         $s['label'] = $label;
+    }
+
+    /*
+     * Soft pills, for the resident's own tables.
+     *
+     * Drops the ring and deepens the fill, so a column of them reads as one band
+     * of soft colour rather than a column of outlined boxes competing with the
+     * zebra striping behind them. Applied by rewriting the border utility in the
+     * map's own wrap string rather than by appending a class: two border-colour
+     * utilities on one element are resolved by their order in the stylesheet, not
+     * by their order in the attribute, so appending one would be a coin toss.
+     *
+     * Off by default, so every existing badge renders exactly as it did.
+     */
+    if ($soft) {
+        $s['wrap'] = preg_replace('/border-[a-z]+-[0-9]{2,3}/', 'border-transparent', $s['wrap']);
     }
 
     $sizes = [

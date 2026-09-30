@@ -155,34 +155,129 @@
                 </x-empty-state>
             @endif
         @else
-            <x-data-table
-                :columns="[
-                    ['label' => 'Reference'],
-                    ['label' => 'Document'],
-                    ['label' => 'Submitted'],
-                    ['label' => 'Status'],
-                ]"
-                caption="Your document requests"
-                empty-title="No requests yet">
-                @foreach ($requests as $documentRequest)
-                    <tr>
-                        <th scope="row" class="px-4 py-3 font-mono text-xs font-semibold text-navy-900">
-                            <a href="{{ route('resident.requests.show', $documentRequest) }}" class="hover:underline">
-                                {{ $documentRequest->reference_number }}
-                            </a>
-                        </th>
-                        <td class="px-4 py-3 text-sm text-navy-800">
-                            {{ $documentRequest->documentType?->label ?? 'Retired document' }}
-                        </td>
-                        <td class="px-4 py-3 text-sm text-slate-600">
-                            {{ $documentRequest->created_at?->format('j M Y') }}
-                        </td>
-                        <td class="px-4 py-3">
-                            <x-status-badge :status="$documentRequest->status" size="sm" />
-                        </td>
-                    </tr>
-                @endforeach
-            </x-data-table>
+            {{--
+                One wrapper owns which row is being tracked, so the Track dialog is
+                written once rather than once per row.
+
+                The per-row panels inside the dialog are read-only, and x-show
+                takes the ones that are not selected out of the accessibility tree
+                rather than merely hiding them from sight. That is the reason this
+                is acceptable where a hidden form would not be: there is nothing in
+                here to be submitted by a keyboard that is not meant to be.
+            --}}
+            <div x-data="{ tracked: null }">
+                <x-data-table
+                    :columns="[
+                        ['label' => 'Document'],
+                        ['label' => 'Status'],
+                        ['label' => 'Submitted'],
+                        ['label' => 'Actions'],
+                    ]"
+                    variant="resident"
+                    caption="Your document requests"
+                    empty-title="No requests yet">
+
+                    @foreach ($requests as $i => $documentRequest)
+                        <tr>
+                            <th scope="row" class="px-4 py-3 text-left">
+                                <a href="{{ route('resident.requests.show', $documentRequest) }}"
+                                    class="font-semibold text-navy-900 hover:underline">
+                                    {{ $documentRequest->documentType?->label ?? 'Retired document' }}
+                                </a>
+                                <span class="mt-0.5 block font-mono text-xs text-slate-500">
+                                    {{ $documentRequest->reference_number }}
+                                </span>
+                            </th>
+                            <td class="px-4 py-3">
+                                <x-status-badge :status="$documentRequest->status" size="sm" soft />
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-600">
+                                {{ $documentRequest->created_at?->format('j M Y') }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button type="button"
+                                        x-on:click="tracked = {{ $i }}; $dispatch('open-modal', 'track-request')"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs font-semibold text-navy-800 transition hover:border-navy-300 hover:bg-navy-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-1">
+                                        <x-icon name="search" class="h-3.5 w-3.5" />
+                                        Track
+                                        <span class="sr-only">{{ $documentRequest->reference_number }}</span>
+                                    </button>
+
+                                    {{--
+                                        View PDF is deliberately absent. Nothing in this
+                                        system puts a document behind a request: the only
+                                        PDF anywhere is a resident's uploaded ID, and
+                                        generating one would need a package this project
+                                        does not have. A button that always leads to
+                                        nothing is worse than no button, so the slot is
+                                        left empty until there is a file to point at.
+                                    --}}
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-data-table>
+
+                <x-modal name="track-request" maxWidth="xl" dismissible>
+                    @foreach ($requests as $i => $documentRequest)
+                        <div x-show="tracked === {{ $i }}" x-cloak class="bg-white">
+                            <div class="px-6 pb-2 pt-6">
+                                <h2 id="track-request-title" class="text-lg font-bold text-navy-900">
+                                    {{ $documentRequest->documentType?->label ?? 'Document request' }}
+                                </h2>
+                                <p class="mt-1 font-mono text-xs text-slate-500">
+                                    {{ $documentRequest->reference_number }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-5 px-6 py-4">
+                                <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-3">
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</dt>
+                                        <dd class="mt-1">
+                                            <x-status-badge :status="$documentRequest->status" size="sm" soft />
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted</dt>
+                                        <dd class="mt-1 text-sm text-navy-900">
+                                            {{ $documentRequest->created_at?->format('j M Y') ?? '—' }}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fee</dt>
+                                        <dd class="mt-1 text-sm text-navy-900">
+                                            {{ $documentRequest->fee_amount ?? '—' }}
+                                        </dd>
+                                    </div>
+                                </dl>
+
+                                <x-request-timeline :status="$documentRequest->status" :request="$documentRequest" />
+
+                                @if ($documentRequest->needsRejectionReason())
+                                    <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+                                        <p class="text-sm font-semibold text-red-800">The office could not process this request</p>
+                                        <p class="mt-1 text-sm text-red-700">
+                                            {{ $documentRequest->rejection_reason ?? 'Ask at the barangay office what to change.' }}
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="flex flex-col-reverse gap-2 bg-navy-50/50 px-6 py-4 sm:flex-row sm:justify-end">
+                                <x-btn type="button" variant="outline" size="md"
+                                    x-on:click="$dispatch('close-modal', 'track-request')">
+                                    Close
+                                </x-btn>
+                                <x-btn :href="route('resident.requests.show', $documentRequest)" variant="navy" size="md">
+                                    View full request
+                                </x-btn>
+                            </div>
+                        </div>
+                    @endforeach
+                </x-modal>
+            </div>
         @endif
     </x-shell>
 </x-public-layout>

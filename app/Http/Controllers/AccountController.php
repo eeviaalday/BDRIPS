@@ -23,6 +23,31 @@ use Illuminate\View\View;
 class AccountController extends Controller
 {
     /**
+     * The three tabs of a resident's profile, in the order they are shown.
+     *
+     * One list, because the tab bar, the redirects and the panel visibility all
+     * need the same set. A tab the redirects do not know about is a tab nobody
+     * can link to.
+     *
+     * @return list<string>
+     */
+    public const RESIDENT_TABS = ['profile', 'password', 'verification'];
+
+    /**
+     * Reduce a requested tab to one that exists.
+     *
+     * An absent or unrecognised value falls back to the first tab rather than
+     * rendering nothing: a stale bookmark should land a resident on their profile
+     * with a working page, not on an empty tab.
+     */
+    public static function normaliseTab(mixed $requested): string
+    {
+        $tab = is_string($requested) ? $requested : '';
+
+        return in_array($tab, self::RESIDENT_TABS, true) ? $tab : self::RESIDENT_TABS[0];
+    }
+
+    /**
      * The account screen, in the layout that matches how this person travels.
      *
      * A resident arrives from the public top navbar, so theirs is wrapped in the
@@ -41,19 +66,22 @@ class AccountController extends Controller
     }
 
     /**
-     * The same screen, with the password form brought forward.
+     * The old "Change Password" address, kept working.
      *
-     * A separate URL because "Change Password" is one of the four things in a
-     * resident's profile menu, and a menu entry that scrolls to an anchor on
-     * the page it is already on is a link that appears to do nothing when the
-     * page does not move. Rendering the same view with a focus flag keeps one
-     * set of forms rather than two that could disagree about the rules.
+     * A resident's password form is the second tab of one page now, so this URL
+     * redirects rather than rendering a second copy of the screen. Staff keep
+     * their own version of it, which is still one screen with everything on it,
+     * so redirecting theirs would gain nothing.
      */
-    public function password(Request $request): View
+    public function password(Request $request): RedirectResponse|View
     {
         $user = $request->user();
 
-        return view($user->isResident() ? 'account.edit' : 'account.edit-staff', [
+        if ($user->isResident()) {
+            return redirect()->route('account.edit', ['tab' => 'password']);
+        }
+
+        return view('account.edit-staff', [
             'user' => $user,
             'focus' => 'password',
         ]);

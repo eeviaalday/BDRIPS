@@ -40,17 +40,37 @@ class MyAccountTest extends TestCase
     {
         $this->actingAs($this->userFor($role))
             ->get(route('account.edit'))
-            ->assertOk()
-            ->assertSee('My Account');
+            ->assertOk();
+
+        // A resident's account page is My Profile; everyone else's is still My
+        // Account. The two titles are asserted separately because the page a
+        // resident is sent to is the one a link has to name correctly.
+        $this->actingAs($this->userFor($role))
+            ->get(route('account.edit'))
+            ->assertSee($role === 'resident' ? 'My Profile' : 'My Account');
     }
 
     #[Test]
     #[DataProvider('roleProvider')]
     public function test_the_change_password_destination_resolves_for_every_role(string $role): void
     {
-        // It is a separate route because "Change Password" is one of the four
-        // things in a resident's profile menu. A menu entry pointing nowhere is
-        // the failure this guards.
+        // A resident's profile is three tabs on one page, so the old
+        // Change Password address redirects to the tab. It must still land
+        // somewhere real: a menu entry or a bookmark that 404s is the failure
+        // this guards.
+        if ($role === 'resident') {
+            $this->actingAs($this->userFor($role))
+                ->get(route('account.password'))
+                ->assertRedirect(route('account.edit', ['tab' => 'password']));
+
+            $this->actingAs($this->userFor($role))
+                ->get(route('account.edit', ['tab' => 'password']))
+                ->assertOk()
+                ->assertSee('Change password');
+
+            return;
+        }
+
         $this->actingAs($this->userFor($role))
             ->get(route('account.password'))
             ->assertOk();
@@ -60,8 +80,14 @@ class MyAccountTest extends TestCase
     #[DataProvider('roleProvider')]
     public function test_my_account_shows_the_role_but_offers_no_way_to_change_it(string $role): void
     {
+        // A resident's account page is three tabs, and the role sits with the
+        // verification status, so that is the tab the test has to read. The
+        // point of the test is that the role is visible and not editable, which
+        // is a property of the page rather than of a particular tab.
         $content = $this->actingAs($this->userFor($role))
-            ->get(route('account.edit'))->assertOk()->getContent();
+            ->get(route('account.edit', ['tab' => $role === 'resident' ? 'verification' : null]))
+            ->assertOk()
+            ->getContent();
 
         $this->assertStringContainsString(ucfirst($role), $content);
 
@@ -113,9 +139,15 @@ class MyAccountTest extends TestCase
             'verification_status' => ResidentProfile::VERIFICATION_PENDING,
         ]);
 
-        $content = $this->actingAs($pending)->get(route('account.edit'))->assertOk()->getContent();
+        // Verification status is its own tab now, so the page a resident is sent
+        // to by the old link is the one that has to carry it.
+        $content = $this->actingAs($pending)
+            ->get(route('account.edit', ['tab' => 'verification']))
+            ->assertOk()
+            ->getContent();
 
-        $this->assertStringContainsString('Pending review', $content);
+        $this->assertStringContainsString('Your verification', $content);
+        $this->assertStringContainsString('Pending', $content);
         $this->assertStringNotContainsString('name="verification_status"', $content);
     }
 

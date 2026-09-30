@@ -222,8 +222,24 @@ class RoleNavigationTest extends TestCase
 
         $content = $this->actingAs($user)->get(route('home'))->assertOk()->getContent();
 
+        // The profile control is an icon button now, named rather than labelled,
+        // so the accessible name is asserted instead of the visible text.
+        $this->assertStringContainsString('aria-label="My Profile menu"', $content);
+        $this->assertStringContainsString('title="My Profile"', $content);
+        $this->assertStringContainsString('aria-haspopup="true"', $content);
+
+        // Two items, not four: the three former ones are tabs of My Profile.
         $this->assertStringContainsString('My Profile', $content);
-        $this->assertStringContainsString('Verification Status', $content);
+        // Whitespace tolerant: a literal ">Edit Profile<" could never appear,
+        // because Blade breaks the line after the anchor, so these would pass
+        // whether or not the items were there.
+        foreach (['Edit Profile', 'Change Password', 'Verification Status'] as $removed) {
+            $this->assertDoesNotMatchRegularExpression(
+                '/>\s*'.preg_quote($removed, '/').'\s*</',
+                $content,
+                "{$removed} is still a menu item."
+            );
+        }
         $this->assertStringNotContainsString('My Dashboard', $content);
 
         // The guest bar's two auth links must be gone, not merely restyled.

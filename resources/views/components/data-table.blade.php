@@ -7,6 +7,16 @@
     'emptyTitle' => 'Nothing here yet',
     'emptyDescription' => null,
     'emptyIcon' => 'inbox',
+    // 'default' is the original muted style, unchanged, and is what the staff
+    // queues and the Kagawad checklist all use.
+    //
+    // 'resident' is a stronger treatment for the resident's own tables: a navy
+    // header row, zebra striping and a gold hover. Added as a variant rather than
+    // a fork because this component carries the caption, the focusable scroll
+    // region and the empty state, and a second copy of all that is a second copy
+    // to keep accessible. The default is the original string, so every existing
+    // call site renders byte-for-byte what it did before.
+    'variant' => 'default',
 ])
 
 @php
@@ -40,6 +50,28 @@
     // and an undefined-variable error would take the whole page down over a
     // component that legitimately has nothing to show.
     $hasBody = isset($slot) && trim((string) $slot) !== '';
+
+    /*
+     * The resident treatment.
+     *
+     * Zebra striping and the row hover are done from the tbody with Tailwind's
+     * child variants rather than by asking each call site to add a class to every
+     * row. The rows are caller markup, so a per-row class would have to be
+     * repeated on every tr and forgotten on the next one - and a forgotten row is
+     * a stripe that stops halfway down the table.
+     *
+     * The gold edge under the header is a border rather than a shadow, so it sits
+     * inside the table and does not add a pixel of height to it.
+     */
+    $isResident = $variant === 'resident';
+
+    $headClass = $isResident
+        ? 'border-b-[3px] border-gold bg-navy text-left text-xs font-bold uppercase tracking-wider text-white'
+        : 'border-b border-navy-100 bg-navy-50/60 text-left text-xs font-semibold uppercase tracking-wider text-navy-500';
+
+    $bodyClass = $isResident
+        ? 'divide-y divide-navy-100/70 [&>tr:nth-child(even)]:bg-sky-50/40 [&>tr:hover]:bg-gold/10 [&>tr]:transition-colors'
+        : 'divide-y divide-navy-50';
 @endphp
 
 @if (! $hasBody)
@@ -56,14 +88,14 @@
             @endif
 
             <thead>
-                <tr class="border-b border-navy-100 bg-navy-50/60 text-left text-xs font-semibold uppercase tracking-wider text-navy-500">
+                <tr class="{{ $headClass }}">
                     @foreach ($columns as $column)
                         <th scope="col" class="px-4 py-3 {{ $column['class'] ?? '' }}">{{ $column['label'] }}</th>
                     @endforeach
                 </tr>
             </thead>
 
-            <tbody class="divide-y divide-navy-50">
+            <tbody class="{{ $bodyClass }}">
                 {{ $slot ?? '' }}
             </tbody>
         </table>

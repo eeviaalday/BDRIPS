@@ -78,6 +78,7 @@
                         ['label' => 'Status'],
                         ['label' => 'Collected by'],
                     ]"
+                        variant="resident"
                         caption="Relief collected by your household">
                         @foreach ($distributions as $distribution)
                             <tr>
@@ -88,7 +89,7 @@
                                     {{ $distribution->batch?->distribution_date?->format('j M Y') ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3">
-                                    <x-status-badge :status="$distribution->status" size="sm" />
+                                    <x-status-badge :status="$distribution->status" size="sm" soft />
                                 </td>
                                 <td class="px-4 py-3 text-sm text-slate-600">
                                     {{ $distribution->received_by_name ?? '—' }}

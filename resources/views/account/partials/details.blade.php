@@ -19,6 +19,26 @@
     byte-for-byte identical, which is a stronger thing to be able to claim than
     "it looks the same".
 --}}
+@php
+    /*
+     * Tabs, or not.
+     *
+     * Keyed on the same hideHeader flag that already separates the resident
+     * wrapper from the staff one, so the two cannot disagree: a resident gets
+     * one panel at a time, and every other role gets all three sections exactly
+     * as before, because $tab stays null and each condition below is true.
+     *
+     * Only the selected panel renders. Hiding the other two with CSS would leave
+     * a password form sitting in the DOM while the visitor reads their name.
+     */
+    $isTabbed = (bool) ($hideHeader ?? false);
+    $tab = $isTabbed
+        ? App\Http\Controllers\AccountController::normaliseTab(request()->query('tab'))
+        : null;
+
+    $show = fn (string $panel): bool => ! $isTabbed || $tab === $panel;
+@endphp
+
 <div class="space-y-6">
 @unless ($hideHeader ?? false)
     <header>
@@ -44,6 +64,8 @@
         </x-alert>
     @endif
 
+    @if ($show('profile'))
+    <div role="tabpanel" id="panel-profile" @if ($isTabbed) aria-labelledby="tab-profile" @endif>
     <x-card tone="white" padding="p-6">
         <h2 class="mb-5 text-base font-bold text-navy-900">Profile details</h2>
 
@@ -66,8 +88,12 @@
             </div>
         </form>
     </x-card>
+    </div>
+    @endif
 
-    <x-card tone="white" padding="p-6" :class="($focus ?? null) === 'password' ? 'ring-2 ring-gold/60' : ''">
+    @if ($show('password'))
+    <div role="tabpanel" id="panel-password" @if ($isTabbed) aria-labelledby="tab-password" @endif>
+    <x-card tone="white" padding="p-6">
         <h2 class="mb-5 text-base font-bold text-navy-900">Change password</h2>
 
         <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
@@ -98,7 +124,11 @@
             </div>
         </form>
     </x-card>
+    </div>
+    @endif
 
+    @if ($show('verification'))
+    <div role="tabpanel" id="panel-verification" @if ($isTabbed) aria-labelledby="tab-verification" @endif>
     <x-card tone="white" padding="p-6">
         <h2 class="mb-5 text-base font-bold text-navy-900">Role and status</h2>
 
@@ -121,13 +151,82 @@
             </div>
         </dl>
 
-        @if ($user->isResident())
-            <p class="mt-4 border-t border-navy-100 pt-4 text-sm text-slate-600">
-                Verification status:
-                <span class="font-semibold text-navy-900">
-                    {{ $user->residentProfile?->isVerified() ? 'Verified' : 'Pending review' }}
-                </span>
-            </p>
-        @endif
     </x-card>
+
+        {{-- The resident's own verification state, moved here from the
+             standalone Verification Status page. It was always this account's own
+             status, shown on a second URL that duplicated the one screen a
+             resident actually uses.
+
+             Every state says what happens next. A resident who can only see
+             "pending" cannot tell whether they should be waiting or doing
+             something, and a hold they cannot act on is indistinguishable from
+             one they can. --}}
+        @if ($user->isResident() && $user->residentProfile)
+            @php($profile = $user->residentProfile)
+
+            <x-card tone="white" padding="p-6">
+                <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="text-base font-bold text-navy-900">Your verification</h2>
+                    <x-status-badge :status="$profile->verification_status" soft />
+                </div>
+
+                {{-- The details a Secretary actually checks, so a resident can see
+                     whether what they submitted is what is on file. Without them
+                     the tab says "pending" and nothing about the number being
+                     checked, which is the thing they would want to verify. --}}
+                <dl class="mb-6 grid gap-x-6 gap-y-3 border-b border-navy-100 pb-5 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Household number</dt>
+                        <dd class="mt-1 text-sm font-medium text-navy-900">{{ $profile->household_number }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sector</dt>
+                        <dd class="mt-1 text-sm font-medium text-navy-900">
+                            {{ $profile->sector?->sector_name ?? 'Not set' }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">ID on file</dt>
+                        <dd class="mt-1 text-sm font-medium text-navy-900">
+                            {{ filled($profile->id_photo_path) ? 'Yes' : 'Not uploaded yet' }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Decided on</dt>
+                        <dd class="mt-1 text-sm font-medium text-navy-900">
+                            {{ $profile->verified_at?->format('j M Y') ?? 'Not yet decided' }}
+                        </dd>
+                    </div>
+                </dl>
+
+                @if ($profile->verification_status === App\Models\ResidentProfile::VERIFICATION_PENDING)
+                    <p class="text-sm leading-relaxed text-slate-600">
+                        The office is checking your details against the master list. There is
+                        nothing to do while you wait - you can read your existing document
+                        requests in the meantime.
+                    </p>
+                @elseif ($profile->verification_status === App\Models\ResidentProfile::VERIFICATION_REJECTED)
+                    <p class="text-sm leading-relaxed text-slate-600">
+                        {{ $profile->rejection_reason ?? 'Ask at the barangay office what to correct.' }}
+                    </p>
+                    <div class="mt-5">
+                        <x-btn :href="route('resident.verification')" variant="navy" size="md" icon="edit">
+                            Correct my details
+                        </x-btn>
+                    </div>
+                    <p class="mt-3 text-xs text-slate-500">
+                        Saving puts your registration back in the queue for a person to look at.
+                        It does not mark you as verified.
+                    </p>
+                @else
+                    <p class="text-sm leading-relaxed text-slate-600">
+                        You are verified. You can submit document requests and appear on relief
+                        batches.
+                    </p>
+                @endif
+            </x-card>
+        @endif
+    </div>
+    @endif
 </div>

@@ -56,7 +56,7 @@
                 </div>
             </div>
 
-            <a href="{{ route('resident.verification.status') }}"
+            <a href="{{ route('account.edit', ['tab' => 'verification']) }}"
                 class="inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white transition hover:bg-navy-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gold-50 sm:self-auto">
                 <x-icon name="shield" class="h-4 w-4" />
                 View status
@@ -85,7 +85,7 @@
                  area and is being rebuilt, so in the meantime this points at the
                  status page, which is the one verification destination the
                  profile menu offers anyway. --}}
-            <a href="{{ route('resident.verification.status') }}"
+            <a href="{{ route('account.edit', ['tab' => 'verification']) }}"
                 class="inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white transition hover:bg-navy-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50 sm:self-auto">
                 <x-icon name="id-badge" class="h-4 w-4" />
                 Start verification

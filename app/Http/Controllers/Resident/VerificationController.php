@@ -43,15 +43,13 @@ class VerificationController extends Controller
      * learns nothing about whether they should be waiting or doing something,
      * and a hold they cannot act on is indistinguishable from one they can.
      */
-    public function status(Request $request): View
+    public function status(Request $request): RedirectResponse
     {
-        $profile = $request->user()->residentProfile;
-
-        abort_if($profile === null, 404, 'No resident profile is attached to this account.');
-
-        return view('resident.verification-status', [
-            'profile' => $profile,
-        ]);
+        // Verification Status is the third tab of My Profile now, so this URL
+        // redirects rather than rendering a second page showing the same thing.
+        // The old address stays because it is what the navbar, the profile menu
+        // and anything already bookmarked points at.
+        return redirect()->route('account.edit', ['tab' => 'verification']);
     }
 
     public function update(Request $request): RedirectResponse

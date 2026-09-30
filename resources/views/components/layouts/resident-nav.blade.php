@@ -75,12 +75,47 @@
             </ul>
 
             {{-- Auth actions: the gold My Profile dropdown replaces Log in / Register. --}}
+            {{-- ============================================================
+                 PROFILE
+                 ============================================================
+                 A round gold button, not a labelled one. The word "My Profile"
+                 was carrying no information the icon did not: the guest bar
+                 beside it has two labelled buttons, and a third word next to a
+                 familiar silhouette made the bar wider without making it clearer.
+
+                 The pending dot is the reason the button is worth noticing at
+                 all. A resident who has not been verified yet has something
+                 outstanding, and a dot in the top right corner of the navbar is
+                 the one place they will see it on every page. It is aria-hidden
+                 because the menu below already states the state in words - a dot
+                 read out as "bullet" is noise, and the text is what a screen
+                 reader user needs.
+
+                 aria-haspopup and aria-expanded are on the trigger so the menu's
+                 existence and open state are announced, not just visible.
+                 --}}
             <div class="hidden shrink-0 items-center gap-2 lg:flex">
+                @php
+                    $profileUser = auth()->user();
+                    $profileInitial = mb_substr((string) ($profileUser->name ?: '?'), 0, 1);
+                    $profileIsVerified = $profileUser->residentProfile?->isVerified() === true;
+                    $profileIsPending = ! $profileIsVerified;
+                @endphp
+
                 <div x-data="{ open: false }" class="relative">
-                    <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'"
-                        class="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
-                        <x-icon name="user" class="h-4 w-4" />
-                        My Profile
+                    <button type="button"
+                        @click="open = !open"
+                        :aria-expanded="open ? 'true' : 'false'"
+                        aria-haspopup="true"
+                        aria-label="My Profile menu"
+                        title="My Profile"
+                        class="relative inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-gold text-navy-900 transition hover:bg-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+                        <x-icon name="user" class="h-5 w-5" />
+
+                        @if ($profileIsPending)
+                            <span aria-hidden="true"
+                                class="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full bg-orange-500 ring-2 ring-navy"></span>
+                        @endif
                     </button>
 
                     <div x-show="open" x-cloak x-on:click.outside="open = false"
@@ -88,30 +123,61 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-navy-200 bg-white text-navy-900 shadow-lg"
+                        class="absolute right-0 z-50 mt-2 w-[290px] overflow-hidden rounded-2xl border border-navy-100 bg-white text-navy-900 shadow-xl"
                         role="menu" aria-label="My Profile">
-                        @foreach ($bar['profile'] as $item)
-                            @if ($item['route'] === 'logout')
-                                {{-- Log out is a POST, never a link: a GET /logout can
-                                     be fired by an image tag or a prefetcher. --}}
-                                <form method="POST" action="{{ route('logout') }}" role="none">
-                                    @csrf
-                                    <button type="submit" role="menuitem"
-                                        class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-navy-900 transition hover:bg-navy-50">
-                                        <x-icon name="lock" class="h-4 w-4 text-navy-400" />
-                                        {{ $item['label'] }}
-                                    </button>
-                                </form>
-                            @else
-                                <a href="{{ route($item['route']) }}" role="menuitem"
-                                    @if (request()->routeIs($item['pattern'])) aria-current="page" @endif
-                                    class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-navy-900 transition hover:bg-navy-50
-                                           {{ request()->routeIs($item['pattern']) ? 'bg-navy-50 text-navy-900' : '' }}">
-                                    <x-icon name="user" class="h-4 w-4 text-navy-400" />
-                                    {{ $item['label'] }}
-                                </a>
-                            @endif
-                        @endforeach
+
+                        {{-- Header: who you are, and what state your account is in.
+                             It is here rather than in the account page because this
+                             is the one question a resident opens this menu with. --}}
+                        <div class="bg-gradient-to-br from-navy-700 to-navy-900 px-4 py-4 text-white">
+                            <div class="flex items-center gap-3">
+                                <span aria-hidden="true"
+                                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-extrabold text-navy-900">
+                                    {{ mb_strtoupper($profileInitial) }}
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-bold text-white">{{ $profileUser->name }}</p>
+                                    <p class="truncate text-xs text-navy-200">{{ $profileUser->email }}</p>
+                                </div>
+                            </div>
+
+                            <span class="mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-2xs font-bold uppercase tracking-wide
+                                         {{ $profileIsVerified ? 'bg-emerald-400/20 text-emerald-200' : 'bg-orange-400/20 text-orange-200' }}">
+                                <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full {{ $profileIsVerified ? 'bg-emerald-300' : 'bg-orange-300' }}"></span>
+                                {{ $profileIsVerified ? 'Verified' : 'Pending verification' }}
+                            </span>
+                        </div>
+
+                        {{-- Two items. The three the old menu carried - Edit
+                             Profile, Change Password, Verification Status - are all
+                             tabs of one page now, and three links to three corners
+                             of a single page is a menu that is really a table of
+                             contents. --}}
+                        <div class="py-1.5">
+                            <a href="{{ route('account.edit') }}" role="menuitem"
+                                @if (request()->routeIs('account.*')) aria-current="page" @endif
+                                class="flex items-start gap-3 px-4 py-2.5 text-left transition hover:bg-navy-50 focus:outline-none focus-visible:bg-navy-50">
+                                <x-icon name="user" class="mt-0.5 h-4 w-4 shrink-0 text-navy-400" />
+                                <span class="min-w-0">
+                                    <span class="block text-sm font-semibold text-navy-900">My Profile</span>
+                                    <span class="block text-xs text-slate-500">Name, password and verification status</span>
+                                </span>
+                            </a>
+
+                            {{-- Log out is a POST, never a link: a GET /logout can be
+                                 fired by an image tag or a link prefetcher. --}}
+                            <form method="POST" action="{{ route('logout') }}" role="none">
+                                @csrf
+                                <button type="submit" role="menuitem"
+                                    class="flex w-full items-start gap-3 px-4 py-2.5 text-left transition hover:bg-red-50 focus:outline-none focus-visible:bg-red-50">
+                                    <x-icon name="lock" class="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-red-600">Log out</span>
+                                        <span class="block text-xs text-slate-500">Sign out of this device</span>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -154,24 +220,31 @@
                 @endforeach
             </ul>
 
+            {{-- The same two items as the dropdown. They used to be four, which
+                 meant the phone panel and the dropdown disagreed about how many
+                 things a resident could do from here. --}}
             <div class="mt-4 border-t border-white/10 pt-4">
                 <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-navy-200/70">My Profile</p>
-                @foreach ($bar['profile'] as $item)
-                    @if ($item['route'] === 'logout')
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="flex w-full items-center gap-2 rounded-lg px-3 py-3 text-left text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">
-                                {{ $item['label'] }}
-                            </button>
-                        </form>
-                    @else
-                        <a href="{{ route($item['route']) }}"
-                            class="block rounded-lg px-3 py-3 text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">
-                            {{ $item['label'] }}
-                        </a>
-                    @endif
-                @endforeach
+
+                <a href="{{ route('account.edit') }}"
+                    @if (request()->routeIs('account.*')) aria-current="page" @endif
+                    class="flex items-center gap-2 rounded-lg px-3 py-3 text-left transition
+                           {{ request()->routeIs('account.*') ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
+                    <x-icon name="user" class="h-4 w-4 shrink-0" />
+                    <span>
+                        <span class="block text-base font-semibold">My Profile</span>
+                        <span class="block text-xs text-navy-200/80">Name, password and verification status</span>
+                    </span>
+                </a>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                        class="flex w-full items-center gap-2 rounded-lg px-3 py-3 text-left text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">
+                        <x-icon name="lock" class="h-4 w-4 shrink-0" />
+                        Log out
+                    </button>
+                </form>
             </div>
         </div>
     </div>

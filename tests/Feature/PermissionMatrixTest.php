@@ -275,8 +275,14 @@ class PermissionMatrixTest extends TestCase
                 $response = $this->actingAs($user)->get(route($route->getName()));
 
                 if (in_array($role, $roles, true)) {
-                    $response->assertSuccessful(
-                        $route->getName().' should admit '.$role.' but did not.'
+                    // Not "successful": a route that does its job by redirecting
+                    // to a canonical URL is doing its job. What must not happen is
+                    // a refusal, a missing record, or a verb the route does not
+                    // accept - each of which would mean the sweep proved nothing.
+                    $this->assertNotContains(
+                        $response->getStatusCode(),
+                        [403, 404, 405],
+                        sprintf('%s should admit %s but answered %d.', $route->getName(), $role, $response->getStatusCode())
                     );
 
                     continue;

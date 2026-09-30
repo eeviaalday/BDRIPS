@@ -233,8 +233,14 @@ class PublicLookupsTest extends TestCase
     {
         $profile = $this->profile('HH-1001', ResidentProfile::VERIFICATION_PENDING);
 
+        // The old address redirects to the tab rather than rendering a second
+        // page showing the same thing.
         $this->actingAs($profile->user)
             ->get(route('resident.verification.status'))
+            ->assertRedirect(route('account.edit', ['tab' => 'verification']));
+
+        $this->actingAs($profile->user)
+            ->get(route('account.edit', ['tab' => 'verification']))
             ->assertOk()
             ->assertSee('HH-1001');
     }
@@ -246,7 +252,7 @@ class PublicLookupsTest extends TestCase
         $profile->update(['rejection_reason' => 'The household number is not on the master list.']);
 
         $this->actingAs($profile->user)
-            ->get(route('resident.verification.status'))
+            ->get(route('account.edit', ['tab' => 'verification']))
             ->assertOk()
             ->assertSee('The household number is not on the master list.')
             ->assertSee(route('resident.verification'));
@@ -274,7 +280,7 @@ class PublicLookupsTest extends TestCase
         $theirs = $this->profile('HH-2002', ResidentProfile::VERIFICATION_VERIFIED);
 
         $content = $this->actingAs($mine->user)
-            ->get(route('resident.verification.status', ['household_number' => 'HH-2002']))
+            ->get(route('account.edit', ['tab' => 'verification', 'household_number' => 'HH-2002']))
             ->assertOk()
             ->getContent();
 

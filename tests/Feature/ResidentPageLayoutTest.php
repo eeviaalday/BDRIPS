@@ -33,16 +33,21 @@ class ResidentPageLayoutTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @return array<string, array{0: string, 1: string}>
+     * Name, query parameters, and the title the hero must show.
+     *
+     * The parameters are separate because route() takes a name and an array; a
+     * name with a "?" in it is not a route name.
+     *
+     * @return array<string, array{0: string, 1: array<string, mixed>, 2: string}>
      */
     public static function residentPages(): array
     {
         return [
-            'document requests' => ['resident.requests.index', 'My Document Requests'],
-            'new request' => ['resident.requests.create', 'Request a Document'],
-            'relief record' => ['resident.relief', 'My Relief Record'],
-            'verification' => ['resident.verification', 'My Verification'],
-            'verification status' => ['resident.verification.status', 'Verification Status'],
+            'document requests' => ['resident.requests.index', [], 'My Document Requests'],
+            'new request' => ['resident.requests.create', [], 'Request a Document'],
+            'relief record' => ['resident.relief', [], 'My Relief Record'],
+            'verification' => ['resident.verification', [], 'My Verification'],
+            'verification tab' => ['account.edit', ['tab' => 'verification'], 'Verification Status'],
         ];
     }
 
@@ -59,9 +64,9 @@ class ResidentPageLayoutTest extends TestCase
      */
     #[Test]
     #[DataProvider('residentPages')]
-    public function the_hero_sits_outside_the_content_container(string $routeName): void
+    public function the_hero_sits_outside_the_content_container(string $routeName, array $parameters): void
     {
-        $html = $this->residentPage($routeName);
+        $html = $this->residentPage($routeName, $parameters);
 
         $hero = strpos($html, 'min-h-[300px]');
         $shell = strpos($html, 'pt-14 sm:pt-16 lg:pt-20');
@@ -77,11 +82,9 @@ class ResidentPageLayoutTest extends TestCase
 
     #[Test]
     #[DataProvider('residentPages')]
-    public function every_resident_page_shows_its_title_in_the_hero(string $routeName, string $title): void
+    public function every_resident_page_shows_its_title_in_the_hero(string $routeName, array $parameters, string $title): void
     {
-        $this->residentPage($routeName);
-
-        $this->assertStringContainsString($title, $this->residentPage($routeName));
+        $this->assertStringContainsString($title, $this->residentPage($routeName, $parameters));
     }
 
     /**
@@ -112,9 +115,9 @@ class ResidentPageLayoutTest extends TestCase
      */
     #[Test]
     #[DataProvider('residentPages')]
-    public function the_breadcrumb_runs_home_then_the_page(string $routeName): void
+    public function the_breadcrumb_runs_home_then_the_page(string $routeName, array $parameters): void
     {
-        $html = $this->residentPage($routeName);
+        $html = $this->residentPage($routeName, $parameters);
 
         $this->assertStringContainsString('aria-label="Breadcrumb"', $html);
         $this->assertStringContainsString('aria-current="page"', $html);
@@ -159,11 +162,11 @@ class ResidentPageLayoutTest extends TestCase
      */
     #[Test]
     #[DataProvider('residentPages')]
-    public function each_resident_page_has_exactly_one_h1(string $routeName): void
+    public function each_resident_page_has_exactly_one_h1(string $routeName, array $parameters): void
     {
         $this->assertSame(
             1,
-            substr_count($this->residentPage($routeName), '<h1'),
+            substr_count($this->residentPage($routeName, $parameters), '<h1'),
             "{$routeName} does not have exactly one h1."
         );
     }
@@ -234,17 +237,19 @@ class ResidentPageLayoutTest extends TestCase
     #[Test]
     public function the_resident_password_page_says_it_is_the_password_page(): void
     {
-        $html = $this->residentPage('account.password');
-
-        $this->assertStringContainsString('Change Password', $html);
-        $this->assertSame(1, substr_count($html, '<h1'));
+        // The old address now redirects to the tab, so the tab is what carries it.
+        $this->assertStringContainsString('Change Password', $this->residentPage('account.edit', ['tab' => 'password']));
+        $this->assertSame(1, substr_count($this->residentPage('account.edit', ['tab' => 'password']), '<h1'));
     }
 
     // ---------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------
 
-    private function residentPage(string $routeName): string
+    /**
+     * @param  array<string, mixed>  $parameters
+     */
+    private function residentPage(string $routeName, array $parameters = []): string
     {
         $user = User::factory()->resident()->create([
             'is_verified' => true,
@@ -263,7 +268,7 @@ class ResidentPageLayoutTest extends TestCase
         DocumentRequest::factory()->submitted()->create(['user_id' => $user->getKey()]);
 
         return $this->actingAs($user)
-            ->get(route($routeName))
+            ->get(route($routeName, $parameters))
             ->assertOk()
             ->getContent();
     }
