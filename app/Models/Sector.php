@@ -34,4 +34,27 @@ class Sector extends Model
     {
         return $this->hasMany(ResidentProfile::class);
     }
+
+    /**
+     * The relief checklist rows filed under this sector.
+     *
+     * The reverse of ReliefDistribution::sector(), and the reason a sector cannot
+     * be deleted while it has any: these rows are the record of who was given
+     * goods, and they are keyed on sector_id rather than on a resident.
+     */
+    public function distributions(): HasMany
+    {
+        return $this->hasMany(ReliefDistribution::class);
+    }
+
+    /**
+     * Whether anything at all still points at this sector.
+     *
+     * Checked before a delete so the refusal can name what is in the way, rather
+     * than the database refusing with a foreign key and the operator guessing.
+     */
+    public function isEmpty(): bool
+    {
+        return $this->residents()->doesntExist() && $this->distributions()->doesntExist();
+    }
 }

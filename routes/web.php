@@ -8,12 +8,17 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
 use App\Http\Controllers\Resident\VerificationController as ResidentVerificationController;
+use App\Http\Controllers\Staff\AccountController as StaffAccountController;
 use App\Http\Controllers\Staff\AnnouncementController as StaffAnnouncementController;
+use App\Http\Controllers\Staff\AuditLogController as StaffAuditLogController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
 use App\Http\Controllers\Staff\DocumentReviewController as StaffDocumentReviewController;
 use App\Http\Controllers\Staff\ReliefBatchController as StaffReliefBatchController;
 use App\Http\Controllers\Staff\ResidentDirectoryController as StaffResidentDirectoryController;
 use App\Http\Controllers\Staff\ResidentVerificationController as StaffResidentVerificationController;
+use App\Http\Controllers\Staff\SectorController as StaffSectorController;
+use App\Http\Controllers\Staff\SettingController as StaffSettingController;
+use App\Http\Controllers\Staff\SystemStatusController as StaffSystemStatusController;
 use App\Models\DocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -253,6 +258,46 @@ Route::middleware(['auth', 'verified', 'role:admin,secretary', 'no-store-authent
         Route::post('/announcements/{announcement}/pin', [StaffAnnouncementController::class, 'pin'])->name('announcements.pin');
         Route::post('/announcements/{announcement}/unpin', [StaffAnnouncementController::class, 'unpin'])->name('announcements.unpin');
         Route::delete('/announcements/{announcement}', [StaffAnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Admin Area
+|--------------------------------------------------------------------------
+| Split out of the staff group above rather than guarded case by case inside it.
+| The staff routes carry role:admin,secretary; these carry role:admin alone, so
+| an Admin-only screen cannot be reached by a Secretary even if somebody later
+| forgets to hide the link.
+|
+| The audit log is deliberately the only one of these with no write route. A
+| trail an Admin can edit is not a trail.
+*/
+
+Route::middleware(['auth', 'verified', 'role:admin', 'no-store-authenticated'])
+    ->prefix('staff')
+    ->name('staff.')
+    ->group(function (): void {
+        // User accounts.
+        Route::get('/accounts', [StaffAccountController::class, 'index'])->name('accounts.index');
+        Route::get('/accounts/{user}', [StaffAccountController::class, 'show'])->name('accounts.show');
+        Route::put('/accounts/{user}/role', [StaffAccountController::class, 'updateRole'])->name('accounts.role');
+        Route::post('/accounts/{user}/restrict', [StaffAccountController::class, 'restrict'])->name('accounts.restrict');
+        Route::post('/accounts/{user}/unrestrict', [StaffAccountController::class, 'unrestrict'])->name('accounts.unrestrict');
+
+        // Sectors and their Kagawad.
+        Route::get('/sectors', [StaffSectorController::class, 'index'])->name('sectors.index');
+        Route::post('/sectors', [StaffSectorController::class, 'store'])->name('sectors.store');
+        Route::put('/sectors/{sector}', [StaffSectorController::class, 'update'])->name('sectors.update');
+        Route::put('/sectors/{sector}/kagawad', [StaffSectorController::class, 'assignKagawad'])->name('sectors.kagawad');
+        Route::delete('/sectors/{sector}', [StaffSectorController::class, 'destroy'])->name('sectors.destroy');
+
+        // Settings, and the audit log. Read-only.
+        Route::get('/settings', [StaffSettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [StaffSettingController::class, 'update'])->name('settings.update');
+        Route::get('/audit', [StaffAuditLogController::class, 'index'])->name('audit.index');
+
+        // System status.
+        Route::get('/status', [StaffSystemStatusController::class, 'index'])->name('status.index');
     });
 
 require __DIR__.'/auth.php';

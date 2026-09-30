@@ -1,4 +1,4 @@
-@props(['status', 'size' => 'md'])
+@props(['status', 'size' => 'md', 'label' => null])
 
 @php
     /*
@@ -7,6 +7,12 @@
      * Status is always communicated by BOTH colour and text, so meaning is
      * never carried by colour alone. Each state also maps to a distinct
      * glyph, giving a third redundant cue for low-vision users.
+     *
+     * The label prop overrides the wording without changing the colours, for
+     * the screens where the state is computed rather than a stored value - a
+     * status page that has to say "3 pending" rather than "Pending" is still
+     * reporting the same state, and inventing a new status key for it would
+     * put a fifth meaning into this map.
      */
 
     $map = [
@@ -32,6 +38,10 @@
 
     $fallback = ['label' => ucwords(str_replace('_', ' ', (string) $status)), 'wrap' => 'bg-navy-50 text-navy-700 border-navy-200', 'dot' => 'bg-navy-400'];
     $s = $map[$status] ?? $fallback;
+
+    if ($label !== null) {
+        $s['label'] = $label;
+    }
 
     $sizes = [
         'sm' => 'px-2 py-0.5 text-2xs gap-1.5',

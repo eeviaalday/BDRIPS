@@ -42,6 +42,50 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public const ROLE_RESIDENT = 'resident';
 
+    /**
+     * Every role, in descending order of access.
+     *
+     * One list, because the role picker, the role filter, the validation rule
+     * and the count-by-role summary all need the same set. A second list is a
+     * second chance to offer a role the middleware does not accept.
+     *
+     * @return list<string>
+     */
+    public static function roles(): array
+    {
+        return [
+            self::ROLE_ADMIN,
+            self::ROLE_SECRETARY,
+            self::ROLE_KAGAWAD,
+            self::ROLE_RESIDENT,
+        ];
+    }
+
+    /**
+     * The roles that may reach the staff area, as a role: middleware string.
+     *
+     * Returned rather than written at each call site, so the staff area and the
+     * staff navigation cannot end up listing different roles.
+     */
+    public static function staffRoles(): array
+    {
+        return [self::ROLE_ADMIN, self::ROLE_SECRETARY];
+    }
+
+    /**
+     * A human label for a role, for screens that show one.
+     */
+    public static function roleLabel(string $role): string
+    {
+        return match ($role) {
+            self::ROLE_ADMIN => 'Admin',
+            self::ROLE_SECRETARY => 'Secretary',
+            self::ROLE_KAGAWAD => 'Kagawad',
+            self::ROLE_RESIDENT => 'Resident',
+            default => ucfirst($role),
+        };
+    }
+
     public function casts(): array
     {
         return [
