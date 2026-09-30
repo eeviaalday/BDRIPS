@@ -4,7 +4,14 @@
     'accept' => null,
     'hint' => null,
     'currentFile' => null,
-    'errors' => [],
+    /*
+     * "messages", not "errors". Laravel shares an $errors ViewErrorBag with
+     * every view, and an anonymous component's prop default only applies when
+     * the name is undefined - so a prop called "errors" was silently replaced by
+     * the error bag, and rendering it blew up on htmlspecialchars() with an
+     * array. x-input-error already calls this prop "messages"; this now matches.
+     */
+    'messages' => [],
     'required' => false,
 ])
 
@@ -28,7 +35,7 @@
      *
      * Nothing here validates. The accept attribute only filters the OS picker;
      * the authoritative checks are the controller's mimes and max rules, and
-     * those messages arrive through $errors.
+     * those messages arrive through $messages.
      */
     $controlId = 'upload-'.$name;
 @endphp
@@ -51,7 +58,7 @@
             class="sr-only"
             @if ($accept) accept="{{ $accept }}" @endif
             @if ($required) required @endif
-            @foreach ((array) $errors as $error) aria-invalid="true" @endforeach
+            @foreach ((array) $messages as $message) aria-invalid="true" @endforeach
             @if ($hint) aria-describedby="{{ $controlId }}-hint" @endif
             x-on:change="fileName = $event.target.files[0]?.name ?? ''"
         />
@@ -72,10 +79,10 @@
         <p id="{{ $controlId }}-hint" class="mt-1.5 text-xs text-navy-500">{{ $hint }}</p>
     @endif
 
-    @foreach ((array) $errors as $error)
+    @foreach ((array) $messages as $message)
         <p class="mt-1.5 flex items-start gap-1 text-xs font-medium text-red-700">
             <x-icon name="x-circle" class="mt-px h-3.5 w-3.5 shrink-0" />
-            <span>{{ $error }}</span>
+            <span>{{ $message }}</span>
         </p>
     @endforeach
 </div>

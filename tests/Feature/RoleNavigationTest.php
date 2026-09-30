@@ -182,7 +182,7 @@ class RoleNavigationTest extends TestCase
             [
                 'account.edit' => 'Edit Profile',
                 'account.password' => 'Change Password',
-                'resident.verification.status' => 'Verification Status',
+                'resident.verification' => 'Verification Status',
                 'logout' => 'Log out',
             ],
             collect(RoleNavigation::residentBar()['profile'])->pluck('label', 'route')->all(),

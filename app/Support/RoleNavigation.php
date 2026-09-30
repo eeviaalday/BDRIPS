@@ -109,7 +109,7 @@ final class RoleNavigation
             'profile' => [
                 ['route' => 'account.edit', 'label' => 'Edit Profile', 'pattern' => 'account.edit'],
                 ['route' => 'account.password', 'label' => 'Change Password', 'pattern' => 'account.password'],
-                ['route' => 'resident.verification.status', 'label' => 'Verification Status', 'pattern' => 'resident.verification.*'],
+                ['route' => 'resident.verification', 'label' => 'Verification Status', 'pattern' => 'resident.verification'],
                 ['route' => 'logout', 'label' => 'Log out', 'pattern' => 'logout'],
             ],
         ];

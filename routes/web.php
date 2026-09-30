@@ -4,7 +4,11 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kagawad\DashboardController as KagawadDashboardController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
+use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
+use App\Http\Controllers\Resident\VerificationController as ResidentVerificationController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
+use App\Models\DocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -119,5 +123,60 @@ Route::middleware(['auth', 'verified', 'no-store-authenticated', 'role:admin,sec
 Route::middleware(['auth', 'verified', 'no-store-authenticated', 'role:kagawad'])
     ->get('/kagawad/dashboard', KagawadDashboardController::class)
     ->name('kagawad.dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Resident Area
+|--------------------------------------------------------------------------
+| Pending and verified residents share one area and one UI; what differs is
+| what the server will accept, and that is enforced in the form request rather
+| than by hiding links. A pending resident can still read everything they already
+| have, which is the point of a hold rather than a lockout.
+|
+| The only per-state difference on the navigation is the verification banner in
+| the public layout, which says what is locked and links to the page that
+| unlocks it.
+*/
+Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'])
+    ->prefix('resident')
+    ->name('resident.')
+    ->group(function () {
+        // Document requests.
+        Route::get('/requests', [ResidentDocumentRequestController::class, 'index'])->name('requests.index');
+        Route::get('/requests/create', [ResidentDocumentRequestController::class, 'create'])->name('requests.create');
+        Route::post('/requests', [ResidentDocumentRequestController::class, 'store'])->name('requests.store');
+        Route::get('/requests/{documentRequest}', [ResidentDocumentRequestController::class, 'show'])->name('requests.show');
+
+        // Relief: the resident's own household only.
+        Route::get('/relief', [ResidentReliefController::class, 'index'])->name('relief');
+
+        // Verification: what state they are in, and the details a Secretary
+        // needs in order to decide.
+        Route::get('/verification', [ResidentVerificationController::class, 'edit'])->name('verification');
+        Route::patch('/verification', [ResidentVerificationController::class, 'update'])->name('verification.update');
+    });
+
+/*
+ * A document request is resolved through its owner, not by id.
+ *
+ * Implicit binding would find the row and hand it to the controller, and the
+ * controller would then have to remember to check the owner. Scoping it here
+ * means a request belonging to somebody else is not found at all, so it 404s
+ * through exactly the same path as an id that never existed - which is what
+ * "a wrong reference and another user's reference give identical output" needs.
+ */
+Route::bind('documentRequest', function (string $value) {
+    $user = request()->user();
+
+    abort_if($user === null, 403);
+
+    $documentRequest = DocumentRequest::query()
+        ->whereBelongsTo($user)
+        ->find($value);
+
+    abort_if($documentRequest === null, 404);
+
+    return $documentRequest;
+});
 
 require __DIR__.'/auth.php';

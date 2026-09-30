@@ -30,13 +30,15 @@
         DocumentRequest::STATUS_SUBMITTED => 'Submitted',
         DocumentRequest::STATUS_UNDER_REVIEW => 'Under Review',
         DocumentRequest::STATUS_READY => 'Ready for Pickup',
-        DocumentRequest::STATUS_COMPLETED => 'Completed',
+        // Collecting the document is the terminal state, so there is no separate
+        // "completed": a resident who has collected it has finished it.
+        DocumentRequest::STATUS_CLAIMED => 'Claimed',
     ];
 
-    $isOffTrack = in_array($status, [
-        DocumentRequest::STATUS_REJECTED,
-        DocumentRequest::STATUS_ABANDONED,
-    ], true);
+    // Rejection is the only way off the main line. There is no "abandoned"
+    // step: the ageing policy that used to write one is not agreed behaviour, and
+    // a step nobody can reach is a step that misleads.
+    $isOffTrack = $status === DocumentRequest::STATUS_REJECTED;
 
     // How far along the main line the record has travelled.
     $reached = $isOffTrack
@@ -58,14 +60,6 @@
             'label' => 'Rejected',
             'state' => 'current',
             'note' => $request?->rejection_reason,
-        ];
-    }
-
-    if ($status === DocumentRequest::STATUS_ABANDONED) {
-        $steps[] = [
-            'label' => 'Abandoned',
-            'state' => 'current',
-            'note' => 'Not collected within the 7 working day pickup window.',
         ];
     }
 

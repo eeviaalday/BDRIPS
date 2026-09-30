@@ -14,9 +14,8 @@
         'submitted' => ['label' => 'Submitted', 'wrap' => 'bg-sky-50 text-sky-800 border-sky-200', 'dot' => 'bg-sky-500'],
         'under_review' => ['label' => 'Under Review', 'wrap' => 'bg-indigo-50 text-indigo-800 border-indigo-200', 'dot' => 'bg-indigo-500'],
         'ready_for_pickup' => ['label' => 'Ready for Pickup', 'wrap' => 'bg-gold-50 text-gold-800 border-gold-300', 'dot' => 'bg-gold-500'],
-        'completed' => ['label' => 'Completed', 'wrap' => 'bg-green-50 text-green-800 border-green-200', 'dot' => 'bg-green-600'],
+        'claimed' => ['label' => 'Claimed', 'wrap' => 'bg-green-50 text-green-800 border-green-200', 'dot' => 'bg-green-600'],
         'rejected' => ['label' => 'Rejected', 'wrap' => 'bg-red-50 text-red-800 border-red-200', 'dot' => 'bg-red-500'],
-        'abandoned' => ['label' => 'Abandoned', 'wrap' => 'bg-navy-50 text-navy-700 border-navy-200', 'dot' => 'bg-navy-400'],
 
         // Resident / profile verification
         'pending' => ['label' => 'Pending', 'wrap' => 'bg-gold-50 text-gold-800 border-gold-300', 'dot' => 'bg-gold-500'],

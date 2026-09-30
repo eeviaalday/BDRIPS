@@ -43,7 +43,16 @@ class EnsureUserHasRole
         // A restricted account keeps its role but loses its access, so the check
         // sits here rather than in each controller: forgetting it in one action
         // would be enough to defeat the whole restriction.
-        if ($user->isRestricted() && ! $request->routeIs('profile.*', 'password.*', 'logout')) {
+        //
+        // It is allowed to keep the routes where it could get itself out again -
+        // change its password, read its own account, and sign out. Forgetting
+        // those is how a frozen account whose password it has forgotten becomes
+        // permanently stuck.
+        //
+        // The account routes deliberately carry no role middleware, so this check
+        // does not currently run for them. They are listed anyway, so that adding
+        // role: to those routes later cannot quietly strand a restricted account.
+        if ($user->isRestricted() && ! $request->routeIs('account.*', 'password.*', 'logout')) {
             abort(403, 'This account is temporarily restricted. Please contact the barangay office.');
         }
 
