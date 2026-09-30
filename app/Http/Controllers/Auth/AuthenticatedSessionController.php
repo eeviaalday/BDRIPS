@@ -22,10 +22,9 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      *
-     * Every role lands on the home page for now, because the role-based areas
-     * are being rebuilt and the home page is the one page that is finished.
-     *
-     * TODO: rebuild - point each role at its own dashboard again.
+     * Every role is sent to /dashboard, which answers per role: a resident to
+     * the public home page, staff and a Kagawad to their own dashboard. The role
+     * lives on the session, so this cannot be influenced by the request.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -33,7 +32,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**

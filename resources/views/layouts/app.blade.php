@@ -11,29 +11,10 @@
         @php
             $user = auth()->user();
 
-            /*
-             * The top bar's right-hand side is built from what actually exists
-             * for this user, so nothing here is a decorative control.
-             *
-             * The bell is NOT a notification centre - there is no notification
-             * system in this application and no record of what a user has seen.
-             * It links to the place where genuinely new information appears for
-             * them, and is labelled as such, so it is not a dead icon and is not
-             * misrepresented as one. The count beside it is a real count of
-             * recent notices.
-             */
-            $updates = match ($user->role) {
-                // Bounded at both ends: a lower bound alone would count notices
-                // scheduled for the future, which are not out yet.
-                'resident' => ['route' => 'resident.directory', 'count' => \App\Models\Announcement::query()->whereBetween('published_at', [now()->subDays(14), now()])->count()],
-                'kagawad' => ['route' => 'kagawad.dashboard', 'count' => null],
-                default => ['route' => 'staff.requests.index', 'count' => \App\Models\DocumentRequest::whereIn('status', ['submitted', 'under_review'])->count()],
-            };
-
-            $settingsRoute = $user->role === 'resident' ? 'resident.settings' : 'staff.settings.index';
-
             // Initials stand in for a photograph: this system stores no profile
-            // images, and a broken avatar reads worse than a neutral one.
+            // images, and a broken avatar reads worse than a neutral one. The
+            // sidebar builds its own copy because an include does not share
+            // variables with the view that includes it in a usable way here.
             $initials = collect(explode(' ', trim($user->name)))
                 ->filter()
                 ->take(2)
@@ -57,28 +38,21 @@
                             </div>
                         </div>
 
+                        {{-- The notification bell and the settings cog that used to sit
+                             here are gone, and nothing replaces them.
+
+                             The bell was not a notification centre - its own comment
+                             said so. It was a link to a page with a count beside it,
+                             and there is no record anywhere of what a person has seen,
+                             so a dot on it could never mean "new to you". With no
+                             notification system, keeping the icon would keep a control
+                             that lies about what the system knows.
+
+                             The cog was a second route to System Settings, which is a
+                             single Admin destination now reachable from the sidebar.
+                             Two doors to an Admin-only page is one more place for the
+                             role check to be missing. --}}
                         <div class="flex items-center gap-2 sm:gap-3">
-                            <a href="{{ route($updates['route']) }}"
-                                class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-navy-900 transition"
-                                aria-label="Recent updates and announcements">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                                @if ($updates['count'])
-                                    <span class="absolute -top-0.5 -right-0.5 inline-flex min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-[18px] text-white">
-                                        {{ $updates['count'] > 9 ? '9+' : $updates['count'] }}
-                                    </span>
-                                @endif
-                            </a>
-
-                            <a href="{{ route($settingsRoute) }}"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-navy-900 transition"
-                                aria-label="Settings">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.3 3.9c.2-.7 1.2-.7 1.4 0l.6 2.3h2.6l.6-2.3c.2-.7 1.2-.7 1.4 0l1.1 4.3 2.2 1.4c.6.4.3 1.4-.5 1.5l-2.5.4 1.1 4.1-2.2-1-1.3 4.3c-.2.7-1.2.7-1.4 0l-.8-2.9-2.6.1.6 2.8c.1.7-.9 1-1.2.3l-1-2.8-2.2-1.4c-.6-.4-.3-1.4.5-1.5l2.2-.8-1-4.1-2 .8c-.6.4-1.3-.3-1-.9l1.2-3.4z" />
-                                </svg>
-                            </a>
-
                             <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 py-1 pl-1 pr-3">
                                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-bold text-white flex-shrink-0"
                                     aria-hidden="true">{{ $initials }}</span>

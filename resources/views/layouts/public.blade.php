@@ -35,17 +35,24 @@
         </a>
 
         {{-- ============================ HEADER ============================
-             One bar, for everyone. It is the finished public header, written
-             out once and shared by guests and by signed-in users alike; a
-             signed-in user simply sees "My Dashboard" where a guest sees
-             "Log in / Register".
+             Two bars, chosen before either is rendered.
 
-             The resident-specific navbar that used to sit in front of this one
-             has gone with the resident area, so that navigation, the
-             pending/verified account indicator and the verification banner are
-             rebuilt with it rather than left half-wired here.
+             A signed-in RESIDENT gets the resident navbar, which is the public
+             bar plus Document Requests and Relief Transparency in place of
+             Log in / Register, plus a gold My Profile menu. Everyone else - a
+             guest, or a member of staff who has come back to read a notice -
+             gets the public bar exactly as it is written below.
 
-             TODO: rebuild - reinstate the role-specific headers. --}}
+             The branch asks Laravel - auth()->check() and User::isResident() -
+             rather than anything the browser supplied, so a role cannot be
+             spoofed by a query string or a hidden field.
+
+             The guest markup is deliberately left unbranched rather than
+             duplicated into a "guest and resident" pair: it is a finished
+             public page, and a resident's header is a separate component. --}}
+        @if (auth()->check() && auth()->user()->isResident())
+            <x-layouts.resident-nav />
+        @else
         <header x-data="{ navOpen: false }" class="sticky top-0 z-50 border-b border-white/10 bg-navy text-white shadow-header">
             <nav class="mx-auto w-full max-w-shell px-4 sm:px-6 lg:px-8 2xl:max-w-[90rem]" aria-label="Main navigation">
                 <div class="flex h-16 items-center justify-between gap-4 lg:h-20">
@@ -182,6 +189,18 @@
                 </div>
             </div>
         </header>
+        @endif
+
+        {{-- ============================ RESIDENT GATE ============================
+             Sits directly under the navbar, and only for a signed-in resident.
+
+             The component renders nothing at all when the profile is verified,
+             and nothing for a guest or a staff member, so on every public page
+             and for every non-resident this is an empty string - the markup
+             below it is unchanged. --}}
+        @if (auth()->check() && auth()->user()->isResident())
+            <x-resident.verification-banner :profile="auth()->user()->residentProfile" />
+        @endif
 
         @auth
             {{-- ============================ BACK BUTTON ============================

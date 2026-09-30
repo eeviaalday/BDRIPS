@@ -79,6 +79,7 @@ class AuditLog extends Model
         return [
             'login' => 'Signed in',
             'logout' => 'Signed out',
+            'account.updated' => 'Account details updated',
             'resident.verified' => 'Resident verified',
             'resident.rejected' => 'Resident rejected',
             'request.approved' => 'Request approved',

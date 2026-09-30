@@ -28,9 +28,10 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
 
-        // Every role lands on the home page for now; the role-based dashboards
-        // are being rebuilt.
-        $response->assertRedirect(route('home'));
+        // Through /dashboard, which answers per role: a resident to the public
+        // home page, staff and a Kagawad to their own dashboard. This user is a
+        // resident, so /dashboard is one hop from the final destination.
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

@@ -331,7 +331,7 @@ class LoginPageAppearanceTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('home'));
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_a_failed_sign_in_is_recorded_against_the_email_field(): void

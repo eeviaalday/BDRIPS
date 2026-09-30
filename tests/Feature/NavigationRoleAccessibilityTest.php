@@ -157,9 +157,13 @@ class NavigationRoleAccessibilityTest extends TestCase
     // ---------------------------------------------------------------------
 
     #[Test]
-    public function a_signed_in_user_gets_the_dashboard_button_instead_of_login_and_register(): void
+    public function a_signed_in_staff_member_gets_the_dashboard_button_instead_of_login_and_register(): void
     {
-        $header = $this->headerOn('/', $this->resident());
+        // A staff member reading a public notice sees the public bar with the
+        // auth slot filled by "My Dashboard". A resident does not see this bar at
+        // all - they get the resident navbar instead, which is covered by
+        // RoleNavigationTest.
+        $header = $this->headerOn('/', User::factory()->secretary()->create());
 
         $this->assertTrue($this->headerHasLink($header, 'My Dashboard'));
 
@@ -170,14 +174,17 @@ class NavigationRoleAccessibilityTest extends TestCase
     }
 
     /**
-     * Every role the application has, and the bar each one should get.
+     * The staff roles, which all share the public bar.
+     *
+     * A resident is deliberately absent: they get the resident navbar, which is
+     * a superset of this row rather than the same bar. That difference is
+     * asserted in RoleNavigationTest.
      *
      * @return array<string, array{0: string}>
      */
-    public static function roleProvider(): array
+    public static function staffRoleProvider(): array
     {
         return [
-            'resident' => ['resident'],
             'kagawad' => ['kagawad'],
             'secretary' => ['secretary'],
             'admin' => ['admin'],
@@ -185,8 +192,8 @@ class NavigationRoleAccessibilityTest extends TestCase
     }
 
     #[Test]
-    #[DataProvider('roleProvider')]
-    public function every_role_is_offered_the_same_public_row(string $role): void
+    #[DataProvider('staffRoleProvider')]
+    public function every_staff_role_is_offered_the_same_public_row(string $role): void
     {
         $user = User::factory()->{$role}()->create();
 
@@ -202,17 +209,16 @@ class NavigationRoleAccessibilityTest extends TestCase
             );
         }
 
-        // There is one bar now, so no role is shown a different set of
-        // destinations than another.
         $this->assertTrue($this->headerHasLink($header, 'My Dashboard'));
     }
 
     #[Test]
-    #[DataProvider('roleProvider')]
-    public function no_role_is_offered_a_way_to_sign_out_from_the_header(string $role): void
+    #[DataProvider('staffRoleProvider')]
+    public function no_staff_role_is_offered_a_way_to_sign_out_from_the_public_header(string $role): void
     {
-        // Logout is reachable from the account pages, not from the public
-        // navbar. Asserted per role because the navbar used to differ by role.
+        // On a public page, signing out lives in the staff top bar, not the
+        // public navbar. A resident's navbar does carry a sign-out, in its
+        // profile menu - that is the difference between the two bars.
         $header = $this->headerOn('/', User::factory()->{$role}()->create());
 
         $this->assertFalse($this->headerHasButton($header, 'Log out'));

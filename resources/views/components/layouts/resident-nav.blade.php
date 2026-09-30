@@ -1,112 +1,54 @@
 {{--
     The signed-in resident's navigation.
 
-    This is the navbar the public site would show a guest, with two additions and
-    one substitution:
+    The public navbar a guest sees, with two additions and one substitution:
 
-      * "Document Request" and "Relief Transparency" join the primary row,
+      * "Document Requests" and "Relief Transparency" join the primary row,
         because those are the things a resident signs in to do and the guest bar
         has no room for them.
       * "Log in" and "Register" are replaced by a single gold "My Profile"
         button, which is the same gold CTA the guest bar already uses.
 
-    The primary row is deliberately the guest row plus those two, and nothing
-    more. The dashboard used to lead it, but that made this bar a different
-    shape from the public one and pushed the desktop breakpoint to xl for eight
-    items. It lives in the profile menu instead: it is still one click away, and
-    the row now matches the public navbar's structure.
+    There is no Dashboard entry. A resident's home is the public home page, and
+    an old version led this bar with a Dashboard that sent them to a page of
+    counts duplicating the two things this bar already links to. There is no
+    "Account Settings" entry either: My Account is one screen for every role, and
+    a second name for it was a second place for the role split to be wrong.
 
-    That menu is defined once, as $accountMenu, and looped by both the desktop
-    dropdown and the mobile panel. It used to be written out twice, once per
-    breakpoint, which is how the two drifted apart in the first place.
+    The link lists come from App\Support\RoleNavigation rather than being written
+    here, so the resident's permissions are as assertable as a staff member's, and
+    so this file and the staff sidebar cannot disagree about what a resident may
+    reach. Both lists are filtered to routes that are registered, because the
+    portal is being built in phases and route() throws on an unknown name rather
+    than producing a dead link.
 
-    "Relief Transparency" points at the in-portal page rather than the public
-    board. A resident who is already signed in is asking about their own
-    household, which the portal page answers without a second lookup form; the
-    public board stays reachable from the footer.
+    The dropdown is defined once and looped by both the desktop dropdown and the
+    mobile panel. The previous version wrote it out twice, once per breakpoint,
+    which is how the two drifted apart.
 
-    It is a separate component rather than a branch inside the public layout so
-    that the guest navbar is left byte-for-byte as it was. A guest is not a
-    resident who has lost a button, and editing one is how the other drifts.
-
-    The dropdown closes on an outside click and on Escape. Alpine's
-    x-on:click.outside fires for a click anywhere outside the button, and
-    x-on:keydown.escape.window catches Escape even while focus is inside the
-    menu, which a plain keydown listener on the trigger would miss.
+    It closes on an outside click and on Escape. Alpine's x-on:click.outside
+    fires for a click anywhere outside the button, and x-on:keydown.escape.window
+    catches Escape even while focus is inside the menu, which a plain keydown
+    listener on the trigger would miss.
 --}}
+@php
+    use App\Support\RoleNavigation;
+
+    $bar = RoleNavigation::availableResidentBar();
+
+    $primaryNav = array_map(
+        fn (array $item): array => [
+            'label' => $item['label'],
+            'url' => route($item['route']),
+            'active' => request()->routeIs($item['pattern']),
+        ],
+        $bar['primary']
+    );
+@endphp
+
 <header x-data="{ navOpen: false, profileOpen: false }" class="sticky top-0 z-50 border-b border-white/10 bg-navy text-white shadow-header">
     <nav class="mx-auto w-full max-w-shell px-4 sm:px-6 lg:px-8 2xl:max-w-[90rem]" aria-label="Main navigation">
         <div class="flex h-16 items-center justify-between gap-4 lg:h-20">
-            @php
-                $primaryNav = [
-                    ['label' => 'Home', 'url' => route('home'), 'active' => request()->routeIs('home')],
-                    ['label' => 'Services', 'url' => route('services.index'), 'active' => request()->routeIs('services.*')],
-                    ['label' => 'About', 'url' => route('about'), 'active' => request()->routeIs('about')],
-                    ['label' => 'Announcements', 'url' => route('announcements.index'), 'active' => request()->routeIs('announcements.*')],
-                    ['label' => 'Contact', 'url' => route('contact'), 'active' => request()->routeIs('contact')],
-                    [
-                        'label' => 'Document Request',
-                        'url' => route('resident.requests.index'),
-                        // A wildcard: /resident/requests, /resident/requests/create
-                        // and /resident/requests/{id} are the same destination, so
-                        // the tab has to stay lit while browsing into one.
-                        'active' => request()->routeIs('resident.requests.*') || request()->routeIs('resident.documents'),
-                    ],
-                    [
-                        // Points at the in-portal page rather than the public
-                        // transparency board: from inside the portal a resident
-                        // is checking their own household, which the portal page
-                        // answers directly.
-                        'label' => 'Relief Transparency',
-                        'url' => route('resident.relief'),
-                        'active' => request()->routeIs('resident.relief'),
-                    ],
-                ];
-
-                // The profile menu, defined once for both breakpoints. Every
-                // entry is a route that already exists and already resolves for
-                // the signed-in resident - there is no placeholder here.
-                //
-                // Account Settings is not invented: /resident/settings is a
-                // working page that reuses the framework's own name-and-password
-                // forms. It was reachable only from the staff sidebar, which no
-                // resident view renders, so in practice a resident could not
-                // get to it at all.
-                $accountMenu = [
-                    [
-                        'label' => 'Dashboard',
-                        'url' => route('resident.dashboard'),
-                        'icon' => 'home',
-                        'active' => request()->routeIs('resident.dashboard'),
-                    ],
-                    [
-                        'label' => 'My Profile',
-                        'url' => route('resident.profile'),
-                        'icon' => 'id-badge',
-                    ],
-                    [
-                        'label' => 'Edit Profile',
-                        'url' => route('resident.profile.edit'),
-                        'icon' => 'user',
-                    ],
-                    [
-                        'label' => 'Account Settings',
-                        'url' => route('resident.settings'),
-                        'icon' => 'settings',
-                    ],
-                    [
-                        'label' => 'Change Password',
-                        'url' => route('resident.profile.change-password'),
-                        'icon' => 'lock',
-                    ],
-                    [
-                        'label' => 'Verification Status',
-                        'url' => route('resident.verification.status'),
-                        'icon' => 'shield',
-                    ],
-                ];
-            @endphp
-
             {{-- Brand --}}
             <a href="{{ route('home') }}" class="group flex min-w-0 shrink-0 items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold">
                 <img src="{{ asset('images/Zone 1_logo.png') }}" alt=""
@@ -118,74 +60,66 @@
                 </span>
             </a>
 
-            {{-- Desktop navigation. Same "a natural flex group" treatment as the
-                 public bar: justify-between on the row already centres this
-                 cluster between the brand and the profile button. --}}
-            <ul class="hidden items-center gap-3 xl:flex">
+            {{-- Desktop row: the public destinations, then the two portal ones. --}}
+            <ul class="hidden items-center gap-4 lg:flex xl:gap-6">
                 @foreach ($primaryNav as $item)
                     <li>
                         <a href="{{ $item['url'] }}"
-                            @if (! empty($item['active'])) aria-current="page" @endif
-                            class="block rounded-lg px-2.5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold
-                                   {{ ! empty($item['active']) ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
+                            @if ($item['active']) aria-current="page" @endif
+                            class="block rounded-lg px-3 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold
+                                   {{ $item['active'] ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
                             {{ $item['label'] }}
                         </a>
                     </li>
                 @endforeach
             </ul>
 
-            {{-- My Profile --}}
-            <div class="relative hidden shrink-0 xl:block">
-                <button type="button"
-                    x-on:click="profileOpen = !profileOpen"
-                    x-on:click.outside="profileOpen = false"
-                    x-on:keydown.escape.window="profileOpen = false"
-                    :aria-expanded="profileOpen ? 'true' : 'false'"
-                    aria-haspopup="true"
-                    aria-controls="resident-profile-menu"
-                    class="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
-                    <x-icon name="user" class="h-4 w-4" />
-                    My Profile
-                </button>
+            {{-- Auth actions: the gold My Profile dropdown replaces Log in / Register. --}}
+            <div class="hidden shrink-0 items-center gap-2 lg:flex">
+                <div x-data="{ open: false }" class="relative">
+                    <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'"
+                        class="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+                        <x-icon name="user" class="h-4 w-4" />
+                        My Profile
+                    </button>
 
-                <div id="resident-profile-menu" x-show="profileOpen" x-cloak
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    @keydown.escape.window="profileOpen = false"
-                    class="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-navy-100 bg-white py-1.5 text-navy-800 shadow-xl"
-                    role="menu" aria-label="My Profile">
-                    @foreach ($accountMenu as $item)
-                        <a href="{{ $item['url'] }}" role="menuitem"
-                            @if (! empty($item['active'])) aria-current="page" @endif
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition hover:bg-navy-50 focus:outline-none focus-visible:bg-navy-50
-                                   {{ ! empty($item['active']) ? 'bg-navy-50 text-navy-900' : '' }}">
-                            <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0 text-navy-400" />
-                            {{ $item['label'] }}
-                        </a>
-                    @endforeach
-
-                    {{-- Logout is a POST with a CSRF token, never a link: a GET
-                         /logout can be triggered by any image tag on any page a
-                         resident visits, and browsers and proxies prefetch links. --}}
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" role="menuitem"
-                            class="flex w-full items-center gap-2.5 border-t border-navy-100 px-4 py-2.5 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus-visible:bg-red-50">
-                            <x-icon name="lock" class="h-4 w-4 shrink-0 text-red-500" />
-                            Log out
-                        </button>
-                    </form>
+                    <div x-show="open" x-cloak x-on:click.outside="open = false"
+                        x-on:keydown.escape.window="open = false"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-navy-200 bg-white text-navy-900 shadow-lg"
+                        role="menu" aria-label="My Profile">
+                        @foreach ($bar['profile'] as $item)
+                            @if ($item['route'] === 'logout')
+                                {{-- Log out is a POST, never a link: a GET /logout can
+                                     be fired by an image tag or a prefetcher. --}}
+                                <form method="POST" action="{{ route('logout') }}" role="none">
+                                    @csrf
+                                    <button type="submit" role="menuitem"
+                                        class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-navy-900 transition hover:bg-navy-50">
+                                        <x-icon name="lock" class="h-4 w-4 text-navy-400" />
+                                        {{ $item['label'] }}
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route($item['route']) }}" role="menuitem"
+                                    @if (request()->routeIs($item['pattern'])) aria-current="page" @endif
+                                    class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-navy-900 transition hover:bg-navy-50
+                                           {{ request()->routeIs($item['pattern']) ? 'bg-navy-50 text-navy-900' : '' }}">
+                                    <x-icon name="user" class="h-4 w-4 text-navy-400" />
+                                    {{ $item['label'] }}
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
             {{-- Mobile toggle --}}
             <button type="button" @click="navOpen = !navOpen"
                 :aria-expanded="navOpen ? 'true' : 'false'" aria-controls="mobile-menu"
-                class="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold xl:hidden">
+                class="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold lg:hidden">
                 <span class="sr-only">Toggle main menu</span>
                 <svg x-show="!navOpen" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -197,7 +131,7 @@
         </div>
     </nav>
 
-    {{-- Mobile menu --}}
+    {{-- Mobile menu: the same two lists, in one panel. --}}
     <div id="mobile-menu" x-show="navOpen" x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-2"
@@ -205,39 +139,39 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="border-t border-white/10 bg-navy xl:hidden">
+        class="border-t border-white/10 bg-navy lg:hidden">
         <div class="mx-auto w-full max-w-shell px-4 pb-5 pt-2 sm:px-6">
             <ul class="space-y-1">
                 @foreach ($primaryNav as $item)
                     <li>
                         <a href="{{ $item['url'] }}"
-                            @if (! empty($item['active'])) aria-current="page" @endif
+                            @if ($item['active']) aria-current="page" @endif
                             class="block rounded-lg px-3 py-3 text-base font-semibold transition
-                                   {{ ! empty($item['active']) ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
+                                   {{ $item['active'] ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
                             {{ $item['label'] }}
                         </a>
                     </li>
                 @endforeach
             </ul>
 
-            <div class="mt-4 space-y-1 border-t border-white/10 pt-4">
-                <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">My Profile</p>
-                {{-- Same $accountMenu the desktop dropdown loops, so the two
-                     cannot disagree about what a resident can reach. --}}
-                @foreach ($accountMenu as $item)
-                    <a href="{{ $item['url'] }}"
-                        @if (! empty($item['active'])) aria-current="page" @endif
-                        class="block rounded-lg px-3 py-3 text-base font-semibold transition
-                               {{ ! empty($item['active']) ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
-                        {{ $item['label'] }}
-                    </a>
+            <div class="mt-4 border-t border-white/10 pt-4">
+                <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-navy-200/70">My Profile</p>
+                @foreach ($bar['profile'] as $item)
+                    @if ($item['route'] === 'logout')
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="flex w-full items-center gap-2 rounded-lg px-3 py-3 text-left text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">
+                                {{ $item['label'] }}
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route($item['route']) }}"
+                            class="block rounded-lg px-3 py-3 text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">
+                            {{ $item['label'] }}
+                        </a>
+                    @endif
                 @endforeach
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                        class="mt-2 w-full rounded-lg bg-gold px-4 py-3 text-center text-sm font-bold text-navy-900">Log out</button>
-                </form>
             </div>
         </div>
     </div>

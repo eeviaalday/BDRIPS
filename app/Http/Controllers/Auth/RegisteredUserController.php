@@ -89,9 +89,7 @@ class RegisteredUserController extends Controller
             throw $e;
         }
 
-        // Every role lands on the home page for now: the role-based areas are
-        // being rebuilt, and the home page is the one page that is finished.
-        // TODO: rebuild - redirect each role to its own dashboard again.
-        return redirect(route('home', absolute: false));
+        // Through /dashboard, which answers per role.
+        return redirect(route('dashboard', absolute: false));
     }
 }
