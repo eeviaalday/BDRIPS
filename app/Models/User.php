@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,7 +20,6 @@ use Illuminate\Notifications\Notifiable;
     'password',
     'role',
     'is_verified',
-    'abandoned_count',
     'restricted_until',
     'assigned_sector_id',
     // Captured by the registration wizard, before any account exists.
@@ -54,9 +54,51 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Restrict to one or more roles.
+     *
+     * @param  Builder<User>  $query
+     * @param  string|list<string>  $roles
+     * @return Builder<User>
+     */
+    public function scopeRole(Builder $query, string|array $roles): Builder
+    {
+        return $query->whereIn('role', (array) $roles);
+    }
+
+    /**
+     * Restrict to residents, which is every account with a resident profile.
+     *
+     * The staff screens list residents through the profile rather than through
+     * the role column, so "is a resident" is answered by the profile's existence
+     * and not by trusting users.role to agree with it.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeResidents(Builder $query): Builder
+    {
+        return $query->whereHas('residentProfile');
+    }
+
     public function residentProfile(): HasOne
     {
         return $this->hasOne(ResidentProfile::class);
+    }
+
+    public function documentRequests(): HasMany
+    {
+        return $this->hasMany(DocumentRequest::class);
+    }
+
+    public function reliefLogs(): HasMany
+    {
+        return $this->hasMany(ReliefDistribution::class, 'logged_by_user_id');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
     }
 
     public function assignedSector(): BelongsTo
@@ -96,11 +138,59 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Whether this account holds any of the given roles.
+     *
+     * The single place the role check happens, so the middleware and any view
+     * that hides a control are reading the same rule.
+     *
+     * @param  list<string>  $roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role, $roles, true);
+    }
+
+    /**
+     * Whether this account may open the staff area at all.
+     *
+     * Secretary and Admin share every staff route; the per-page Admin-only split
+     * is done with role:admin on those routes rather than with a second role
+     * check here, so there is one place that says who is staff.
+     */
+    public function isStaff(): bool
+    {
+        return $this->isAdmin() || $this->isSecretary();
+    }
+
+    /**
+     * The sector ids this Kagawad is responsible for.
+     *
+     * Resolved from sectors.kagawad_user_id, which is the authorisation anchor
+     * for the whole Kagawad area. An empty list is a legitimate state: a Kagawad
+     * who has not been assigned a sector yet must see nothing rather than
+     * everything, so callers get [] and scope to it.
+     *
+     * @return list<int>
+     */
+    public function assignedSectorIds(): array
+    {
+        return Sector::where('kagawad_user_id', $this->getKey())
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+    }
+
+    public function hasAssignedSector(): bool
+    {
+        return $this->assignedSectorIds() !== [];
+    }
+
+    /**
      * Whether an abuse restriction is currently in force.
      *
-     * The columns behind this are kept, but the command that wrote them - the
-     * abandonment policy - went with the document request feature, so nothing
-     * sets a restriction today. Kept so the rebuilt area has the helper ready.
+     * Frozen by an Admin, either until a date or indefinitely. Enforced by the
+     * role middleware, so a restricted account cannot reach its own area while
+     * keeping the routes to change its own password and sign out.
      */
     public function isRestricted(): bool
     {

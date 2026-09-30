@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ResidentProfile;
 use App\Models\Sector;
 use App\Models\Setting;
 use App\Models\User;
@@ -50,6 +51,39 @@ class DatabaseSeeder extends Seeder
     {
         $this->seedSettings();
 
+        // The document catalogue. Seeded before the accounts so a resident can be
+        // given a request type that already exists.
+        $this->call(DocumentTypeSeeder::class);
+
+        $sectors = $this->seedSectors();
+
+        $this->seedAccounts($sectors);
+        $this->seedResidents($sectors);
+
+        // Public notices. The seeder tops the table up to the number the
+        // homepage features rather than assuming an empty announcements table.
+        $this->call(AnnouncementSeeder::class);
+
+        $this->command?->info('BDRPIS seeded successfully.');
+        $this->command?->info('Demo accounts (password: "password"):');
+        $this->command?->info('  admin@bdrpis.test (Admin)');
+        $this->command?->info('  secretary@bdrpis.test (Secretary)');
+        $this->command?->info('  kagawad@bdrpis.test (Kagawad, assigned to the first sector)');
+        $this->command?->info('  resident@bdrpis.test (Resident, verified)');
+        $this->command?->info('  pending@bdrpis.test (Resident, verification pending)');
+    }
+
+    /**
+     * One account per staff role, plus a Kagawad wired to a real sector.
+     *
+     * The Kagawad is assigned rather than left floating because
+     * sectors.kagawad_user_id is the authorisation anchor for the whole Kagawad
+     * area: an account with no sector must see nothing, which is correct
+     * behaviour but makes a poor demo. A second, unassigned Kagawad is created
+     * too, so that empty state is demonstrable rather than theoretical.
+     */
+    private function seedAccounts(Collection $sectors): void
+    {
         User::factory()->admin()->create([
             'name' => 'Barangay Admin',
             'email' => 'admin@bdrpis.test',
@@ -60,22 +94,68 @@ class DatabaseSeeder extends Seeder
             'email' => 'secretary@bdrpis.test',
         ]);
 
-        User::factory()->resident()->create([
+        $kagawad = User::factory()->kagawad()->create([
+            'name' => 'Ramon P. Bautista',
+            'email' => 'kagawad@bdrpis.test',
+        ]);
+
+        $first = $sectors->first();
+
+        if ($first !== null) {
+            $first->update(['kagawad_user_id' => $kagawad->id]);
+            $kagawad->update(['assigned_sector_id' => $first->id]);
+        }
+
+        // Deliberately unassigned, so the "no sector yet" state can be seen.
+        User::factory()->kagawad()->create([
+            'name' => 'Unassigned Kagawad',
+            'email' => 'kagawad-unassigned@bdrpis.test',
+        ]);
+    }
+
+    /**
+     * Two residents, one verified and one still pending, because the whole point
+     * of the resident area is that those two states behave differently.
+     */
+    private function seedResidents(Collection $sectors): void
+    {
+        $sector = $sectors->first();
+
+        if ($sector === null) {
+            return;
+        }
+
+        $verified = User::factory()->resident()->create([
             'name' => 'Ana Dela Cruz',
             'email' => 'resident@bdrpis.test',
         ]);
 
-        $this->seedSectors();
+        ResidentProfile::create([
+            'user_id' => $verified->id,
+            'household_number' => 'HH-1001',
+            'address' => 'Zone 1, Bangued, Abra',
+            'sector_id' => $sector->id,
+            'verification_status' => ResidentProfile::VERIFICATION_VERIFIED,
+            'verified_at' => now(),
+        ]);
 
-        // Public notices. The seeder tops the table up to the number the
-        // homepage features rather than assuming an empty announcements table.
-        $this->call(AnnouncementSeeder::class);
+        $verified->update([
+            'is_verified' => true,
+            'assigned_sector_id' => $sector->id,
+        ]);
 
-        $this->command?->info('BDRPIS seeded successfully.');
-        $this->command?->info('Demo accounts (password: "password"):');
-        $this->command?->info('  admin@bdrpis.test (Admin)');
-        $this->command?->info('  secretary@bdrpis.test (Secretary)');
-        $this->command?->info('  resident@bdrpis.test (Resident)');
+        $pending = User::factory()->resident()->create([
+            'name' => 'Juan Dela Pending',
+            'email' => 'pending@bdrpis.test',
+        ]);
+
+        ResidentProfile::create([
+            'user_id' => $pending->id,
+            'household_number' => 'HH-1002',
+            'address' => 'Pending St., Zone 1, Bangued',
+            'sector_id' => $sector->id,
+            'verification_status' => ResidentProfile::VERIFICATION_PENDING,
+        ]);
     }
 
     /**

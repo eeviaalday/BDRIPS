@@ -96,14 +96,11 @@ class SectorsSeederMatchesTheMigrationTest extends TestCase
         );
     }
 
-    public function test_the_kagawad_relationship_still_resolves_after_seeding(): void
+    public function test_the_kagawad_relationship_resolves_from_the_public_directory_side(): void
     {
-        // The column and the relationship are kept - the public officials
-        // directory reads Sector::kagawad() - but the seeder no longer appoints
-        // a kagawad per purok, because the screen that made the appointment went
-        // with the staff area. So the relationship is exercised by setting the
-        // link directly, which is the half that survives: a sector resolves its
-        // kagawad, and a kagawad resolves back to its sector.
+        // The public officials directory reads Sector::kagawad() for a guest with
+        // no session at all, so the relationship has to resolve on a sector that
+        // was never touched by the seeder's own assignment.
         $this->seed(DatabaseSeeder::class);
 
         $sector = Sector::orderBy('id')->firstOrFail();
@@ -117,16 +114,50 @@ class SectorsSeederMatchesTheMigrationTest extends TestCase
         $this->assertTrue($kagawad->fresh()->isKagawad());
     }
 
-    public function test_the_seeder_does_not_appoint_a_kagawad_for_each_purok(): void
+    public function test_the_seeder_wires_one_kagawad_to_a_real_sector(): void
     {
-        // The counterpart to the test above: the seeder seeds only what the
-        // finished public pages need, and a kagawad roster is not one of them.
+        // sectors.kagawad_user_id is the authorisation anchor for the Kagawad
+        // area, so a seeded Kagawad with no sector would demonstrate nothing: the
+        // correct behaviour for an unassigned Kagawad is to see nothing, so a
+        // demo account that showed an empty screen would look like a bug.
+        //
+        // Exactly one sector is appointed, not all seventeen, and both directions
+        // of the link agree - a Kagawad whose sector does not point back at them
+        // would be able to see a sector the officials directory attributes to
+        // somebody else.
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertFalse(
-            Sector::whereNotNull('kagawad_user_id')->exists(),
-            'The seeder is appointing kagawads again; the staff area that managed them has not been rebuilt.',
-        );
+        $appointed = Sector::whereNotNull('kagawad_user_id')->get();
+
+        $this->assertCount(1, $appointed, 'The demo should appoint exactly one kagawad, not one per purok.');
+
+        $sector = $appointed->first();
+        $kagawad = $sector->kagawad;
+
+        $this->assertNotNull($kagawad, 'The appointed sector has no kagawad on the far side of the relation.');
+        $this->assertTrue($kagawad->isKagawad());
+        $this->assertSame($sector->id, $kagawad->assigned_sector_id, 'The two halves of the kagawad link disagree.');
+        $this->assertTrue($kagawad->reliefKagawadSectors->contains($sector));
+        $this->assertSame([$sector->id], $kagawad->assignedSectorIds());
+    }
+
+    public function test_the_seeder_also_leaves_one_kagawad_unassigned(): void
+    {
+        // The counterpart above. An unassigned Kagawad is a real state the area
+        // has to handle, so the demo carries one rather than leaving that path
+        // undemonstrated.
+        $this->seed(DatabaseSeeder::class);
+
+        $unassigned = User::role(User::ROLE_KAGAWAD)
+            ->where(fn ($query) => $query->whereNull('assigned_sector_id'))
+            ->get();
+
+        $this->assertNotEmpty($unassigned, 'The demo should include a kagawad with no sector.');
+
+        foreach ($unassigned as $kagawad) {
+            $this->assertSame([], $kagawad->assignedSectorIds());
+            $this->assertFalse($kagawad->hasAssignedSector());
+        }
     }
 
     public function test_the_seeder_leaves_purok_name_unset_rather_than_repeating_the_sector_name(): void
