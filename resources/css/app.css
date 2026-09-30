@@ -1,0 +1,148 @@
+/*
+ * Figtree (SIL Open Font License 1.1), self-hosted.
+ *
+ * Self-hosting keeps the portal free of third-party font requests, which
+ * matters for a government system that handles resident personal data, and
+ * removes a render-blocking external dependency. Files live in public/fonts.
+ */
+
+@layer base {
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-400.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-ext-400.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-500.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-ext-500.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-600.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-ext-600.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-700.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-ext-700.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 800;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-800.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'Figtree';
+        font-style: normal;
+        font-weight: 800;
+        font-display: swap;
+        src: url('/fonts/figtree-latin-ext-800.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    /*
+     * Alpine toggles use x-cloak so the mobile menu never flashes on load
+     * before Alpine initialises.
+     */
+    [x-cloak] {
+        display: none !important;
+    }
+
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        /* Guard against horizontal overflow on small screens. */
+        overflow-x: hidden;
+    }
+
+    /* Consistent, visible keyboard focus for every interactive element. */
+    :focus-visible {
+        outline: 2px solid theme('colors.sky.600');
+        outline-offset: 2px;
+    }
+
+    /* Never rely on hover alone; keep tap targets comfortable on touch. */
+    @media (pointer: coarse) {
+        a,
+        button,
+        [role='button'] {
+            touch-action: manipulation;
+        }
+    }
+}
+
+@layer components {
+    /* Skip link, revealed on keyboard focus. */
+    .skip-link {
+        @apply sr-only;
+    }
+
+    .skip-link:focus {
+        @apply not-sr-only fixed left-4 top-4 z-[100] rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white;
+    }
+}
