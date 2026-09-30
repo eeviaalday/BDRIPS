@@ -212,12 +212,29 @@ class ResidentDashboardTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        foreach (['Barangay Officials', 'Contact Information', 'Barangay Profile', 'FAQs'] as $label) {
+        foreach (['Barangay Officials', 'Contact Information', 'My Profile', 'FAQs'] as $label) {
             $this->assertStringContainsString($label, $content);
         }
 
         $this->assertStringContainsString(route('resident.directory', absolute: false), $content);
         $this->assertStringContainsString(route('resident.profile', absolute: false), $content);
+
+        // "FAQs" used to point at the officials directory, which is a different
+        // page and left the portal with no FAQ anywhere. The label now has to
+        // reach the FAQ page it names.
+        $this->assertStringContainsString(route('resident.faq', absolute: false), $content);
+    }
+
+    public function test_the_quick_link_to_a_profile_is_labelled_as_the_residents_own(): void
+    {
+        // The entry used to read "Barangay Profile" while linking to the
+        // resident's own record, so the label and the destination disagreed.
+        $content = $this->actingAs($this->resident())
+            ->get(route('resident.dashboard', absolute: false))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringNotContainsString('Barangay Profile', $content);
     }
 
     public function test_past_events_are_dropped_from_the_upcoming_list(): void

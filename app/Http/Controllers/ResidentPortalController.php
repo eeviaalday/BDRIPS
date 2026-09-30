@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -48,9 +49,25 @@ class ResidentPortalController extends Controller
      * same row. A resident with no profile has no household number yet, so they
      * get the batches but no history, rather than an error.
      */
-    public function relief(): View
+    public function relief(Request $request): View
     {
-        $profile = request()->user()->residentProfile;
+        $profile = $request->user()->residentProfile;
+
+        /*
+         * The lookup form on this page runs for real, against the same scope the
+         * public transparency board uses, so a resident who types a household
+         * reference sees that household's rows here. It used to hand the view an
+         * empty collection whatever was typed, which made the form look broken.
+         *
+         * Optional rather than required: arriving at the page with no query
+         * parameter is the normal case, and validation must not turn that into an
+         * error page.
+         */
+        $validated = $request->validate([
+            'household_number' => ['nullable', ...TransparencyController::householdLookupRules()['household_number']],
+        ]);
+
+        $searchedNumber = $validated['household_number'] ?? null;
 
         return view('resident.relief', [
             // Passed explicitly so the page can gate on isVerified() and show
@@ -58,20 +75,15 @@ class ResidentPortalController extends Controller
             'profile' => $profile,
             'distributions' => $profile === null
                 ? collect()
-                : ReliefDistribution::with('batch', 'sector')
-                    ->where('household_number', $profile->household_number)
-                    ->latest()
-                    ->get(),
+                : ReliefDistribution::forHousehold($profile->household_number)->get(),
             'activeBatches' => ReliefBatch::active()
                 ->withCount('distributions')
                 ->latest()
                 ->get(),
-            // The lookup form and its result. The lookup is the one that already
-            // existed on the transparency page and it is passed through
-            // unchanged, so this page gains the household's own record without
-            // widening or narrowing what a search returns.
-            'searchedNumber' => request()->query('household_number'),
-            'result' => collect(),
+            'searchedNumber' => $searchedNumber,
+            'result' => $searchedNumber === null
+                ? null
+                : ReliefDistribution::forHousehold($searchedNumber)->get(),
         ]);
     }
 

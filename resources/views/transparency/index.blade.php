@@ -97,9 +97,14 @@
                                                     &middot; {{ $row->batch->distribution_date->format('M d, Y') }}
                                                 @endif
                                             </p>
-                                            @if ($row->received_by_name)
-                                                <p class="mt-1 text-sm text-navy-500">Received by: {{ $row->received_by_name }}</p>
-                                            @endif
+                                            {{-- received_by_name is deliberately not
+                                                 rendered here. This search accepts any
+                                                 household reference, so printing the name
+                                                 of whoever signed for that relief turns
+                                                 the lookup into a way to read other
+                                                 residents' names. The same field IS shown
+                                                 on the resident's own household record,
+                                                 where it is their own information. --}}
                                             @if ($row->claimed_at)
                                                 <p class="mt-1 text-sm text-navy-500">Claimed: {{ $row->claimed_at->format('M d, Y g:i A') }}</p>
                                             @endif

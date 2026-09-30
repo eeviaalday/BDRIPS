@@ -4,11 +4,26 @@
     This is the navbar the public site would show a guest, with two additions and
     one substitution:
 
-      * "Document Requests" and "Relief Transparency" join the primary row,
-        because those are the two things a resident signs in to do and the guest
-        bar has no room for them.
+      * "Document Request" and "Relief Transparency" join the primary row,
+        because those are the things a resident signs in to do and the guest bar
+        has no room for them.
       * "Log in" and "Register" are replaced by a single gold "My Profile"
         button, which is the same gold CTA the guest bar already uses.
+
+    The primary row is deliberately the guest row plus those two, and nothing
+    more. The dashboard used to lead it, but that made this bar a different
+    shape from the public one and pushed the desktop breakpoint to xl for eight
+    items. It lives in the profile menu instead: it is still one click away, and
+    the row now matches the public navbar's structure.
+
+    That menu is defined once, as $accountMenu, and looped by both the desktop
+    dropdown and the mobile panel. It used to be written out twice, once per
+    breakpoint, which is how the two drifted apart in the first place.
+
+    "Relief Transparency" points at the in-portal page rather than the public
+    board. A resident who is already signed in is asking about their own
+    household, which the portal page answers without a second lookup form; the
+    public board stays reachable from the footer.
 
     It is a separate component rather than a branch inside the public layout so
     that the guest navbar is left byte-for-byte as it was. A guest is not a
@@ -30,7 +45,7 @@
                     ['label' => 'Announcements', 'url' => route('announcements.index'), 'active' => request()->routeIs('announcements.*')],
                     ['label' => 'Contact', 'url' => route('contact'), 'active' => request()->routeIs('contact')],
                     [
-                        'label' => 'Document Requests',
+                        'label' => 'Document Request',
                         'url' => route('resident.requests.index'),
                         // A wildcard: /resident/requests, /resident/requests/create
                         // and /resident/requests/{id} are the same destination, so
@@ -38,9 +53,56 @@
                         'active' => request()->routeIs('resident.requests.*') || request()->routeIs('resident.documents'),
                     ],
                     [
+                        // Points at the in-portal page rather than the public
+                        // transparency board: from inside the portal a resident
+                        // is checking their own household, which the portal page
+                        // answers directly.
                         'label' => 'Relief Transparency',
-                        'url' => route('transparency.index'),
-                        'active' => request()->routeIs('transparency.*') || request()->routeIs('resident.relief'),
+                        'url' => route('resident.relief'),
+                        'active' => request()->routeIs('resident.relief'),
+                    ],
+                ];
+
+                // The profile menu, defined once for both breakpoints. Every
+                // entry is a route that already exists and already resolves for
+                // the signed-in resident - there is no placeholder here.
+                //
+                // Account Settings is not invented: /resident/settings is a
+                // working page that reuses the framework's own name-and-password
+                // forms. It was reachable only from the staff sidebar, which no
+                // resident view renders, so in practice a resident could not
+                // get to it at all.
+                $accountMenu = [
+                    [
+                        'label' => 'Dashboard',
+                        'url' => route('resident.dashboard'),
+                        'icon' => 'home',
+                        'active' => request()->routeIs('resident.dashboard'),
+                    ],
+                    [
+                        'label' => 'My Profile',
+                        'url' => route('resident.profile'),
+                        'icon' => 'id-badge',
+                    ],
+                    [
+                        'label' => 'Edit Profile',
+                        'url' => route('resident.profile.edit'),
+                        'icon' => 'user',
+                    ],
+                    [
+                        'label' => 'Account Settings',
+                        'url' => route('resident.settings'),
+                        'icon' => 'settings',
+                    ],
+                    [
+                        'label' => 'Change Password',
+                        'url' => route('resident.profile.change-password'),
+                        'icon' => 'lock',
+                    ],
+                    [
+                        'label' => 'Verification Status',
+                        'url' => route('resident.verification.status'),
+                        'icon' => 'shield',
                     ],
                 ];
             @endphp
@@ -96,21 +158,15 @@
                     @keydown.escape.window="profileOpen = false"
                     class="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-navy-100 bg-white py-1.5 text-navy-800 shadow-xl"
                     role="menu" aria-label="My Profile">
-                    <a href="{{ route('resident.profile.edit') }}" role="menuitem"
-                        class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition hover:bg-navy-50 focus:outline-none focus-visible:bg-navy-50">
-                        <x-icon name="user" class="h-4 w-4 shrink-0 text-navy-400" />
-                        Edit Profile
-                    </a>
-                    <a href="{{ route('resident.profile.change-password') }}" role="menuitem"
-                        class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition hover:bg-navy-50 focus:outline-none focus-visible:bg-navy-50">
-                        <x-icon name="lock" class="h-4 w-4 shrink-0 text-navy-400" />
-                        Change Password
-                    </a>
-                    <a href="{{ route('resident.verification.status') }}" role="menuitem"
-                        class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition hover:bg-navy-50 focus:outline-none focus-visible:bg-navy-50">
-                        <x-icon name="shield" class="h-4 w-4 shrink-0 text-navy-400" />
-                        Verification Status
-                    </a>
+                    @foreach ($accountMenu as $item)
+                        <a href="{{ $item['url'] }}" role="menuitem"
+                            @if (! empty($item['active'])) aria-current="page" @endif
+                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition hover:bg-navy-50 focus:outline-none focus-visible:bg-navy-50
+                                   {{ ! empty($item['active']) ? 'bg-navy-50 text-navy-900' : '' }}">
+                            <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0 text-navy-400" />
+                            {{ $item['label'] }}
+                        </a>
+                    @endforeach
 
                     {{-- Logout is a POST with a CSRF token, never a link: a GET
                          /logout can be triggered by any image tag on any page a
@@ -166,12 +222,16 @@
 
             <div class="mt-4 space-y-1 border-t border-white/10 pt-4">
                 <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">My Profile</p>
-                <a href="{{ route('resident.profile.edit') }}"
-                    class="block rounded-lg px-3 py-3 text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">Edit Profile</a>
-                <a href="{{ route('resident.profile.change-password') }}"
-                    class="block rounded-lg px-3 py-3 text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">Change Password</a>
-                <a href="{{ route('resident.verification.status') }}"
-                    class="block rounded-lg px-3 py-3 text-base font-semibold text-navy-100 transition hover:bg-white/10 hover:text-white">Verification Status</a>
+                {{-- Same $accountMenu the desktop dropdown loops, so the two
+                     cannot disagree about what a resident can reach. --}}
+                @foreach ($accountMenu as $item)
+                    <a href="{{ $item['url'] }}"
+                        @if (! empty($item['active'])) aria-current="page" @endif
+                        class="block rounded-lg px-3 py-3 text-base font-semibold transition
+                               {{ ! empty($item['active']) ? 'bg-white/10 text-gold' : 'text-navy-100 hover:bg-white/10 hover:text-white' }}">
+                        {{ $item['label'] }}
+                    </a>
+                @endforeach
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

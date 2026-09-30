@@ -81,12 +81,47 @@
                     </div>
                 @endif
 
-                {{-- Ready: the one place the resident gets an action. The PDF is
-                     served by the staff-authorised route; the resident is sent to
-                     the same URL the Secretary uses, and the route's own
-                     role middleware decides whether it resolves. There is no
-                     resident PDF endpoint, and adding one would be a new
-                     permission rather than a new page. --}}
+                {{-- Released: the resident's one action on this page. There IS a
+                     resident PDF endpoint - ResidentDocumentPdfController, which
+                     renders the same certificate the Secretary sees and refuses
+                     any row that is not this resident's and has not been
+                     released. This comment used to claim the endpoint did not
+                     exist, which left the certificate reachable only by hand-
+                     typing the URL. --}}
+                @if (in_array($documentRequest->status, [
+                    \App\Models\DocumentRequest::STATUS_READY,
+                    \App\Models\DocumentRequest::STATUS_COMPLETED,
+                ], true))
+                    <x-card tone="white" class="border-navy-200">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex items-start gap-3">
+                                <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-white">
+                                    <x-icon name="document" class="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <h2 class="text-base font-bold text-navy-900">Your certificate</h2>
+                                    <p class="mt-1 text-sm text-navy-600">
+                                        Read or print a copy of the
+                                        {{ $documentRequest->documentTypeLabel() }}.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {{-- target=_blank so the PDF opens in its own tab and
+                                 the tracking page stays underneath, and
+                                 rel=noopener because a new tab given a
+                                 reference back can reach this one. --}}
+                            <a href="{{ route('resident.requests.pdf', $documentRequest) }}"
+                                target="_blank" rel="noopener"
+                                class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800">
+                                <x-icon name="download" class="h-4 w-4" />
+                                View PDF
+                            </a>
+                        </div>
+                    </x-card>
+                @endif
+
+                {{-- Ready only: the pickup window. --}}
                 @if ($documentRequest->status === \App\Models\DocumentRequest::STATUS_READY)
                     <x-card tone="white" class="border-gold-300 bg-gold-50/40">
                         <div class="flex items-start gap-3">

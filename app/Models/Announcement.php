@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\AnnouncementFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -174,6 +175,22 @@ class Announcement extends Model
     public function isPinned(): bool
     {
         return $this->pinned_at !== null;
+    }
+
+    /**
+     * Narrow to notices that are actually published.
+     *
+     * A notice with no published_at is still a draft, and one dated ahead is
+     * scheduled; neither may reach a resident or the public site. Every reader
+     * of this table goes through this scope so a second code path cannot
+     * accidentally drop the future-date check and leak a scheduled notice.
+     *
+     * @return Builder<static>
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
     }
 
     /**

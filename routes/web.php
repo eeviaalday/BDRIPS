@@ -69,7 +69,16 @@ Route::get('/directory', [PublicController::class, 'directory'])->name('public.d
 */
 Route::middleware(['auth', 'no-store-authenticated'])->group(function () {
     Route::get('/transparency', [TransparencyController::class, 'index'])->name('transparency.index');
-    Route::get('/transparency/search', [TransparencyController::class, 'search'])->name('transparency.search');
+
+    // Throttled because a household number is short and sequential: the whole
+    // point of the identifier is that the next one along is a guessable
+    // neighbour. A signed-in resident gets a handful of lookups a minute, which
+    // is far more than checking two households takes, and the counter resets
+    // quickly enough that a real resident never meets it.
+    Route::get('/transparency/search', [TransparencyController::class, 'search'])
+        ->middleware('throttle:20,1')
+        ->name('transparency.search');
+
     Route::get('/track', [DocumentRequestController::class, 'track'])->name('requests.track');
 });
 
@@ -124,7 +133,14 @@ Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'
     // rather than to the public routes, so a signed-in resident never gets
     // thrown out of the portal layout to read a notice or check relief status.
     Route::get('/directory', [ResidentPortalController::class, 'directory'])->name('directory');
-    Route::get('/relief', [ResidentPortalController::class, 'relief'])->name('relief');
+
+    // Throttled for the same reason as /transparency/search: this page carries a
+    // household lookup, and household numbers are short and sequential enough to
+    // be walked in order.
+    Route::get('/relief', [ResidentPortalController::class, 'relief'])
+        ->middleware('throttle:20,1')
+        ->name('relief');
+
     Route::get('/profile', [ResidentPortalController::class, 'profile'])->name('profile');
     Route::get('/settings', [ResidentPortalController::class, 'settings'])->name('settings');
     Route::get('/documents', [ResidentDocumentController::class, 'index'])->name('documents');

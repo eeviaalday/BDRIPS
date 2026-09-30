@@ -7,6 +7,7 @@ use App\Models\ReliefDistribution;
 use App\Models\ResidentProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -81,12 +82,153 @@ class ResidentPortalNavigationTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        // The two things a resident signs in to do join the public row, and the
-        // gold button becomes the profile menu rather than a dashboard link.
-        $this->assertStringContainsString('Document Requests', $content);
+        // The three things a resident signs in to do join the public row, and the
+        // gold button becomes the profile menu.
+        //
+        // "My Dashboard" is deliberately absent as a *label*: the tab reads
+        // "Dashboard". The assertion below checks the destination instead, which
+        // is the part that actually matters - a label can be reworded, a nav
+        // that cannot reach the signed-in landing page is broken.
+        $this->assertStringContainsString('Document Request', $content);
         $this->assertStringContainsString('Relief Transparency', $content);
         $this->assertStringContainsString('My Profile', $content);
         $this->assertStringNotContainsString('My Dashboard', $content);
+    }
+
+    public function test_the_resident_navbar_can_get_back_to_the_dashboard(): void
+    {
+        // There used to be no link to the dashboard at all, so a resident who
+        // wandered into the portal had no way back to their own page except the
+        // logo, which goes to the public homepage.
+        //
+        // It moved out of the primary row and into the profile menu when the
+        // resident navbar was aligned with the public one, so this now asserts
+        // the destination is still offered - not that it sits in the top row.
+        $content = $this->actingAs($this->resident())
+            ->get(route('resident.directory', absolute: false))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('Dashboard', $content);
+        $this->assertStringContainsString(route('resident.dashboard', absolute: false), $content);
+    }
+
+    public function test_the_resident_primary_row_mirrors_the_public_one(): void
+    {
+        // The guest row plus the two things a resident signs in to do. The
+        // dashboard used to lead this row, which made the bar a different shape
+        // from the public one and pushed its desktop breakpoint to xl.
+        $content = $this->actingAs($this->resident())
+            ->get(route('resident.dashboard', absolute: false))
+            ->assertOk()
+            ->getContent();
+
+        foreach ([
+            'Home', 'Services', 'About', 'Announcements', 'Contact',
+            'Document Request', 'Relief Transparency',
+        ] as $label) {
+            // The label sits on its own line inside the anchor, so this allows
+            // surrounding whitespace rather than assuming ">Home</a>".
+            $this->assertMatchesRegularExpression(
+                '/>\s*'.preg_quote($label, '/').'\s*<\/a>/',
+                $content,
+                "The resident navbar does not offer \"{$label}\".",
+            );
+        }
+    }
+
+    public function test_the_profile_menu_reaches_account_settings(): void
+    {
+        // /resident/settings is a working page that reuses the framework's own
+        // name-and-password forms, but it was linked only from the staff
+        // sidebar - which no resident view renders. So in practice a resident
+        // could not reach their own account settings at all.
+        $content = $this->actingAs($this->resident())
+            ->get(route('resident.dashboard', absolute: false))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('Account Settings', $content);
+        $this->assertStringContainsString(route('resident.settings', absolute: false), $content);
+    }
+
+    public function test_every_profile_menu_item_works_for_a_signed_in_resident(): void
+    {
+        // The dropdown was written out twice, once per breakpoint, which is how
+        // the two drifted apart. Both now loop one array, and each entry has to
+        // resolve - a menu link to a route that 404s is worse than no link.
+        foreach ([
+            'resident.dashboard',
+            'resident.profile',
+            'resident.profile.edit',
+            'resident.settings',
+            'resident.profile.change-password',
+            'resident.verification.status',
+        ] as $name) {
+            $this->assertTrue(
+                Route::has($name),
+                "The profile menu links to {$name}, which is not a route.",
+            );
+        }
+
+        $this->actingAs($this->resident())
+            ->get(route('resident.settings'))
+            ->assertOk();
+    }
+
+    public function test_the_profile_menu_is_offered_on_both_breakpoints(): void
+    {
+        // "Desktop" and "mobile" here are the two renderings of the same header:
+        // the desktop dropdown is xl:block and the mobile panel xl:hidden. Both
+        // are in the HTML at once, so a link present in only one of them is
+        // invisible to whichever resident is on that viewport.
+        //
+        // Counted inside the <header> only. The page body links to the same
+        // destinations - the dashboard's own quick actions, the verification
+        // banner - and including those would make the count meaningless.
+        $page = $this->actingAs($this->resident())
+            ->get(route('resident.dashboard', absolute: false))
+            ->assertOk()
+            ->getContent();
+
+        $start = strpos($page, '<header');
+        $end = $start === false ? false : strpos($page, '</header>', $start);
+
+        $this->assertNotFalse($start, 'The resident navbar did not render a <header>.');
+        $this->assertNotFalse($end, 'The resident navbar did not close its <header>.');
+
+        $header = substr($page, $start, $end - $start + strlen('</header>'));
+
+        // Two occurrences of each account destination inside the header: once in
+        // the dropdown, once in the mobile panel. route() in a template emits an
+        // absolute URL, so that is what has to be counted.
+        foreach ([
+            route('resident.profile'),
+            route('resident.settings'),
+            route('resident.dashboard'),
+            route('resident.profile.change-password'),
+            route('resident.verification.status'),
+        ] as $url) {
+            $this->assertSame(
+                2,
+                substr_count($header, 'href="'.$url.'"'),
+                "{$url} should appear once in the profile menu and once in the mobile panel.",
+            );
+        }
+    }
+
+    public function test_the_relief_tab_stays_inside_the_portal(): void
+    {
+        // It used to point at the public transparency board, which threw the
+        // resident out of the portal layout to answer a question the portal
+        // page answers directly.
+        $content = $this->actingAs($this->resident())
+            ->get(route('resident.relief', absolute: false))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString(route('resident.relief', absolute: false), $content);
+        $this->assertStringContainsString('aria-current="page"', $content);
     }
 
     public function test_a_guest_still_gets_the_original_public_navbar(): void

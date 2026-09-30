@@ -45,16 +45,30 @@
                             <li class="flex flex-col gap-3 rounded-xl border border-navy-100 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
                                 <div class="min-w-0">
                                     <p class="font-semibold text-navy-900">
-                                        {{ $distribution->batch?->name ?? 'Relief assistance' }}
+                                        {{ $distribution->batch?->title ?? 'Relief assistance' }}
                                     </p>
+                                    {{-- This is the resident's OWN household, so the name of
+                                         whoever signed for the relief is their own business
+                                         and is shown. The arbitrary-number lookup further
+                                         down deliberately omits it, because that one can be
+                                         pointed at any household in the barangay. --}}
+                                    @if ($wasReceived && $distribution->received_by_name)
+                                        <p class="mt-1 text-xs text-navy-500">
+                                            Received by {{ $distribution->received_by_name }}
+                                        </p>
+                                    @endif
                                     <p class="mt-0.5 text-sm text-navy-600">
                                         @if ($distribution->sector?->sector_name)
                                             {{ $distribution->sector->sector_name }} &middot;
                                         @endif
-                                        @if ($wasReceived && $distribution->distribution_date)
-                                            Received {{ $distribution->distribution_date->format('M d, Y') }}
-                                        @elseif ($distribution->distribution_date)
-                                            Scheduled {{ $distribution->distribution_date->format('M d, Y') }}
+                                        {{-- claimed_at is when this household
+                                             actually collected; the batch date is
+                                             only the scheduled day. The row has no
+                                             distribution_date of its own. --}}
+                                        @if ($wasReceived && $distribution->claimed_at)
+                                            Received {{ $distribution->claimed_at->format('M d, Y') }}
+                                        @elseif ($distribution->batch?->distribution_date)
+                                            Scheduled {{ $distribution->batch->distribution_date->format('M d, Y') }}
                                         @else
                                             Date to be announced
                                         @endif
@@ -118,7 +132,7 @@
                 <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     @foreach ($activeBatches as $batch)
                         <li class="rounded-xl border border-navy-100 bg-navy-50/40 px-4 py-3">
-                            <p class="font-semibold text-navy-900">{{ $batch->name }}</p>
+                            <p class="font-semibold text-navy-900">{{ $batch->title }}</p>
                             <p class="mt-0.5 text-sm text-navy-600">
                                 {{ $batch->distributions_count }}
                                 {{ \Illuminate\Support\Str::plural('household', $batch->distributions_count) }} served
@@ -134,48 +148,96 @@
             </x-card>
         @endif
 
-        {{-- The household lookup that already existed. Left exactly as it was:
-             auth-only, and it answers with the rows for the number typed in. It
-             is not widened here to "your household" and not narrowed either. --}}
+        {{-- The household lookup. Posts back to THIS page rather than to the
+             public transparency route, which used to throw the resident out of
+             the portal and render a different page with its own form on it.
+             The controller runs the same scope the public board does, so the
+             answer is the same one either page gives. --}}
         <x-card tone="white" class="mt-6">
             <h2 class="text-base font-bold text-navy-900">Look up a household number</h2>
             <p class="mt-1 text-sm text-navy-600">
                 Check the status recorded against any household number.
             </p>
 
-            <form method="GET" action="{{ route('transparency.search') }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+            {{-- GET on purpose: the reference is in the URL so a result can be
+                 bookmarked or sent to the barangay desk, and a search that
+                 changes nothing on the server has no reason to be a POST.
+
+                 x-data is additive, not load-bearing: with scripting off the
+                 form submits exactly as before and :disabled never binds. The
+                 spin is here because on a slow connection a GET that returns
+                 the same page looks identical to a button that is broken. --}}
+            <form method="GET" action="{{ route('resident.relief') }}"
+                x-data="{ searching: false }"
+                x-on:submit="searching = true"
+                :aria-busy="searching ? 'true' : 'false'"
+                class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div class="flex-1">
                     <label for="household_number" class="block text-sm font-semibold text-navy-900">Household number</label>
                     <input id="household_number" name="household_number" type="text" maxlength="50"
-                        value="{{ $searchedNumber ?? '' }}"
-                        class="mt-1.5 block w-full rounded-lg border border-navy-200 bg-white px-3 py-2.5 text-sm text-navy-900 transition focus:border-sky-600 focus:ring-2 focus:ring-sky-600/25 focus:outline-none">
+                        value="{{ old('household_number', $searchedNumber ?? '') }}"
+                        autocomplete="off" spellcheck="false"
+                        @error('household_number') aria-invalid="true" aria-describedby="household_number-error" @enderror
+                        class="mt-1.5 block w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-navy-900 transition focus:ring-2 focus:outline-none
+                               {{ $errors->has('household_number') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/25' : 'border-navy-200 focus:border-sky-600 focus:ring-sky-600/25' }}">
+                    <p class="mt-1.5 text-xs text-navy-500">Letters, numbers and hyphens, e.g. HH-0001.</p>
+                    @error('household_number')
+                        <p id="household_number-error" class="mt-1.5 text-sm font-medium text-red-700">{{ $message }}</p>
+                    @enderror
                 </div>
-                <button type="submit"
-                    class="inline-flex items-center justify-center rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800">
-                    Search
+                <button type="submit" :disabled="searching"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:cursor-progress disabled:opacity-70">
+                    <span x-show="!searching">Search</span>
+                    <span x-show="searching" class="inline-flex items-center gap-2">
+                        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        Searching
+                    </span>
+                    <span class="sr-only" x-show="searching" role="status">Looking up that household number.</span>
                 </button>
             </form>
 
-            @if (($searchedNumber ?? null) !== null)
-                @if ($result->isEmpty())
-                    <x-alert variant="warning" icon="search" class="mt-4">
-                        No relief record is filed against <span class="font-mono font-semibold">{{ $searchedNumber }}</span>.
-                    </x-alert>
-                @else
-                    <ul class="mt-4 space-y-2">
-                        @foreach ($result as $row)
-                            <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy-100 px-4 py-2.5 text-sm">
-                                <span class="font-medium text-navy-900">{{ $row->batch?->name ?? 'Relief assistance' }}</span>
-                                <span class="text-navy-600">
-                                    {{ ($row->distribution_date?->format('M d, Y') ?? 'Date to be announced') }}
-                                    &middot;
-                                    {{ $row->status === \App\Models\ReliefDistribution::STATUS_RECEIVED ? 'Received' : 'Not yet received' }}
-                                </span>
-                            </li>
-                        @endforeach
-                    </ul>
+            {{-- aria-live so the result is announced when it appears, rather
+                 than the page silently growing a list below the fold. --}}
+            <div aria-live="polite">
+                @if ($searchedNumber !== null)
+                    @if ($result->isEmpty())
+                        <x-alert variant="warning" icon="search" class="mt-4">
+                            No relief record is filed against <span class="font-mono font-semibold">{{ $searchedNumber }}</span>.
+                        </x-alert>
+                    @else
+                        <p class="mt-5 text-sm font-semibold text-navy-900">
+                            {{ $result->count() }}
+                            {{ \Illuminate\Support\Str::plural('record', $result->count()) }}
+                            for <span class="font-mono">{{ $searchedNumber }}</span>
+                        </p>
+                        <ul class="mt-3 space-y-2">
+                            @foreach ($result as $row)
+                                {{-- Deliberately batch, date and status only.
+                                     The distribution also records the name of
+                                     whoever collected it; a household lookup is
+                                     not a place to read another resident's
+                                     name, so it is not shown here. --}}
+                                <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy-100 px-4 py-2.5 text-sm">
+                                    <span class="font-medium text-navy-900">{{ $row->batch?->title ?? 'Relief assistance' }}</span>
+                                    <span class="text-navy-600">
+                                        {{ ($row->batch?->distribution_date?->format('M d, Y') ?? 'Date to be announced') }}
+                                        &middot;
+                                        {{ $row->status === \App\Models\ReliefDistribution::STATUS_RECEIVED ? 'Received' : 'Not yet received' }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
                 @endif
-            @endif
+            </div>
+
+            <x-alert variant="privacy" icon="lock" class="mt-5">
+                This lookup returns the relief records filed against the exact number you enter.
+                It does not show another household&rsquo;s name, address or personal details.
+            </x-alert>
         </x-card>
     </x-shell>
 </x-public-layout>

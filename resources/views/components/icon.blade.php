@@ -48,6 +48,22 @@
         // set is stroke-only and fill="none", so a filled glyph would render as
         // a hollow outline. The shape still reads as Facebook at button size.
         'facebook' => '<rect x="3" y="3" width="18" height="18" rx="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.9 21v-7.5h2.5l.4-2.9h-2.9V8.8c0-.83.23-1.4 1.43-1.4h1.52V4.79A19.4 19.4 0 0014.63 4.7c-2.02 0-3.4 1.23-3.4 3.5v2.3H8.5v2.9h2.73V21"/>',
+        // Added for the resident dashboard. Same stroke-only 24-box style as the
+        // rest of the set, so they sit beside the existing glyphs without a
+        // second visual language. An unmapped name silently renders the
+        // document glyph, so a request for a new icon should either reuse one
+        // of these or add a real entry here rather than inventing a name.
+        'shield-check' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>',
+        'minus' => '<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/>',
+        'folder' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>',
+        'archive' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v3H3V7zm1 5h16v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7zm6 3h8"/>',
+        'help-circle' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3m.1 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        'edit' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+        'upload' => '<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12L8 8m4-4l4 4"/>',
+        // The gear the staff top bar was already drawing inline, lifted into the
+        // set so the resident's Account Settings item and the staff settings link
+        // are the same glyph rather than two hand-drawn approximations.
+        'settings' => '<path stroke-linecap="round" stroke-linejoin="round" d="M10.3 3.9c.2-.7 1.2-.7 1.4 0l.6 2.3h2.6l.6-2.3c.2-.7 1.2-.7 1.4 0l1.1 4.3 2.2 1.4c.6.4.3 1.4-.5 1.5l-2.5.4 1.1 4.1-2.2-1-1.3 4.3c-.2.7-1.2.7-1.4 0l-.8-2.9-2.6.1.6 2.8c.1.7-.9 1-1.2.3l-1-2.8-2.2-1.4c-.6-.4-.3-1.4.5-1.5l2.2-.8-1-4.1 2 .8c.6.4 1.3-.3 1-.9l1.2-3.4z"/>',
     ];
 
     $path = $paths[$name] ?? $paths['document'];

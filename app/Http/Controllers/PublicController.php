@@ -192,9 +192,7 @@ class PublicController extends Controller
      */
     private function publishedAnnouncements(): Builder
     {
-        return Announcement::whereNotNull('published_at')
-            ->where('published_at', '<=', now())
-            ->latest('published_at');
+        return Announcement::published()->latest('published_at');
     }
 
     /**

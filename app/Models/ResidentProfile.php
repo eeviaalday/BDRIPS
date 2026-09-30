@@ -51,4 +51,42 @@ class ResidentProfile extends Model
     {
         return $this->verification_status === self::VERIFICATION_VERIFIED;
     }
+
+    /**
+     * The details a verification submission must carry, in the order the
+     * verification form asks for them, mapped to the label shown to the
+     * resident when one is still missing.
+     *
+     * @return array<string, string>
+     */
+    public static function requiredDetailLabels(): array
+    {
+        return [
+            'household_number' => 'Household reference number',
+            'national_or_voter_id' => 'National or voter ID',
+            'address' => 'House address',
+            'sector_id' => 'Sector',
+            'id_photo_path' => 'ID photo',
+        ];
+    }
+
+    /**
+     * Which of the required details are still blank, keyed by column.
+     *
+     * The dashboard shows this so a resident can see what is outstanding before
+     * submitting, instead of discovering it through a rejected request.
+     *
+     * @return array<string, string> column => human label
+     */
+    public function missingRequiredDetails(): array
+    {
+        return collect(static::requiredDetailLabels())
+            ->reject(fn (string $label, string $column) => filled($this->{$column}))
+            ->all();
+    }
+
+    public function hasCompleteDetails(): bool
+    {
+        return $this->missingRequiredDetails() === [];
+    }
 }

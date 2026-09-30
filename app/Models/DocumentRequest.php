@@ -72,6 +72,16 @@ class DocumentRequest extends Model
     ];
 
     /**
+     * How many open requests one resident may hold at a time.
+     *
+     * Lives on the model rather than inline at each check so the ceiling
+     * enforced on submit, the figure shown on the dashboard, and the wording of
+     * the refusal all read the same number. Changing it in one place is the only
+     * way to avoid a limit the interface contradicts.
+     */
+    public const OPEN_REQUEST_LIMIT = 3;
+
+    /**
      * The label for a document type, without needing an instance.
      */
     public static function typeLabel(string $type): string

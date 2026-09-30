@@ -107,9 +107,9 @@ class DocumentRequestController extends Controller
             ->whereIn('status', DocumentRequest::OPEN_STATUSES)
             ->count();
 
-        if ($openCount >= 3) {
+        if ($openCount >= DocumentRequest::OPEN_REQUEST_LIMIT) {
             return back()->withErrors([
-                'document_type' => 'You already have up to 3 pending document requests. Please wait for those to be completed first.',
+                'document_type' => 'You already have up to '.DocumentRequest::OPEN_REQUEST_LIMIT.' pending document requests. Please wait for those to be completed first.',
             ]);
         }
 

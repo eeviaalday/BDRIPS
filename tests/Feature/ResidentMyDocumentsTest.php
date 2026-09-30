@@ -400,8 +400,12 @@ class ResidentMyDocumentsTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString($profile->household_number, $content);
-        $this->assertStringContainsString($received->batch?->name ?? 'Relief assistance', $content);
-        $this->assertStringContainsString($pending->batch?->name ?? 'Relief assistance', $content);
+
+        // batch->title, not batch->name: the column is title, so asserting on
+        // "name" silently compared the view's fallback string and passed whether
+        // or not the real programme title rendered.
+        $this->assertStringContainsString($received->batch?->title ?? 'Relief assistance', $content);
+        $this->assertStringContainsString($pending->batch?->title ?? 'Relief assistance', $content);
         $this->assertStringContainsString('Received', $content);
         $this->assertStringContainsString('Not yet received', $content);
     }
