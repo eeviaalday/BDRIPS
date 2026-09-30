@@ -231,14 +231,12 @@ class PublicMultiPageNavigationTest extends TestCase
     {
         $content = $this->get(route('contact'))->assertOk()->getContent();
 
-        // The lookup lives on /transparency behind a sign-in; the panel is the
-        // way in. A second copy of the form here would drift from that page.
-        $this->assertStringNotContainsString(
-            route('transparency.search'),
-            $content,
-            'The contact page still submits the household lookup itself.',
-        );
+        // There is no household lookup to submit, on this page or any other, so
+        // the panel is the single way in to the relief information. A second copy
+        // of a form here would drift from the board.
         $this->assertStringNotContainsString('name="household_number"', $content);
+        $this->assertStringNotContainsString('transparency/search', $content);
+        $this->assertStringContainsString(route('transparency.index'), $content);
     }
 
     public function test_the_contact_page_sends_a_guest_through_to_the_login_screen(): void
@@ -273,26 +271,24 @@ class PublicMultiPageNavigationTest extends TestCase
 
     public function test_the_household_lookup_is_only_reachable_behind_a_sign_in(): void
     {
-        // The lookup page itself is gone while the areas are rebuilt, and the
-        // route name survives as a stub so the public pages that link to it keep
-        // resolving. The security-relevant half of this test is unchanged by
-        // that: a guest is still sent to the login screen rather than being
-        // shown a household lookup.
-        $this->get(route('transparency.search').'?household_number=HH-0001')
-            ->assertRedirect(route('login'));
+        // There is no public household-number search at all, which is a stronger
+        // answer than the one this test used to assert. A public endpoint that
+        // said "is HH-0142 on a relief list" confirms which household numbers are
+        // real, and household numbers are short enough to enumerate. The board
+        // therefore carries no lookup form, and a resident reads their own record
+        // through resident.relief, which is scoped by the route rather than by a
+        // parameter they supply.
+        $board = $this->get(route('transparency.index'))->assertOk()->getContent();
 
-        // A signed-in user is sent home, because there is no page to show them
-        // yet. The same is asserted for the transparency board itself, which the
-        // footer, the contact page and a homepage card all link to.
-        $user = User::factory()->resident()->create();
+        $this->assertStringNotContainsString('name="household_number"', $board);
+        $this->assertStringNotContainsString('transparency/search', $board);
+        $this->assertStringContainsString(route('login'), $board, 'A guest is offered the way in.');
 
-        $this->actingAs($user)
-            ->get(route('transparency.search').'?household_number=HH-0001')
-            ->assertRedirect(route('home'));
-
-        $this->actingAs($user)
-            ->get(route('transparency.index'))
-            ->assertRedirect(route('home'));
+        // And the route itself is gone, so there is nothing left to enumerate.
+        $this->assertFalse(
+            collect(app('router')->getRoutes())->contains(fn ($route) => $route->uri() === 'transparency/search'),
+            'A public household-number lookup must not exist.'
+        );
     }
 
     public function test_no_link_still_points_at_a_removed_homepage_anchor(): void

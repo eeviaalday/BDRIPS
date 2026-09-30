@@ -31,6 +31,29 @@ class VerificationController extends Controller
         ]);
     }
 
+    /**
+     * Where the verification has got to, read only.
+     *
+     * A separate page from the edit form because they answer different
+     * questions. "What is happening to my registration" should not require
+     * scrolling past a form to find out, and the profile tab that links here is
+     * a status link, not an edit link.
+     *
+     * Every state says what happens next. A resident who can only see "pending"
+     * learns nothing about whether they should be waiting or doing something,
+     * and a hold they cannot act on is indistinguishable from one they can.
+     */
+    public function status(Request $request): View
+    {
+        $profile = $request->user()->residentProfile;
+
+        abort_if($profile === null, 404, 'No resident profile is attached to this account.');
+
+        return view('resident.verification-status', [
+            'profile' => $profile,
+        ]);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();

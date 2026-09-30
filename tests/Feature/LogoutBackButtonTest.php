@@ -160,13 +160,15 @@ class LogoutBackButtonTest extends TestCase
         // The stubs have no middleware, so the branch that sends a guest to the
         // login screen is theirs to make. If one loses it, a guest gets a
         // redirect nobody wrote rather than the login screen.
+        //
+        // The list is what is still a stub. transparency.index and requests.track
+        // were stubs once and are real pages now - the board publishes aggregates
+        // only, and tracking takes a household number as a second factor - so
+        // they are covered by PublicLookupsTest instead of here.
         $stubs = [
             'dashboard',
             'resident.requests.create',
             'resident.verification.status',
-            'transparency.index',
-            'transparency.search',
-            'requests.track',
         ];
 
         foreach ($stubs as $routeName) {

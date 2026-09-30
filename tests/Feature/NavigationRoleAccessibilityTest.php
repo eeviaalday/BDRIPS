@@ -234,8 +234,8 @@ class NavigationRoleAccessibilityTest extends TestCase
     {
         // The navbar and footer still link to Relief Transparency and Track a
         // Request, and the homepage's quick-services grid still links to the
-        // resident request form. Those route names survive as stubs, so every
-        // one of them must resolve rather than throwing.
+        // resident request form. Every one of them must resolve rather than
+        // throwing, and a link the finished pages use may not quietly disappear.
         $header = $this->headerOn('/');
 
         foreach (['transparency.index', 'requests.track'] as $name) {
@@ -246,10 +246,10 @@ class NavigationRoleAccessibilityTest extends TestCase
             );
         }
 
-        foreach (['dashboard', 'resident.requests.create', 'resident.verification.status', 'transparency.index', 'transparency.search', 'requests.track'] as $name) {
+        foreach (['dashboard', 'resident.requests.create', 'resident.verification.status', 'transparency.index', 'requests.track'] as $name) {
             $this->assertNotNull(
                 route($name, absolute: false),
-                "The stub route {$name} no longer resolves.",
+                "The route {$name} no longer resolves.",
             );
         }
     }

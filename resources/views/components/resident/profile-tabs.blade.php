@@ -15,6 +15,11 @@
      * own account here: change the name and email, change the password, and see
      * where the resident verification has got to. Nothing is listed that is not
      * a page behind this bar.
+     *
+     * Filtered on Route::has(), because a tab is a link and a link to a route
+     * that does not exist throws the whole page rather than rendering one
+     * broken tab. Until the account and password pages are rebuilt, this bar
+     * shows the one tab that exists rather than pretending all three do.
      */
     $tabs = [
         'account' => [
@@ -33,6 +38,10 @@
             'active' => $current === 'verification',
         ],
     ];
+
+    $tabs = collect($tabs)
+        ->filter(fn (array $tab): bool => Route::has($tab['route']))
+        ->values();
 @endphp
 
 <nav aria-label="Profile sections" class="mb-6 overflow-x-auto">

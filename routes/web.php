@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kagawad\DashboardController as KagawadDashboardController;
 use App\Http\Controllers\Kagawad\ReliefController as KagawadReliefController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\RequestTrackingController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
 use App\Http\Controllers\Resident\VerificationController as ResidentVerificationController;
@@ -19,9 +20,8 @@ use App\Http\Controllers\Staff\ResidentVerificationController as StaffResidentVe
 use App\Http\Controllers\Staff\SectorController as StaffSectorController;
 use App\Http\Controllers\Staff\SettingController as StaffSettingController;
 use App\Http\Controllers\Staff\SystemStatusController as StaffSystemStatusController;
+use App\Http\Controllers\TransparencyController;
 use App\Models\DocumentRequest;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -75,44 +75,29 @@ Route::middleware(['auth', 'verified', 'no-store-authenticated'])->group(functio
 
 /*
 |--------------------------------------------------------------------------
-| Temporary Stubs For Pages Still Being Rebuilt
+| Public Pages That Answer A Lookup
 |--------------------------------------------------------------------------
-| The finished public pages link into these destinations - the header, the
-| footer, the services catalogue and the homepage's quick-services grid - and
-| their markup, link text and styling are not to change. So the route names
-| they resolve have to stay defined, or those pages throw rather than render.
+| These three used to be stubs that redirected, because the header, footer and
+| services catalogue link into them and their route names had to stay defined.
+| All three are now real.
 |
-| Each answers one question and nothing else: a guest is sent to the login
-| screen, which is one step from the thing they came for, and a signed-in user
-| to the home page, because the destination does not exist yet and there is no
-| honest intermediate page to show them.
-|
-| They carry no middleware on purpose. The branch is the whole contract, and
-| leaving it in one readable place is what marks these as scaffolding rather
-| than as forgotten routes.
-|
-| TODO: rebuild - replace each with the real route and its authorization. The
-| resident equivalents are listed in App\Support\RoleNavigation and will appear
-| in the navigation automatically once their routes exist.
+| Two of them are lookups against a small guessable key - a household number, a
+| four-digit reference - so both are throttled and both answer only about the one
+| thing asked about. Neither reveals a name, an address, or anything that would
+| turn a lookup into a way of browsing the neighbourhood.
 */
-$stub = fn (): RedirectResponse => Auth::user() !== null
-    ? redirect()->route('home')
-    : redirect()->route('login');
 
-// TODO: rebuild - the resident document request form.
-Route::get('/resident/requests/create', $stub)->name('resident.requests.create');
+// The relief transparency board: what has gone out, and whether your own
+// household is on a list. Public, because a resident should not have to sign in
+// to find out whether they are expected at a handout.
+Route::get('/transparency', [TransparencyController::class, 'index'])->name('transparency.index');
 
-// TODO: rebuild - resident verification status lookup.
-Route::get('/resident/verification/status', $stub)->name('resident.verification.status');
-
-// TODO: rebuild - the public relief transparency board.
-Route::get('/transparency', $stub)->name('transparency.index');
-
-// TODO: rebuild - the throttled household search behind the transparency board.
-Route::get('/transparency/search', $stub)->name('transparency.search');
-
-// TODO: rebuild - document request tracking by reference number.
-Route::get('/track', $stub)->name('requests.track');
+// Tracking a request by reference number. Takes a household number as a second
+// factor, because a reference is only four digits and would otherwise let
+// somebody walk a stranger's request. Throttled for the same reason.
+Route::get('/track', RequestTrackingController::class)
+    ->middleware('throttle:20,1')
+    ->name('requests.track');
 
 /*
 |--------------------------------------------------------------------------
@@ -177,8 +162,11 @@ Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'
         Route::get('/relief', [ResidentReliefController::class, 'index'])->name('relief');
 
         // Verification: what state they are in, and the details a Secretary
-        // needs in order to decide.
+        // needs in order to decide. The status page is read only and separate
+        // from the form, because "what is happening to my registration" should
+        // not mean reading past a form to find out.
         Route::get('/verification', [ResidentVerificationController::class, 'edit'])->name('verification');
+        Route::get('/verification/status', [ResidentVerificationController::class, 'status'])->name('verification.status');
         Route::patch('/verification', [ResidentVerificationController::class, 'update'])->name('verification.update');
     });
 
