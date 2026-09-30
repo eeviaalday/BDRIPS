@@ -10,10 +10,10 @@
 <x-public-layout>
     <x-slot name="title">Request a Document</x-slot>
 
-    <x-shell width="narrow">
-        <x-page-header :crumbs="['Document Requests', 'New Request']" title="Request a Document"
-            description="Choose the document you need and say what it is for." />
+    <x-page-header :crumbs="['Document Requests', 'New Request']" title="Request a Document"
+        description="Choose the document you need and say what it is for." />
 
+    <x-shell width="narrow">
         <x-alert :variant="$isRestricted ? 'danger' : 'warning'" icon="lock">
             @if ($isRestricted)
                 This account is temporarily restricted, so a new request cannot be submitted.

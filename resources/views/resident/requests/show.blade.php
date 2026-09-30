@@ -9,11 +9,11 @@
 <x-public-layout>
     <x-slot name="title">Request {{ $documentRequest->reference_number }}</x-slot>
 
-    <x-shell width="narrow">
-        <x-page-header :crumbs="['Document Requests', $documentRequest->reference_number]"
-            :title="$documentRequest->documentType?->label ?? 'Document request'"
-            :description="'Reference '.$documentRequest->reference_number" />
+    <x-page-header :crumbs="['Document Requests', $documentRequest->reference_number]"
+        :title="$documentRequest->documentType?->label ?? 'Document request'"
+        :description="'Reference '.$documentRequest->reference_number" />
 
+    <x-shell width="narrow">
         @if (session('success'))
             <x-alert variant="success" icon="check-circle">{{ session('success') }}</x-alert>
         @endif

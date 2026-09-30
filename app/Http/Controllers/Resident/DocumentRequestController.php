@@ -24,6 +24,15 @@ class DocumentRequestController extends Controller
 {
     /**
      * The resident's own requests, newest first.
+     *
+     * The status filter is a query parameter rather than a POST, so a filtered
+     * list is a real URL: it survives a refresh and the back button, which a
+     * list somebody is working through needs.
+     *
+     * "totalCount" is counted separately and unconditionally. Reading it off the
+     * rendered collection would make the figure change with the filter, so
+     * clicking "Open requests" would quietly report "3 on file" and then
+     * "2 on file" for the same household.
      */
     public function index(Request $request): View
     {
@@ -31,10 +40,16 @@ class DocumentRequestController extends Controller
 
         $open = DocumentRequest::openCountFor($user);
 
+        $filter = $this->statusFilter($request->query('status'));
+        $statuses = $filter['statuses'];
+
         return view('resident.requests.index', [
             'requests' => DocumentRequest::query()
                 ->whereBelongsTo($user)
                 ->with('documentType')
+                // WhereBelongsTo first, so the filter can only ever narrow this
+                // resident's own rows.
+                ->when($statuses !== [], fn ($query) => $query->whereIn('status', $statuses))
                 ->latest()
                 ->get(),
 
@@ -44,7 +59,75 @@ class DocumentRequestController extends Controller
             'canCreate' => $user->residentProfile?->isVerified() === true
                 && ! $user->isRestricted()
                 && $open < DocumentRequest::OPEN_REQUEST_LIMIT,
+
+            'statusFilter' => $filter['key'],
+            'isFiltered' => $filter['key'] !== null,
+            // Every request this resident has ever filed, whatever the filter is
+            // showing.
+            'totalCount' => DocumentRequest::query()->whereBelongsTo($user)->count(),
+            'statusFilters' => self::statusFilters(),
         ]);
+    }
+
+    /**
+     * The chip list, and the statuses each one selects.
+     *
+     * Written as one list so the chips and the query filter cannot disagree: a
+     * chip with no matching entry, or an entry with no chip, is one of the two
+     * being wrong.
+     *
+     * @return array<string, array{label: string, statuses: list<string>}>
+     */
+    public static function statusFilters(): array
+    {
+        return [
+            'open' => [
+                'label' => 'Open',
+                'statuses' => DocumentRequest::OPEN_STATUSES,
+            ],
+            'under_review' => [
+                'label' => 'Processing',
+                'statuses' => [DocumentRequest::STATUS_UNDER_REVIEW],
+            ],
+            'ready_for_pickup' => [
+                'label' => 'Ready for pickup',
+                'statuses' => [DocumentRequest::STATUS_READY],
+            ],
+            'claimed' => [
+                'label' => 'Completed',
+                'statuses' => [DocumentRequest::STATUS_CLAIMED],
+            ],
+            'rejected' => [
+                'label' => 'Rejected',
+                'statuses' => [DocumentRequest::STATUS_REJECTED],
+            ],
+        ];
+    }
+
+    /**
+     * Resolve a requested filter to the statuses it selects.
+     *
+     * An unrecognised value selects nothing, so the list falls back to all
+     * requests rather than to an empty page: a hand-edited or stale URL should
+     * show the resident their documents, not an error.
+     *
+     * @return array{key: string|null, statuses: list<string>}
+     */
+    private function statusFilter(mixed $requested): array
+    {
+        $key = is_string($requested) ? $requested : null;
+
+        if ($key === null || $key === '' || $key === 'all') {
+            return ['key' => null, 'statuses' => []];
+        }
+
+        $filters = self::statusFilters();
+
+        if (! array_key_exists($key, $filters)) {
+            return ['key' => null, 'statuses' => []];
+        }
+
+        return ['key' => $key, 'statuses' => $filters[$key]['statuses']];
     }
 
     /**

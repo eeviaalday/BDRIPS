@@ -1,52 +1,159 @@
 {{--
     A resident's own document requests.
 
-    The slot count is shown from the same constant the server enforces, so the
-    figure a resident reads is the figure the POST will check. A resident who is
-    pending still sees everything they already have: a hold stops new requests,
-    it does not hide the old ones.
+    The hero is the same x-page-header every public inner page uses, and it sits
+    as a SIBLING of x-shell rather than inside it. x-shell is the padded,
+    max-width container, so a hero nested inside it renders as an inset rounded
+    box instead of the full-bleed band the public pages have. The page action
+    therefore lives in the My Documents section header, not in the hero.
+
+    The three stat cards are the filter, as buttons. A figure a resident can read
+    but not act on is a figure they have to translate into a chip click
+    themselves, and "Open requests: 2" is the same question as "show me my two
+    open requests". They are real <button> or <a> elements, so they are keyboard
+    reachable and announce themselves, rather than divs with click handlers.
 --}}
 <x-public-layout>
     <x-slot name="title">Document Requests</x-slot>
 
-    <x-shell>
-        <x-page-header :crumbs="['Document Requests']" title="My Document Requests"
-            description="Requests you have submitted, and where each one stands.">
-            {{-- The default slot, not a named one: x-page-header renders only the
-                 default slot, so a named "actions" slot would be dropped. --}}
-            <div class="flex flex-wrap items-center gap-2">
-                <x-btn :href="route('resident.requests.create')" variant="navy" size="sm" icon="document">
-                    New request
-                </x-btn>
-            </div>
-        </x-page-header>
+    <x-page-header :crumbs="['Document Requests']" title="My Document Requests"
+        description="Requests you have submitted, and where each one stands." />
 
+    <x-shell>
+        {{-- Three figures that are also the filter. Two are links, one is a
+             button that opens a modal, so the interactive card is a resident
+             component of its own: the shared stat-card renders a plain div when
+             it has no href, and a div cannot be focused or activated. --}}
         <div class="grid gap-4 sm:grid-cols-3">
-            <x-stat-card label="Open requests" :value="$openCount" :hint="'of '.$limit.' allowed'" tone="navy" icon="document" variant="badged" />
-            <x-stat-card label="Slots remaining" :value="$slotsRemaining" tone="gold" icon="check-circle" variant="badged" />
-            <x-stat-card label="Total on file" :value="$requests->count()" tone="sky" icon="archive" variant="badged" />
+            {{-- 1. Open requests -> ?status=open. --}}
+            <x-resident.filter-card label="Open requests" :value="$openCount" :hint="'of '.$limit.' allowed'"
+                tone="navy" icon="document" as="link" :href="route('resident.requests.index', ['status' => 'open'])"
+                :active="$statusFilter === 'open'" />
+
+            {{-- 2. Slots remaining -> opens the New Request modal. --}}
+            @if ($slotsRemaining === 0)
+                <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining" hint="None left"
+                    tone="gold" icon="lock" as="disabled" />
+            @elseif ($canCreate)
+                <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining"
+                    hint="Start a new request" tone="gold" icon="check-circle" as="button"
+                    x-on:click="$dispatch('open-modal', 'new-request')" />
+            @else
+                {{-- Pending or restricted: the card still opens something, because a
+                     control that silently does nothing is worse than one that explains. --}}
+                <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining"
+                    hint="Locked for now" tone="gold" icon="lock" as="button"
+                    x-on:click="$dispatch('open-modal', 'requests-locked')" />
+            @endif
+
+            {{-- 3. Total on file -> clears the filter. Counted on the server over
+                 every request this resident has, so it does not change when the
+                 list is filtered. --}}
+            <x-resident.filter-card label="Total on file" :value="$totalCount"
+                tone="sky" icon="archive" as="link" :href="route('resident.requests.index')"
+                :active="$statusFilter === null" />
         </div>
 
-        @if (! $canCreate)
-            <x-alert variant="warning" icon="lock">
-                @if (! auth()->user()->residentProfile?->isVerified())
-                    You can follow the requests below, but new requests stay locked until the
-                    Barangay Secretary has verified your details.
-                    <a href="{{ route('resident.verification') }}" class="font-semibold underline">Check your verification status</a>.
-                @elseif (auth()->user()->isRestricted())
-                    This account is temporarily restricted, so new requests cannot be submitted.
-                @else
-                    You have all {{ $limit }} requests open at once. Wait for one to be collected
-                    or rejected before applying for another.
-                @endif
-            </x-alert>
+        {{-- The New Request modal. Shown to a resident who can act, and it
+             explains the limit rather than pretending the button is missing. --}}
+        @if ($canCreate)
+            <x-modal name="new-request" maxWidth="lg" dismissible>
+                <div class="bg-white px-6 pb-2 pt-6">
+                    <h2 id="new-request-heading" class="text-lg font-bold text-navy-900">Start a new request</h2>
+                    <p class="mt-2 text-sm leading-relaxed text-navy-700">
+                        You have {{ $slotsRemaining }} of {{ $limit }} request
+                        {{ $slotsRemaining === 1 ? 'slot' : 'slots' }} left.
+                    </p>
+                </div>
+
+                <div class="flex flex-col-reverse gap-2 bg-navy-50/50 px-6 py-4 sm:flex-row sm:justify-end">
+                    <x-btn type="button" variant="outline" size="md" x-on:click="$dispatch('close-modal', 'new-request')">
+                        Not now
+                    </x-btn>
+                    <x-btn :href="route('resident.requests.create')" variant="primary" size="md" icon="document">
+                        Choose a document
+                    </x-btn>
+                </div>
+            </x-modal>
+        @elseif ($slotsRemaining > 0)
+            {{-- Locked, with the way out in the dialog rather than left to be
+                 discovered on another page. --}}
+            <x-modal name="requests-locked" maxWidth="lg" dismissible>
+                <div class="bg-white px-6 pb-2 pt-6">
+                    <h2 id="requests-locked-heading" class="text-lg font-bold text-navy-900">New requests are locked</h2>
+
+                    @if (! auth()->user()->residentProfile?->isVerified())
+                        <p class="mt-2 text-sm leading-relaxed text-navy-700">
+                            You can follow the requests below, but new requests stay locked until the
+                            Barangay Secretary has verified your details.
+                        </p>
+                    @else
+                        <p class="mt-2 text-sm leading-relaxed text-navy-700">
+                            This account is temporarily restricted, so new requests cannot be submitted.
+                        </p>
+                    @endif
+                </div>
+
+                <div class="flex flex-col-reverse gap-2 bg-navy-50/50 px-6 py-4 sm:flex-row sm:justify-end">
+                    <x-btn type="button" variant="outline" size="md" x-on:click="$dispatch('close-modal', 'requests-locked')">
+                        Close
+                    </x-btn>
+
+                    @if (! auth()->user()->residentProfile?->isVerified())
+                        <x-btn :href="route('resident.verification.status')" variant="navy" size="md" icon="shield-check">
+                            Check your verification status
+                        </x-btn>
+                    @endif
+                </div>
+            </x-modal>
         @endif
 
+        <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-lg font-bold text-navy-900">My Documents</h2>
+
+            <x-btn :href="route('resident.requests.create')" variant="primary" size="md">+ New Request</x-btn>
+        </div>
+
+        {{-- Chips. Plain links, so each one is a real URL: a filtered list can be
+             shared, bookmarked, and reached with the back button. "All" is a link
+             with no parameter rather than ?status=all, so the unfiltered page has
+             one canonical URL. --}}
+        <nav aria-label="Filter requests" class="mt-4 flex flex-wrap gap-2">
+            <a href="{{ route('resident.requests.index') }}"
+                @class([
+                    'rounded-full border px-3.5 py-1.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2',
+                    'border-gold bg-gold/15 text-navy-900 ring-2 ring-gold' => $statusFilter === null,
+                    'border-navy-200 bg-white text-navy-700 hover:border-navy-300 hover:bg-navy-50' => $statusFilter !== null,
+                ])
+                @if ($statusFilter === null) aria-current="page" @endif>All</a>
+
+            @foreach ($statusFilters as $key => $filter)
+                <a href="{{ route('resident.requests.index', ['status' => $key]) }}"
+                    @class([
+                        'rounded-full border px-3.5 py-1.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2',
+                        'border-gold bg-gold/15 text-navy-900 ring-2 ring-gold' => $statusFilter === $key,
+                        'border-navy-200 bg-white text-navy-700 hover:border-navy-300 hover:bg-navy-50' => $statusFilter !== $key,
+                    ])
+                    @if ($statusFilter === $key) aria-current="page" @endif>{{ $filter['label'] }}</a>
+            @endforeach
+        </nav>
+
         @if ($requests->isEmpty())
-            <x-empty-state icon="document" title="No requests yet"
-                description="When you apply for a barangay document it will appear here with its reference number.">
-                <x-btn :href="route('resident.requests.create')" variant="navy" size="sm" class="mt-5">Request a document</x-btn>
-            </x-empty-state>
+            @if ($isFiltered)
+                <x-empty-state icon="search" title="Nothing in this filter"
+                    description="You have no requests that are {{ strtolower($statusFilters[$statusFilter]['label'] ?? 'in this state') }}.">
+                    <x-btn :href="route('resident.requests.index')" variant="navy" size="sm" class="mt-5">
+                        Show all my requests
+                    </x-btn>
+                </x-empty-state>
+            @else
+                <x-empty-state icon="document" title="No requests yet"
+                    description="When you apply for a barangay document it will appear here with its reference number.">
+                    <x-btn :href="route('resident.requests.create')" variant="navy" size="sm" class="mt-5">
+                        Request a document
+                    </x-btn>
+                </x-empty-state>
+            @endif
         @else
             <x-data-table
                 :columns="[

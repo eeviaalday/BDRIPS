@@ -12,10 +12,10 @@
 <x-public-layout>
     <x-slot name="title">Relief Transparency</x-slot>
 
-    <x-shell>
-        <x-page-header :crumbs="['Relief Transparency']" title="My Relief Record"
-            description="What your household has received from each barangay relief batch." />
+    <x-page-header :crumbs="['Relief Transparency']" title="My Relief Record"
+        description="What your household has received from each barangay relief batch." />
 
+    <x-shell>
         @if (! $isVerified)
             <x-alert variant="warning" icon="lock">
                 Relief records unlock once the Barangay Secretary has verified your details.

@@ -4,20 +4,19 @@
     Every state says what happens next. A resident who can only see "pending"
     cannot tell whether they should be waiting or doing something, and a hold they
     cannot act on is indistinguishable from one they can.
---}}
-<x-app-layout :user="auth()->user()" title="Verification Status">
-    <div class="mx-auto w-full max-w-3xl space-y-6">
-        <x-breadcrumb :items="[
-            ['label' => 'Home', 'route' => 'home'],
-            ['label' => 'Verification Status'],
-        ]" />
 
-        <header>
-            <h1 class="text-xl font-bold text-navy-900">Verification Status</h1>
-            <p class="mt-1 text-sm text-gray-600">
-                Where your registration is, and what happens next.
-            </p>
-        </header>
+    In the public layout, on the same x-page-header as the other resident pages.
+    It had been wearing the staff sidebar, which put a resident-only page inside
+    the shell that a Secretary sees - a resident would have arrived here with a
+    navigation full of links to screens that refuse them.
+--}}
+<x-public-layout>
+    <x-slot name="title">Verification Status</x-slot>
+
+    <x-page-header :crumbs="['Verification Status']" title="Verification Status"
+        description="Where your registration is, and what happens next." />
+
+    <x-shell width="narrow">
 
         <x-card tone="white" padding="p-6">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -76,5 +75,5 @@
                 You are verified. You can submit document requests and appear on relief batches.
             </x-alert>
         @endif
-    </div>
-</x-app-layout>
+    </x-shell>
+</x-public-layout>

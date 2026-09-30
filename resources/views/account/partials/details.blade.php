@@ -6,8 +6,21 @@
     wrappers around this partial rather than one view that has to pick a layout
     from inside itself. A Blade view cannot choose its own layout; it can only
     be wrapped by one.
+
+    "hideHeader" is set only by the resident wrapper, which has a full-bleed
+    hero carrying the page title. Without it that hero and the heading below it
+    would both be an <h1>, and a page carrying two of them has an ambiguous
+    title for a screen reader. For every other role the flag is never set, so
+    this header renders exactly as it did before.
+
+    The block below is deliberately kept at its original indentation rather than
+    indented to sit inside the conditional. Blade does not reindent output, so
+    matching the original whitespace is what makes the staff page's rendered HTML
+    byte-for-byte identical, which is a stronger thing to be able to claim than
+    "it looks the same".
 --}}
 <div class="space-y-6">
+@unless ($hideHeader ?? false)
     <header>
         <h1 class="text-2xl font-extrabold tracking-tight text-navy-900">My Account</h1>
         <p class="mt-1 text-sm text-slate-600">
@@ -15,6 +28,7 @@
             barangay office and cannot be changed from here.
         </p>
     </header>
+@endunless
 
     @if (session('success'))
         <x-alert variant="success" icon="check-circle">{{ session('success') }}</x-alert>

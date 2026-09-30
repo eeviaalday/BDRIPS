@@ -9,10 +9,10 @@
 <x-public-layout>
     <x-slot name="title">Verification Status</x-slot>
 
-    <x-shell width="narrow">
-        <x-page-header :crumbs="['Verification Status']" title="My Verification"
-            description="Where your details stand, and the information the Barangay Secretary checks." />
+    <x-page-header :crumbs="['Verification Status']" title="My Verification"
+        description="Where your details stand, and the information the Barangay Secretary checks." />
 
+    <x-shell width="narrow">
         @if (session('success'))
             <x-alert variant="success" icon="check-circle">{{ session('success') }}</x-alert>
         @endif
