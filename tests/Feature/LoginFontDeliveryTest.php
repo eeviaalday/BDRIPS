@@ -96,7 +96,12 @@ class LoginFontDeliveryTest extends TestCase
             }
         }
 
-        $this->assertGreaterThan(50, $scanned, 'The scan visited implausibly few Blade views.');
+        // A floor, not a count. The point is to fail if the walk silently
+        // matches nothing, so the bound is set well below the number of views
+        // the project actually has rather than pinned to it - it was lowered
+        // when the resident and staff screens were removed, and pinning it to
+        // the live total would make every future deletion a test failure.
+        $this->assertGreaterThan(25, $scanned, 'The scan visited implausibly few Blade views.');
         $this->assertTrue($sawLogin, 'The scan never reached login.blade.php.');
     }
 

@@ -21,6 +21,11 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Handle an incoming authentication request.
+     *
+     * Every role lands on the home page for now, because the role-based areas
+     * are being rebuilt and the home page is the one page that is finished.
+     *
+     * TODO: rebuild - point each role at its own dashboard again.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -28,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('home', absolute: false));
     }
 
     /**

@@ -19,6 +19,12 @@ class Sector extends Model
         'kagawad_user_id',
     ];
 
+    /**
+     * The kagawad assigned to this sector, if the barangay has appointed one.
+     *
+     * Read by the public officials directory. The column and its foreign key
+     * are kept; the staff screen that used to set it goes with the staff area.
+     */
     public function kagawad(): BelongsTo
     {
         return $this->belongsTo(User::class, 'kagawad_user_id');
@@ -27,10 +33,5 @@ class Sector extends Model
     public function residents(): HasMany
     {
         return $this->hasMany(ResidentProfile::class);
-    }
-
-    public function reliefDistributions(): HasMany
-    {
-        return $this->hasMany(ReliefDistribution::class, 'sector_id');
     }
 }

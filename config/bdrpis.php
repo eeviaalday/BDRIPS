@@ -177,53 +177,6 @@ return [
 
     ],
 
-    /*
-    | Upcoming Events
-    |--------------------------------------------------------------------------
-    |
-    | Shown in the "Upcoming Events" panel of the resident dashboard.
-    |
-    | There is no events table in this system, so like 'schedules' above these
-    | are static display values rather than records. They are held in config so
-    | a correction is a one-line change with no markup or admin screen to
-    | maintain, and so the panel cannot render an empty box on a database that
-    | has no seeded content.
-    |
-    | "date" is a plain Y-m-d string and "time" is free text. They are formatted
-    | for display only - the panel sorts by date, so a past date simply drops off
-    | the end of the list.
-    |
-    | PLACEHOLDER COPY. These are not the barangay's real calendar. Verify each
-    | one with the barangay before this is published, and replace the entries
-    | that are not real programmes. See the same caution on 'schedules'.
-    |
-    */
-
-    'upcoming_events' => [
-
-        [
-            'title' => 'Barangay Assembly Meeting',
-            'date' => '2026-10-05',
-            'time' => '9:00 AM',
-            'where' => 'Barangay Hall',
-        ],
-
-        [
-            'title' => 'Clean and Green Program',
-            'date' => '2026-10-12',
-            'time' => '7:00 AM',
-            'where' => 'Zone 1 Plaza',
-        ],
-
-        [
-            'title' => 'National ID Registration',
-            'date' => '2026-10-19',
-            'time' => '8:00 AM',
-            'where' => 'Barangay Hall',
-        ],
-
-    ],
-
     'announcement_categories' => [
 
         'general' => [
@@ -275,9 +228,13 @@ return [
     | Documented E-Services
     |--------------------------------------------------------------------------
     |
-    | These four services mirror the document types that BDRPIS actually
-    | supports (see App\Models\DocumentRequest::TYPE_*). Nothing outside this
-    | list may be promoted, because the portal cannot process it.
+    | These four services mirror the document types BDRPIS supports. Nothing
+    | outside this list may be promoted, because the portal cannot process it.
+    |
+    | The list is what the public pages render; the processing side went with
+    | the document request area and is being rebuilt. Each card currently links
+    | to the registration page, and will point at the request form once that
+    | area is back.
     |
     */
 

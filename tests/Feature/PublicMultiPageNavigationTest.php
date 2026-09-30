@@ -273,12 +273,26 @@ class PublicMultiPageNavigationTest extends TestCase
 
     public function test_the_household_lookup_is_only_reachable_behind_a_sign_in(): void
     {
+        // The lookup page itself is gone while the areas are rebuilt, and the
+        // route name survives as a stub so the public pages that link to it keep
+        // resolving. The security-relevant half of this test is unchanged by
+        // that: a guest is still sent to the login screen rather than being
+        // shown a household lookup.
         $this->get(route('transparency.search').'?household_number=HH-0001')
             ->assertRedirect(route('login'));
 
-        $this->actingAs(User::factory()->resident()->create())
+        // A signed-in user is sent home, because there is no page to show them
+        // yet. The same is asserted for the transparency board itself, which the
+        // footer, the contact page and a homepage card all link to.
+        $user = User::factory()->resident()->create();
+
+        $this->actingAs($user)
             ->get(route('transparency.search').'?household_number=HH-0001')
-            ->assertOk();
+            ->assertRedirect(route('home'));
+
+        $this->actingAs($user)
+            ->get(route('transparency.index'))
+            ->assertRedirect(route('home'));
     }
 
     public function test_no_link_still_points_at_a_removed_homepage_anchor(): void

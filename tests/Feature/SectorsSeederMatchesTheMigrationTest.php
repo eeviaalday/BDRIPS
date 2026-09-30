@@ -96,17 +96,37 @@ class SectorsSeederMatchesTheMigrationTest extends TestCase
         );
     }
 
-    public function test_every_purok_has_a_kagawad_after_seeding(): void
+    public function test_the_kagawad_relationship_still_resolves_after_seeding(): void
     {
+        // The column and the relationship are kept - the public officials
+        // directory reads Sector::kagawad() - but the seeder no longer appoints
+        // a kagawad per purok, because the screen that made the appointment went
+        // with the staff area. So the relationship is exercised by setting the
+        // link directly, which is the half that survives: a sector resolves its
+        // kagawad, and a kagawad resolves back to its sector.
         $this->seed(DatabaseSeeder::class);
 
-        foreach (Sector::orderBy('id')->get() as $sector) {
-            $this->assertNotNull(
-                $sector->kagawad,
-                "\"{$sector->sector_name}\" has no kagawad assigned.",
-            );
-            $this->assertSame($sector->id, $sector->kagawad->assigned_sector_id);
-        }
+        $sector = Sector::orderBy('id')->firstOrFail();
+        $kagawad = User::factory()->kagawad()->create();
+
+        $sector->update(['kagawad_user_id' => $kagawad->id]);
+        $kagawad->update(['assigned_sector_id' => $sector->id]);
+
+        $this->assertTrue($sector->fresh()->kagawad->is($kagawad));
+        $this->assertTrue($kagawad->fresh()->reliefKagawadSectors->contains($sector));
+        $this->assertTrue($kagawad->fresh()->isKagawad());
+    }
+
+    public function test_the_seeder_does_not_appoint_a_kagawad_for_each_purok(): void
+    {
+        // The counterpart to the test above: the seeder seeds only what the
+        // finished public pages need, and a kagawad roster is not one of them.
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertFalse(
+            Sector::whereNotNull('kagawad_user_id')->exists(),
+            'The seeder is appointing kagawads again; the staff area that managed them has not been rebuilt.',
+        );
     }
 
     public function test_the_seeder_leaves_purok_name_unset_rather_than_repeating_the_sector_name(): void

@@ -64,19 +64,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Sector::class, 'assigned_sector_id');
     }
 
-    public function documentRequests(): HasMany
-    {
-        return $this->hasMany(DocumentRequest::class);
-    }
-
+    /**
+     * The sectors this kagawad is assigned to.
+     *
+     * The inverse of Sector::kagawad(). The column and its foreign key are
+     * kept, so the relationship stays navigable in both directions.
+     */
     public function reliefKagawadSectors(): HasMany
     {
         return $this->hasMany(Sector::class, 'kagawad_user_id');
-    }
-
-    public function reliefLogs(): HasMany
-    {
-        return $this->hasMany(ReliefDistribution::class, 'logged_by_user_id');
     }
 
     public function isAdmin(): bool
@@ -99,6 +95,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === self::ROLE_RESIDENT;
     }
 
+    /**
+     * Whether an abuse restriction is currently in force.
+     *
+     * The columns behind this are kept, but the command that wrote them - the
+     * abandonment policy - went with the document request feature, so nothing
+     * sets a restriction today. Kept so the rebuilt area has the helper ready.
+     */
     public function isRestricted(): bool
     {
         return $this->restricted_until !== null && $this->restricted_until->isFuture();

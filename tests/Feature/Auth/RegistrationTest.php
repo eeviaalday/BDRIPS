@@ -59,7 +59,10 @@ class RegistrationTest extends TestCase
         $response = $this->post('/register', $this->submission());
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+
+        // Every role lands on the home page for now; the role-based dashboards
+        // are being rebuilt.
+        $response->assertRedirect(route('home'));
     }
 
     public function test_registration_stores_the_identity_details_given_in_the_wizard(): void

@@ -99,10 +99,20 @@ class IconNameResolvesTest extends TestCase
             'The view scan found almost no icon references, so it cannot be trusted to find a bad one.',
         );
 
+        // A canary in a file the scan must reach. "check-circle" is asked for by
+        // exactly one view, resources/views/public/contact.blade.php, so this
+        // fails if the walk stops short of the public pages rather than merely
+        // finding the handful of icons near the root of the tree.
         $this->assertArrayHasKey(
-            'settings',
+            'check-circle',
             $used,
-            'The scan did not reach the resident profile menu, which is the case this test exists for.',
+            'The scan did not reach the public contact page, which is the case this test exists for.',
+        );
+
+        $this->assertSame(
+            realpath(resource_path('views/public/contact.blade.php')),
+            realpath($used['check-circle']),
+            'The canary resolved from an unexpected view, so the scan is not reporting where it looked.',
         );
     }
 

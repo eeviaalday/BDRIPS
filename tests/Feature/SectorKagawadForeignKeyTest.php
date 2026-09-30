@@ -69,22 +69,30 @@ class SectorKagawadForeignKeyTest extends TestCase
         ]);
     }
 
-    public function test_assigning_a_kagawad_updates_both_relationship_directions(): void
+    public function test_the_relationship_resolves_in_both_directions(): void
     {
-        $secretary = User::factory()->secretary()->create();
+        // The column, the foreign key and both relations are kept - the public
+        // officials directory reads Sector::kagawad(). What went with the staff
+        // area is the screen that performed the appointment, so the link is set
+        // here directly and the relationship is asserted from both ends.
         $kagawad = User::factory()->kagawad()->create();
         $sector = Sector::factory()->create(['kagawad_user_id' => null]);
 
-        $this->actingAs($secretary)
-            ->post(route('staff.settings.assign-kagawad'), [
-                'kagawad_user_id' => $kagawad->id,
-                'sector_id' => $sector->id,
-            ])
-            ->assertRedirect();
+        $sector->update(['kagawad_user_id' => $kagawad->id]);
+        $kagawad->update(['assigned_sector_id' => $sector->id]);
 
         $this->assertSame($sector->id, $kagawad->fresh()->assigned_sector_id);
         $this->assertTrue($kagawad->fresh()->isKagawad());
         $this->assertTrue($sector->fresh()->kagawad->is($kagawad));
         $this->assertTrue($kagawad->fresh()->reliefKagawadSectors->contains($sector));
+    }
+
+    public function test_a_sector_with_no_kagawad_still_resolves_to_null(): void
+    {
+        // The directory prints a fallback when a purok has nobody appointed, so
+        // an unassigned sector must not be a broken relation.
+        $sector = Sector::factory()->create(['kagawad_user_id' => null]);
+
+        $this->assertNull($sector->fresh()->kagawad);
     }
 }

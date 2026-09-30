@@ -63,8 +63,8 @@ class RegisteredUserController extends Controller
         $account['password'] = Hash::make($request->string('password')->value());
 
         // The private disk, not the public one. A resident's ID is a personal
-        // document: it is served to staff through ResidentIdPhotoController, which
-        // authorises the read, and never from a guessable public URL.
+        // document: it is served only through an authorised endpoint, never
+        // from a guessable public URL.
         $idPath = $request->file('valid_id_photo')->store('id-photos', 'local');
 
         try {
@@ -89,6 +89,9 @@ class RegisteredUserController extends Controller
             throw $e;
         }
 
-        return redirect(route('dashboard', absolute: false));
+        // Every role lands on the home page for now: the role-based areas are
+        // being rebuilt, and the home page is the one page that is finished.
+        // TODO: rebuild - redirect each role to its own dashboard again.
+        return redirect(route('home', absolute: false));
     }
 }

@@ -73,8 +73,8 @@ class ResidentProfile extends Model
     /**
      * Which of the required details are still blank, keyed by column.
      *
-     * The dashboard shows this so a resident can see what is outstanding before
-     * submitting, instead of discovering it through a rejected request.
+     * Used to tell a resident what is outstanding before they submit, instead
+     * of discovering it through a rejected request.
      *
      * @return array<string, string> column => human label
      */

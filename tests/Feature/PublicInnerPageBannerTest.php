@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -26,6 +25,10 @@ class PublicInnerPageBannerTest extends TestCase
      * The last two sit behind a sign-in (see self::SIGNED_IN) but share this
      * component with the open pages, so they belong in the same sweep.
      *
+     * The transparency and request-tracking pages were removed with the areas
+     * they belonged to and are stub routes for now, so they have no banner to
+     * assert and are not in the sweep.
+     *
      * @return array<string, array{0: string, 1: string, 2: string}>
      */
     public static function bannerProvider(): array
@@ -36,8 +39,6 @@ class PublicInnerPageBannerTest extends TestCase
             'announcements' => ['announcements.index', 'Community Announcements', 'Announcements'],
             'contact' => ['contact', 'Contact Us', 'Contact Us'],
             'directory' => ['public.directory', 'Officials Directory', 'Officials Directory'],
-            'transparency' => ['transparency.index', 'Relief Transparency', 'Relief Transparency'],
-            'tracking' => ['requests.track', 'Track Your Document Request', 'Track a Request'],
         ];
     }
 
@@ -268,26 +269,14 @@ class PublicInnerPageBannerTest extends TestCase
     }
 
     /**
-     * The two pages in the provider that sit behind a sign-in. They still share
-     * the banner component with the open pages, so they are still covered here -
-     * they are just requested as a resident rather than as a guest.
-     */
-    private const SIGNED_IN = ['transparency.index', 'requests.track'];
-
-    /**
      * Render one of the provider's pages and hand back its markup.
      *
-     * The signed-in pages are the exception; everything else is requested as a
-     * guest, which is the harder case, since that is what a first-time visitor
-     * actually receives.
+     * Every page here is requested as a guest, which is the harder case, since
+     * that is what a first-time visitor actually receives.
      */
     private function page(string $route): string
     {
-        $response = in_array($route, self::SIGNED_IN, true)
-            ? $this->actingAs(User::factory()->resident()->create())->get(route($route))
-            : $this->get(route($route));
-
-        return $response->assertOk()->getContent();
+        return $this->get(route($route))->assertOk()->getContent();
     }
 
     /**

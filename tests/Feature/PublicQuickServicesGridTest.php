@@ -399,11 +399,11 @@ class PublicQuickServicesGridTest extends TestCase
     {
         $content = $this->get(route('home'))->assertOk()->getContent();
 
+        // No path to an uploaded ID anywhere in the grid. The staff route that
+        // used to serve one is gone, so the markup cannot point at it at all.
         $this->assertStringNotContainsString('id-photo', $content);
-        $this->assertStringNotContainsString(
-            route('staff.resident-verifications.id-photo', ['residentProfile' => 1]),
-            $content,
-        );
+        $this->assertStringNotContainsString('id_photo_path', $content);
+        $this->assertStringNotContainsString('id-photos/', $content);
     }
 
     /**

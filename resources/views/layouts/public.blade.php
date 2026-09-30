@@ -35,23 +35,17 @@
         </a>
 
         {{-- ============================ HEADER ============================
-             One of three headers, and the choice is made before any of them
-             is rendered:
+             One bar, for everyone. It is the finished public header, written
+             out once and shared by guests and by signed-in users alike; a
+             signed-in user simply sees "My Dashboard" where a guest sees
+             "Log in / Register".
 
-               - a signed-in RESIDENT gets the resident navbar, which is this
-                 bar plus Document Requests and Relief Transparency in place of
-                 Log in / Register.
-               - a signed-in staff member or kagawad keeps the single "My
-                 Dashboard" button, which is where the role redirect lives.
-               - a guest gets this bar exactly as it was written.
+             The resident-specific navbar that used to sit in front of this one
+             has gone with the resident area, so that navigation, the
+             pending/verified account indicator and the verification banner are
+             rebuilt with it rather than left half-wired here.
 
-             The guest markup below is deliberately untouched rather than
-             branched into "guest and resident" variants: it is a finished
-             public page, and a resident's header lives in
-             components/layouts/resident-nav instead. --}}
-        @if (auth()->check() && auth()->user()->isResident())
-            <x-layouts.resident-nav />
-        @else
+             TODO: rebuild - reinstate the role-specific headers. --}}
         <header x-data="{ navOpen: false }" class="sticky top-0 z-50 border-b border-white/10 bg-navy text-white shadow-header">
             <nav class="mx-auto w-full max-w-shell px-4 sm:px-6 lg:px-8 2xl:max-w-[90rem]" aria-label="Main navigation">
                 <div class="flex h-16 items-center justify-between gap-4 lg:h-20">
@@ -188,18 +182,6 @@
                 </div>
             </div>
         </header>
-        @endif
-
-        {{-- ============================ RESIDENT GATE ============================
-             Sits directly under the navbar, and only for a signed-in resident.
-
-             The component renders nothing at all when the profile is verified,
-             and nothing for a guest or a staff member, so on every public page
-             and for every non-resident this is an empty string - the markup
-             below it is unchanged. --}}
-        @if (auth()->check() && auth()->user()->isResident())
-            <x-resident.verification-banner :profile="auth()->user()->residentProfile" />
-        @endif
 
         @auth
             {{-- ============================ BACK BUTTON ============================

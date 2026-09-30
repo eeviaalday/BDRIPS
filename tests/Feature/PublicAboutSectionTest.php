@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -153,8 +152,13 @@ class PublicAboutSectionTest extends TestCase
     {
         $content = $this->get(route('about'))->assertOk()->getContent();
 
+        // No path to an uploaded ID, and no household or profile reference. The
+        // staff route that used to serve an ID photo on request is gone, so the
+        // markup cannot point at it at all - which is the stronger of the two
+        // assertions, and the reason it no longer needs a route name.
         $this->assertStringNotContainsString('id-photo', $content);
-        $this->assertStringNotContainsString(route('staff.resident-verifications.id-photo', ['residentProfile' => 1]), $content);
+        $this->assertStringNotContainsString('id_photo_path', $content);
+        $this->assertStringNotContainsString('id-photos/', $content);
     }
 
     public function test_about_page_renders_a_geographic_map_at_the_configured_coordinates(): void
@@ -718,13 +722,10 @@ class PublicAboutSectionTest extends TestCase
         // band, so they are left aligned on purpose.)
         $total = 0;
 
-        foreach (['about', 'services.index', 'contact', 'announcements.index', 'transparency.index', 'public.directory'] as $route) {
-            // /transparency sits behind a sign-in; the rest are open pages.
-            $response = $route === 'transparency.index'
-                ? $this->actingAs(User::factory()->resident()->create())->get(route($route))
-                : $this->get(route($route));
-
-            $content = $this->mainRegion($response->assertOk()->getContent());
+        // /transparency is not in the sweep: the page is gone while the areas
+        // are rebuilt, so there is no section header on it to count.
+        foreach (['about', 'services.index', 'contact', 'announcements.index', 'public.directory'] as $route) {
+            $content = $this->mainRegion($this->get(route($route))->assertOk()->getContent());
 
             $centred = substr_count($content, 'text-center mx-auto max-w-2xl');
             $eyebrows = substr_count($content, 'text-xs font-bold uppercase tracking-[0.18em] text-sky-700');
