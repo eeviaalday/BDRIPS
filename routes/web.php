@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kagawad\DashboardController as KagawadDashboardController;
+use App\Http\Controllers\Kagawad\ReliefController as KagawadReliefController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
@@ -126,8 +127,23 @@ Route::middleware(['auth', 'verified', 'no-store-authenticated', 'role:admin,sec
     ->name('staff.dashboard');
 
 Route::middleware(['auth', 'verified', 'no-store-authenticated', 'role:kagawad'])
-    ->get('/kagawad/dashboard', KagawadDashboardController::class)
-    ->name('kagawad.dashboard');
+    ->prefix('kagawad')
+    ->name('kagawad.')
+    ->group(function (): void {
+        Route::get('/dashboard', KagawadDashboardController::class)->name('dashboard');
+
+        /*
+         * The Kagawad's own checklist. The distribution is a bare id rather than
+         * a bound model because the row has to be looked up inside the
+         * Kagawad's sectors - a global binding would resolve it, and the scope
+         * would then have to be re-checked, which is the shape that turns into
+         * a 403 that confirms the row exists.
+         */
+        Route::get('/relief', [KagawadReliefController::class, 'index'])->name('relief');
+        Route::get('/relief/{reliefBatch}', [KagawadReliefController::class, 'show'])->name('relief.show');
+        Route::post('/relief/{reliefBatch}/received/{distribution}', [KagawadReliefController::class, 'received'])
+            ->name('relief.received');
+    });
 
 /*
 |--------------------------------------------------------------------------
