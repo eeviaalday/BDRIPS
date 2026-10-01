@@ -92,7 +92,7 @@
                             // test: the page this leads to has no navbar tab of its
                             // own, so nothing here can honestly claim to be the
                             // current page.
-                            ['label' => 'Track a Request', 'url' => route('resident.requests.index'), 'active' => false],
+                            ['label' => 'Track my Requests', 'url' => route('resident.requests.index'), 'active' => false],
                         ];
                     @endphp
 
@@ -332,7 +332,7 @@
                             <li><a href="{{ route('services.index') }}#how-it-works" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">How It Works</a></li>
                             <li><a href="{{ route('about') }}#officials" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Officials Directory</a></li>
                             <li><a href="{{ route('announcements.index') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Announcements</a></li>
-                            <li><a href="{{ route('resident.requests.index') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Track a Request</a></li>
+                            <li><a href="{{ route('resident.requests.index') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Track my Requests</a></li>
                         </ul>
                     </div>
 

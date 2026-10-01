@@ -246,10 +246,10 @@ class PublicMultiPageNavigationTest extends TestCase
         // Both actions lead behind a sign-in, and a guest has to be offered the
         // way in rather than a link to a page that will bounce them.
         $this->assertStringContainsString('href="'.route('login').'"', $content);
-        $this->assertStringContainsString('Track a Request', $content);
+        $this->assertStringContainsString('Track my Requests', $content);
         $this->assertStringContainsString('Log In to Verify Status', $content);
 
-        // A signed-in resident is sent to the pages themselves. Track a Request
+        // A signed-in resident is sent to the pages themselves. "Track my Requests"
         // leads to their own Document Requests, which is where the per-request
         // Track dialog lives now.
         $signedIn = $this->actingAs(User::factory()->resident()->create())

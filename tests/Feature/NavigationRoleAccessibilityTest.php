@@ -232,8 +232,8 @@ class NavigationRoleAccessibilityTest extends TestCase
     #[Test]
     public function the_stubbed_destinations_are_reachable_from_the_navbar_and_resolve(): void
     {
-        // The navbar and footer still link to Relief Transparency, and "Track a
-        // Request" now leads to the resident's own Document Requests. Every one of
+        // The navbar and footer still link to Relief Transparency, and "Track my
+        // Requests" leads to the resident's own Document Requests. Every one of
         // them must resolve rather than throwing, and a link the finished pages use
         // may not quietly disappear.
         $header = $this->headerOn('/');

@@ -143,7 +143,7 @@
                 <div class="mt-auto pt-6">
                     <x-btn :href="auth()->check() ? route('resident.requests.index') : route('login')" variant="navy" size="lg"
                         icon="search" class="w-full">
-                        Track a Request
+                        Track my Requests
                     </x-btn>
                 </div>
             </section>
