@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $key
  * @property string $label
  * @property string|null $description
- * @property string $fee_amount
  * @property string|null $icon
  * @property string|null $tone
  * @property bool $is_active
@@ -34,7 +33,6 @@ class DocumentType extends Model
         'key',
         'label',
         'description',
-        'fee_amount',
         'icon',
         'tone',
         'is_active',
@@ -44,7 +42,6 @@ class DocumentType extends Model
     public function casts(): array
     {
         return [
-            'fee_amount' => 'decimal:2',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
@@ -68,18 +65,5 @@ class DocumentType extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order')->orderBy('id');
-    }
-
-    /**
-     * The fee as a display string, without the trailing ".00" a resident would
-     * read as a price they had been quoted.
-     */
-    public function feeLabel(): string
-    {
-        $fee = (float) $this->fee_amount;
-
-        return $fee == 0.0
-            ? 'Free'
-            : 'PHP '.number_format($fee, 2);
     }
 }

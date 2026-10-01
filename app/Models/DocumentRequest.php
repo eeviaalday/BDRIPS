@@ -70,7 +70,6 @@ class DocumentRequest extends Model
         'reference_number',
         'purpose',
         'status',
-        'fee_amount',
         'secretary_comment',
         'rejection_reason',
         'reviewed_at',
@@ -81,7 +80,6 @@ class DocumentRequest extends Model
     public function casts(): array
     {
         return [
-            'fee_amount' => 'decimal:2',
             'reviewed_at' => 'datetime',
             'ready_at' => 'datetime',
             'claimed_at' => 'datetime',

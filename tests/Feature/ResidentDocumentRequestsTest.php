@@ -93,7 +93,7 @@ class ResidentDocumentRequestsTest extends TestCase
     {
         Storage::fake('local');
         $resident = $this->verifiedResident();
-        $type = DocumentType::factory()->create(['fee_amount' => 150]);
+        $type = DocumentType::factory()->create();
 
         $this->actingAs($resident)
             ->post(route('resident.requests.store'), [
@@ -109,26 +109,6 @@ class ResidentDocumentRequestsTest extends TestCase
             'status' => DocumentRequest::STATUS_SUBMITTED,
             'purpose' => 'Employment requirement.',
         ]);
-    }
-
-    /**
-     * The fee is copied onto the request, so a later price change cannot restate
-     * what the resident was quoted when they asked.
-     */
-    #[Test]
-    public function the_fee_is_snapshotted_onto_the_request(): void
-    {
-        $resident = $this->verifiedResident();
-        $type = DocumentType::factory()->create(['fee_amount' => 100]);
-
-        $this->postAsResident($resident, $type);
-
-        $request = DocumentRequest::whereBelongsTo($resident)->firstOrFail();
-        $this->assertEquals(100, (float) $request->fee_amount);
-
-        $type->update(['fee_amount' => 250]);
-
-        $this->assertEquals(100, (float) $request->fresh()->fee_amount);
     }
 
     #[Test]

@@ -159,8 +159,8 @@ class DocumentRequestController extends Controller
     {
         $user = $request->user();
 
-        // Re-read the type rather than trusting the posted id, so the label and
-        // the fee that are stored come from the row that exists.
+        // Re-read the type rather than trusting the posted id, so the label that
+        // is stored comes from the row that exists.
         $type = DocumentType::query()->active()->findOrFail($request->integer('document_type_id'));
 
         $created = DocumentRequest::create([
@@ -169,9 +169,6 @@ class DocumentRequestController extends Controller
             'reference_number' => DocumentRequest::generateReferenceNumber(),
             'purpose' => $request->input('purpose'),
             'status' => DocumentRequest::STATUS_SUBMITTED,
-            // Snapshotted, so a later fee change does not restate what the
-            // resident was quoted at the moment they asked.
-            'fee_amount' => $type->fee_amount,
         ]);
 
         app(AuditLogger::class)->log(
@@ -183,7 +180,7 @@ class DocumentRequestController extends Controller
                 $created->reference_number,
                 $type->label
             ),
-            context: ['document_type_id' => $type->getKey(), 'fee_amount' => $type->fee_amount],
+            context: ['document_type_id' => $type->getKey()],
         );
 
         return redirect()
@@ -198,9 +195,9 @@ class DocumentRequestController extends Controller
      * The old single-request page, now a redirect to the list.
      *
      * The detail view became the Track dialog on the list, which carries
-     * everything the page carried: status, the submitted date and time, the fee,
-     * the stated purpose, the rejection reason, the ready-for-collection notice
-     * and the timeline. A second page showing one resident's own record was a
+     * everything the page carried: status, the submitted date and time, the
+     * stated purpose, the rejection reason, the ready-for-collection notice and
+     * the timeline. A second page showing one resident's own record was a
      * second thing to keep in step with the dialog.
      *
      * The route name stays, because the navbar, a bookmark and a message

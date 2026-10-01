@@ -32,14 +32,8 @@
                     <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Household</dt>
                     <dd class="mt-1 font-mono text-sm text-navy-900">{{ $documentRequest->user?->residentProfile?->household_number }}</dd>
                 </div>
-                <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fee quoted</dt>
-                    <dd class="mt-1 text-sm text-navy-900">
-                        {{ $documentRequest->fee_amount == 0 ? 'Free' : 'PHP '.number_format((float) $documentRequest->fee_amount, 2) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted</dt>
+                  <div>
+                      <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted</dt>
                     <dd class="mt-1 text-sm text-navy-900">{{ $documentRequest->created_at?->format('j M Y, g:i a') }}</dd>
                 </div>
                 @if ($documentRequest->purpose)

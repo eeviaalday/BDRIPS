@@ -327,7 +327,6 @@ class ResidentReliefFilterTest extends TestCase
         foreach ([
             'Stated purpose' => $request->purpose,
             'Submitted' => 'Submitted',
-            'Fee' => 'Fee',
             'Please state the receiving office instead.' => 'the rejection reason',
             'Rejected' => 'the status badge',
         ] as $needle => $what) {

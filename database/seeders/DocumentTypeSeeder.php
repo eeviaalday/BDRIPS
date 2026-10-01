@@ -18,14 +18,13 @@ use Illuminate\Database\Seeder;
 class DocumentTypeSeeder extends Seeder
 {
     /**
-     * @var list<array{key: string, label: string, description: string, fee: string, icon: string, tone: string}>
+     * @var list<array{key: string, label: string, description: string, icon: string, tone: string}>
      */
     private const TYPES = [
         [
             'key' => 'barangay_clearance',
             'label' => 'Barangay Clearance',
             'description' => 'Certifies that a resident has no derogatory record in the barangay. Commonly required for employment, business, and other local transactions.',
-            'fee' => '100.00',
             'icon' => 'clipboard',
             'tone' => 'navy',
         ],
@@ -33,7 +32,6 @@ class DocumentTypeSeeder extends Seeder
             'key' => 'certificate_of_indigency',
             'label' => 'Certificate of Indigency',
             'description' => 'Issued to residents in financial need as supporting proof for aid, scholarship, and medical assistance programs.',
-            'fee' => '0.00',
             'icon' => 'heart-hands',
             'tone' => 'sky',
         ],
@@ -41,7 +39,6 @@ class DocumentTypeSeeder extends Seeder
             'key' => 'first_time_jobseeker_certificate',
             'label' => 'First-Time Jobseeker Certificate',
             'description' => 'Issued to first-time job applicants in support of the First Time Jobseekers Assistance Act (RA 11961).',
-            'fee' => '50.00',
             'icon' => 'briefcase',
             'tone' => 'gold',
         ],
@@ -49,7 +46,6 @@ class DocumentTypeSeeder extends Seeder
             'key' => 'barangay_residency_certificate',
             'label' => 'Barangay Residency Certificate',
             'description' => 'Confirms that a person is a bona fide resident of the barangay, required for various government and private transactions.',
-            'fee' => '100.00',
             'icon' => 'home',
             'tone' => 'navy',
         ],
@@ -63,7 +59,6 @@ class DocumentTypeSeeder extends Seeder
                 [
                     'label' => $type['label'],
                     'description' => $type['description'],
-                    'fee_amount' => $type['fee'],
                     'icon' => $type['icon'],
                     'tone' => $type['tone'],
                     'is_active' => true,

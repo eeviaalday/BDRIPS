@@ -18,7 +18,6 @@ class DocumentTypeFactory extends Factory
             'key' => fake()->unique()->slug(2),
             'label' => rtrim(fake()->sentence(3), '.'),
             'description' => fake()->sentence(12),
-            'fee_amount' => fake()->randomElement([0, 50, 100]),
             'icon' => 'document',
             'tone' => 'navy',
             'is_active' => true,
@@ -33,10 +32,5 @@ class DocumentTypeFactory extends Factory
     public function inactive(): static
     {
         return $this->state(['is_active' => false]);
-    }
-
-    public function free(): static
-    {
-        return $this->state(['fee_amount' => 0]);
     }
 }

@@ -298,15 +298,7 @@
                                             {{ $documentRequest->created_at?->format('j M Y, g:i a') ?? '—' }}
                                         </dd>
                                     </div>
-                                    <div>
-                                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fee</dt>
-                                        <dd class="mt-1 text-sm font-medium text-navy-900">
-                                            {{ $documentRequest->fee_amount == 0
-                                                ? 'Free'
-                                                : 'PHP '.number_format((float) $documentRequest->fee_amount, 2) }}
-                                        </dd>
-                                    </div>
-                                </dl>
+                                  </dl>
 
                                 <div>
                                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stated purpose</p>

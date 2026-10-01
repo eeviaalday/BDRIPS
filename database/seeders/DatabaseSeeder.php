@@ -166,10 +166,6 @@ class DatabaseSeeder extends Seeder
      * in PublicController, so an unseeded database still renders - the seeder
      * exists so a demo install matches the real barangay rather than the
      * fallbacks.
-     *
-     * The fee rates that used to sit here went with the document request
-     * feature. They are public-facing values rather than internal ones, so they
-     * are seeded again with the rest of the area that charged for them.
      */
     private function seedSettings(): void
     {

@@ -22,7 +22,6 @@ class DocumentRequestFactory extends Factory
             'reference_number' => 'BRGY-'.now()->year.'-'.fake()->unique()->numerify('####'),
             'purpose' => fake()->sentence(8),
             'status' => DocumentRequest::STATUS_SUBMITTED,
-            'fee_amount' => 100,
         ];
     }
 

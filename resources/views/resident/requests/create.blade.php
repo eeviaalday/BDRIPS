@@ -49,13 +49,13 @@
 
                     {{-- A key => label map, not a slot: the component writes the
                          options itself so the stored value round-trips as the key
-                         it was stored as. The fee is shown in the label because a
-                         resident is entitled to see what they are being quoted. --}}
+                         it was stored as. Barangay documents are free, so a price
+                         is not part of what a resident is choosing between. --}}
                     <x-select-field id="document_type_id" name="document_type_id"
                         label="What do you need?" variant="soft" required
                         placeholder="Choose a document"
                         :options="$types->mapWithKeys(fn ($type) => [
-                            $type->id => $type->label.' — '.$type->feeLabel(),
+                            $type->id => $type->label,
                         ])->all()" />
 
                     <div>
