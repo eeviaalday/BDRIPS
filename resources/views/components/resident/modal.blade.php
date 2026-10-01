@@ -44,7 +44,15 @@
             if (this.trigger) { this.trigger.focus(); this.trigger = null }
         },
         focusables() {
-            const selector = 'a[href], button:not([disabled]), input:not([type=\"hidden\"]), textarea, select, [tabindex]:not([tabindex=\"-1\"])'
+            // The selector is a template literal, and its attribute values are
+            // quoted with single quotes, because this whole x-data expression is
+            // a DOUBLE-quoted HTML attribute. A double quote anywhere in here
+            // closes that attribute early: the browser then keeps only the text
+            // up to it as the x-data value, throws the rest of the element's
+            // attributes away, and every handler on this dialog is gone. The
+            // dialog then renders as an unpositioned block in the page flow and
+            // nothing on it can open or close it.
+            const selector = `a[href], button:not([disabled]), input:not([type='hidden']), textarea, select, [tabindex]:not([tabindex='-1'])`
             return [...this.$refs.panel.querySelectorAll(selector)].filter(el => el.offsetParent !== null)
         },
         onTab(e) {
