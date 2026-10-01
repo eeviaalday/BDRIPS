@@ -61,6 +61,39 @@
                     :href="route('kagawad.relief')" />
             </x-staff.stat-row>
 
+            {{--
+                The one way to the resident list. A whole card rather than a link in
+                the prose above, because "N residents in your sector, M still to
+                receive" is a figure a Kagawad acts on and the sentence is what tells
+                them where to act on it.
+
+                Both figures come from the same scoped query the list page runs, so
+                this card can never promise a number the list then fails to show.
+                Both are also gated on the card being reachable at all: an
+                unassigned Kagawad takes the branch above, and $sectorResidentCounts
+                would be two zeroes.
+            --}}
+            <a href="{{ route('kagawad.residents.index') }}"
+                class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-100 bg-navy-50/60 p-5 shadow-card transition duration-200 hover:border-navy-200 hover:shadow-md">
+                <div class="flex min-w-0 items-center gap-4">
+                    <span aria-hidden="true"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-navy-700 shadow-card">
+                        <x-icon name="users" class="h-5 w-5" />
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-navy-900">My Sector Residents</p>
+                        <p class="mt-0.5 text-sm text-navy-600">
+                            {{ $sectorResidentCounts['residents'] }} {{ \Illuminate\Support\Str::plural('resident', $sectorResidentCounts['residents']) }}
+                            in your sector,
+                            {{ $sectorResidentCounts['outstanding'] }} still to receive.
+                        </p>
+                    </div>
+                </div>
+                <span class="shrink-0 text-navy-400">
+                    <x-icon name="arrow-right" class="h-5 w-5" />
+                </span>
+            </a>
+
             <section aria-labelledby="active-distributions" class="space-y-4">
                 <h2 id="active-distributions" class="text-base font-bold text-navy-900">
                     Active distributions

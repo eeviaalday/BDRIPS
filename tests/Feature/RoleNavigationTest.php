@@ -85,10 +85,15 @@ class RoleNavigationTest extends TestCase
     }
 
     #[Test]
-    public function test_a_kagawad_is_intended_to_reach_only_three_destinations(): void
+    public function test_a_kagawad_is_intended_to_reach_only_four_destinations(): void
     {
+        // Three of these are the Kagawad's own area. The fourth is the read-only
+        // list of residents in their own sectors, which is decision 3 of ROLES.md:
+        // a Kagawad may view their own sector's residents and nothing wider. It is a
+        // separate route from staff.residents.index rather than a filtered view of
+        // it, so adding it here did not make the staff directory reachable.
         $this->assertSame(
-            ['kagawad.dashboard', 'kagawad.relief', 'account.edit'],
+            ['kagawad.dashboard', 'kagawad.relief', 'kagawad.residents.index', 'account.edit'],
             $this->routesFor(User::ROLE_KAGAWAD),
         );
     }
@@ -131,13 +136,21 @@ class RoleNavigationTest extends TestCase
     }
 
     #[Test]
-    public function test_a_kagawad_is_not_intended_to_see_residents_or_document_requests(): void
+    public function test_a_kagawad_is_not_intended_to_see_the_staff_resident_directory_or_document_requests(): void
     {
-        // Named together because both leak personal data: one is a directory of
-        // residents, the other is their paperwork.
+        // Named together because both leak personal data: one is a barangay-wide
+        // directory of residents, the other is their paperwork.
+        //
+        // The fourth entry is the one that needs the comment. A Kagawad IS intended to
+        // see residents - their own sector's, at kagawad.residents.index. What they
+        // must never be offered is the staff directory, which is unscoped, or the
+        // verification queue, which shows ID photos. Both stay out.
         foreach (['staff.residents.index', 'staff.requests.index', 'staff.verifications.index'] as $route) {
             $this->assertNotContains($route, $this->routesFor(User::ROLE_KAGAWAD));
         }
+
+        // And the route they do get is genuinely theirs, not a rename of the staff one.
+        $this->assertContains('kagawad.residents.index', $this->routesFor(User::ROLE_KAGAWAD));
     }
 
     #[Test]
@@ -337,6 +350,7 @@ class RoleNavigationTest extends TestCase
 
         $this->assertStringContainsString('Dashboard', $content);
         $this->assertStringContainsString('My Account', $content);
+        $this->assertStringContainsString('My Sector Residents', $content);
 
         // Every rendered link must be one the Kagawad is permitted.
         foreach (RoleNavigation::availableSidebarFor(User::ROLE_KAGAWAD) as $link) {
@@ -358,13 +372,43 @@ class RoleNavigationTest extends TestCase
         $permittedLabels = array_column(RoleNavigation::sidebarFor(User::ROLE_KAGAWAD), 'label');
 
         foreach (array_unique($forbidden) as $label) {
-            if (in_array($label, $permittedLabels, true)) {
-                // Relief Distribution is on both lists, so its presence proves
-                // nothing either way.
+            /*
+             * Skip a forbidden label that occurs inside one of the Kagawad's own
+             * labels, because as a substring it can no longer prove anything.
+             *
+             * "Relief Distribution" is on both lists, so an exact match proves nothing.
+             * "Residents" is the staff directory's label and is NOT the Kagawad's - but
+             * the Kagawad's own destination is "My Sector Residents", which contains
+             * those characters, so a substring check trips on a correctly rendered page.
+             *
+             * The absence that actually matters is checked by URL, further down: the
+             * rendered sidebar must not contain staff.residents.index at all. This loop
+             * is about labels, and a label buried inside a permitted one is not evidence.
+             */
+            $buried = false;
+
+            foreach ($permittedLabels as $permitted) {
+                if (str_contains($permitted, $label)) {
+                    $buried = true;
+                    break;
+                }
+            }
+
+            if ($buried) {
                 continue;
             }
 
             $this->assertStringNotContainsString($label, $content, "A Kagawad's sidebar offers [{$label}].");
+        }
+
+        // The label check cannot see this, so assert the real thing: no staff route is
+        // linked anywhere in the Kagawad's rendered page.
+        foreach (['staff.residents.index', 'staff.requests.index', 'staff.batches.index', 'staff.verifications.index'] as $staffRoute) {
+            $this->assertStringNotContainsString(
+                route($staffRoute),
+                $content,
+                "A Kagawad's page links to [{$staffRoute}]."
+            );
         }
     }
 

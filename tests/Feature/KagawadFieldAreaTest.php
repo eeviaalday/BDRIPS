@@ -50,7 +50,7 @@ class KagawadFieldAreaTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('No sector assigned yet');
-        $response->assertSee('Ask the barangay office to assign you a sector. Once assigned, your relief checklist appears here.');
+        $response->assertSee('You have not been assigned a sector yet.');
 
         // Nothing from the other sector, in any form.
         $response->assertDontSee('October rice');
@@ -78,36 +78,64 @@ class KagawadFieldAreaTest extends TestCase
     {
         $kagawad = $this->kagawad();
 
-        foreach ([route('kagawad.dashboard'), route('kagawad.relief')] as $url) {
+        foreach ([route('kagawad.dashboard'), route('kagawad.relief'), route('kagawad.residents.index')] as $url) {
             $response = $this->actingAs($kagawad)->get($url);
 
             $response->assertOk();
             $response->assertSee('No sector assigned yet');
-            $response->assertSee('Ask the barangay office to assign you a sector. Once assigned, your relief checklist appears here.');
+            $response->assertSee('You have not been assigned a sector yet.');
+            // Raw ampersand: assertSee escapes the needle for you, so passing an
+            // already-escaped "&amp;" here would be looking for "&amp;amp;".
+            $response->assertSee('The Barangay Captain (Admin) assigns sectors from Sectors & Kagawad.');
         }
     }
 
     #[Test]
-    public function no_kagawad_page_names_a_captain_or_points_at_sectors_and_kagawad(): void
+    public function every_kagawad_page_names_the_captain_but_still_links_to_no_admin_only_page(): void
     {
         $kagawad = $this->kagawad();
         $batch = $this->newBatchWithHouseholds('October rice', [Sector::factory()->create()->id => ['H-1']]);
 
-        $urls = [
+        // The three pages that render the shared unassigned-sector component.
+        $unassignedPages = [
             route('kagawad.dashboard'),
             route('kagawad.relief'),
-            route('kagawad.relief.show', $batch),
+            route('kagawad.residents.index'),
         ];
 
-        foreach ($urls as $url) {
+        foreach ($unassignedPages as $url) {
             $html = $this->actingAs($kagawad)->get($url)->assertOk()->getContent();
 
-            // "Captain" is not among User::roles(). The old relief page said
-            // "A Captain assigns a Kagawad to a sector", which invented a role and
-            // pointed at a page this account is refused.
-            $this->assertStringNotContainsStringIgnoringCase('captain', $html, "[{$url}] names a Captain.");
-            $this->assertStringNotContainsString('Sectors &amp; Kagawad', $html, "[{$url}] points at Sectors & Kagawad.");
-            $this->assertStringNotContainsString('Sectors & Kagawad', $html, "[{$url}] points at Sectors & Kagawad.");
+            /*
+             * The Captain IS the admin role - ROLES.md owner decision 1 - and assigning
+             * a Kagawad to a sector is one of the five admin-only destinations. So the
+             * unassigned state is right to name the Captain, and the copy fix put that
+             * name back deliberately. This assertion used to require the word to be
+             * absent, on the grounds that it invented a role; it does not.
+             */
+            $this->assertStringContainsStringIgnoringCase('captain', $html, "[{$url}] should name the Captain.");
+        }
+
+        /*
+         * Naming the page is still not linking to it, and that holds on every Kagawad
+         * page including the batch checklist.
+         *
+         * kagawad.relief.show is deliberately absent from the loop above. For an
+         * unassigned Kagawad it does not render the unassigned-sector component at all:
+         * it renders its own "none of this batch's households are in your sectors"
+         * empty state, because the question it answers is different - not "you have no
+         * sector" but "this particular batch is not yours". Asserting the Captain there
+         * would be asserting a sentence the page has no reason to print.
+         */
+        $everyPage = array_merge($unassignedPages, [route('kagawad.relief.show', $batch)]);
+
+        foreach ($everyPage as $url) {
+            $html = $this->actingAs($kagawad)->get($url)->assertOk()->getContent();
+
+            // /staff/sectors is role:admin, so a Kagawad who followed the advice would
+            // get a 403. The sentence names "Sectors & Kagawad" and carries no href,
+            // which is the whole point of the copy fix.
+            $this->assertStringNotContainsString(route('staff.sectors.index'), $html, "[{$url}] links to Sectors & Kagawad.");
         }
     }
 

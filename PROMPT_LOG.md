@@ -4265,3 +4265,132 @@ and the shared components print nothing, and `app/Models` shows exactly the one 
   not reimplement it, so a future change to the focus trap or the tab cycle applies to both.
 - **ROLES.md is still absent** — seventh prompt running. Nothing in this task touched
   authorization, and the `role:admin` middleware is still asserted from the route table.
+
+## Prompt #022
+
+**Date:** 2026-10-02
+**Time:** 09:40
+**Category:** Feature / UI
+**Affected Module:** Kagawad — My Sector Residents, unassigned-sector copy
+**Status:** Completed
+
+### What was asked
+
+Kagawad "My Sector Residents": a read-only, own-sector resident list with a batch
+selector, a status filter and a search. Plus a copy fix restoring the Captain
+wording to the unassigned-sector state.
+
+### What was built
+
+`GET /kagawad/residents` → `kagawad.residents.index`, inside the existing
+`role:kagawad` group. `Kagawad\ResidentController` orchestrates;
+`App\Support\KagawadSectorResidents` holds the query. The query lives in a support
+class rather than a scope on `ResidentProfile` because a Kagawad's sector is
+reached *through* the sector row (`sectors.kagawad_user_id`), not from the
+resident — and `app/Models/*` is do-not-edit for this area.
+
+The scope is a `whereIn` on `sector_id` applied before anything else, so a
+household in another sector is absent from the page source rather than merely
+unlinked. An unassigned Kagawad returns before any query runs. Read-only is
+structural: one GET, no write verb, one controller method.
+
+Relief status per batch is a correlated subquery on `relief_distributions` joined
+on `household_number` **and** `sector_id` — a household number is short and
+guessable, so matching on the number alone would surface a neighbour's collection
+when two numbers collide.
+
+### Two bugs this prompt found, one of them only in the browser
+
+**"Still to receive" counted people who had already collected.** The `whereExists`
+had no status predicate. Caught by a test asserting the stat card against a
+chosen batch, not by reading the code.
+
+**Every row showed the first checklist row's status.** The two `addSelect`
+subqueries were missing their `whereColumn`, so they were uncorrelated and
+returned the same status for the whole page: a mixed list rendered as if the
+entire sector had collected. **All the page-level assertions passed anyway** — the
+page did contain the word "Received", the stat card was right, and the status
+*filter* was right because it used a correctly correlated `whereExists`. Only the
+badge on an individual row was wrong.
+
+It was caught by reading a screenshot, then pinned by
+`each_row_carries_its_own_relief_status_and_not_the_first_rows`, which parses each
+`<tr>` with DOMXPath and asserts inside it. This is the strongest argument in the
+project for the rule file's line about markup-only assertions not being evidence:
+the filter and the badge were built from the same idea and disagreed, and no
+whole-page assertion could see it.
+
+### Scope decisions
+
+- **`<x-staff.page>` and `<x-staff.page-header>` do not exist.** The brief asked
+  for them; the staff area uses a documented convention instead (`x-breadcrumb` +
+  `h1` + `p`, in a `max-w-6xl space-y-6` wrapper) and `staff-polish.md` line 40
+  records that convention. Built to the convention. The shared photographic
+  `x-page-header` is still not used by staff.
+- **`app/Support/RoleNavigation.php` is on the SHARED do-not-edit list** and the
+  brief requires the nav item to live there. Edited as instructed, with the owner's
+  approval, and the rule left unamended. The change is Kagawad-only and touches
+  no resident or public output; both diff guards print nothing. **The rule line is
+  now stale for Kagawad-only additions and needs the owner to amend it.**
+
+### The unassigned-state copy
+
+`components/staff/unassigned-sector.blade.php` now reads *"You have not been
+assigned a sector yet. The Barangay Captain (Admin) assigns sectors from Sectors &
+Kagawad. Until then there is nothing to show here."* — and still carries no link,
+because `/staff/sectors` is `role:admin` and a Kagawad who followed the advice
+would get a 403.
+
+This reverses a previous decision. The component previously asserted that
+"Captain" was *not* a role and must never appear, which was correct then and is
+wrong now: the Captain is the Admin (ROLES.md decision 1). The component's comment
+and `KagawadFieldAreaTest` were both inverted rather than deleted, so the reasoning
+is still on record.
+
+One test could not be inverted: `kagawad.relief.show` does not render this
+component. For an unassigned Kagawad it shows its own "none of this batch's
+households are in your sectors" state, because its question is different. Asserting
+the Captain there would assert a sentence the page has no reason to print, so the
+Captain check covers the three pages that do render it and the no-admin-link check
+covers all four.
+
+### Blocked on the schema, not on the code
+
+Decision 3 says "their assigned sector**s**", but `sectors.kagawad_user_id` is
+`UNIQUE`, so a Kagawad can hold at most one. Two end-to-end tests cannot be set up
+at all — MySQL rejects the second sector. The sector-filter branch is therefore
+unreachable in the product today. The logic is written for the plural
+(`assignedSectorIds()` returns an array, queries use `whereIn`); the only blocker
+is the index. The test is `markTestSkipped` with that reason, and the behaviour is
+covered directly against the support class, which takes the sector list as an
+argument. Recorded in ROLES.md as the one open question.
+
+### Verification
+
+**Tests: 1036 pass** (was 1033; +3 net after edits), 1 skipped by design. Pint
+clean. Build done — asset hashes unchanged, so no new Tailwind was needed. Both
+diff guards print nothing. **Browser: 71/71 checks at 375, 768 and 1280, zero
+console errors** — scoped list, filters, empty state, role refusals, no horizontal
+scroll at any width.
+
+### Notes / Follow-up
+
+- **A Kagawad can still be made a Captain from the accounts screen** and, per
+  ROLES.md decision 1, the Captain gets everything a Secretary has. That is
+  intended. What is *not* intended and is not yet true anywhere: the Captain
+  cannot open a Kagawad's area. The browser run asserts 403 for Admin, Secretary
+  and Resident on `/kagawad/residents`, so the areas stay disjoint.
+- **The batch default is the latest *active* batch, not the latest batch.** A
+  closed batch can carry a later `distribution_date`, and defaulting to it would
+  open a worklist nobody can act on. Closed batches stay selectable. This was not
+  in the brief; it came out of the seeded data during browser testing.
+- **"Not yet received" is reserved for residents on the checklist.** A verified
+  resident off it reads "Not on this batch"; an unverified one reads "No relief
+  status". Calling an absent resident outstanding would be a claim about a batch
+  they are not on.
+- **Browser fixtures were written to the dev database and have been removed.**
+  The dev DB is back to its seeded state (9 users, 3 profiles, 5 distributions,
+  2 batches) and the temporary `artisan serve` was stopped. Worth remembering that
+  the dev database is *not* empty: it ships residents and batches in the demo
+  Kagawad's own sector, which is what made the first browser pass fail for the
+  right reason and the wrong reason at once.

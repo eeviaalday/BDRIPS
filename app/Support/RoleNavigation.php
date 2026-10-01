@@ -45,11 +45,19 @@ final class RoleNavigation
             User::ROLE_KAGAWAD => [
                 ['route' => 'kagawad.dashboard', 'label' => 'Dashboard', 'icon' => 'grid', 'group' => 'main'],
                 ['route' => 'kagawad.relief', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main'],
+                // The residents of this Kagawad's own sectors, read-only. It is
+                // here and not the staff Residents page because that page is
+                // role:admin,secretary: linking it would render and then 403. The
+                // phone bottom bar is built from this same list, so the link
+                // appears in both without this file knowing about either.
+                ['route' => 'kagawad.residents.index', 'label' => 'My Sector Residents', 'icon' => 'users', 'group' => 'main'],
                 $account,
             ],
 
-            // A Kagawad may not see the resident queue, document requests, or
-            // anything about the system, so this list is deliberately short.
+            // A Kagawad may not see the document requests or anything about the
+            // system, so this list is deliberately short. Its one resident
+            // destination is the sector-scoped read-only list above, which is not
+            // the staff resident queue this Secretary list opens.
             User::ROLE_SECRETARY => [
                 self::staffDashboardLink(),
                 ['route' => 'staff.verifications.index', 'label' => 'Resident Verification', 'icon' => 'id-badge', 'group' => 'main'],

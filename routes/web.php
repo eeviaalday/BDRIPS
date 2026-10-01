@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kagawad\DashboardController as KagawadDashboardController;
 use App\Http\Controllers\Kagawad\ReliefController as KagawadReliefController;
+use App\Http\Controllers\Kagawad\ResidentController as KagawadResidentController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
@@ -155,6 +156,22 @@ Route::middleware(['auth', 'verified', 'no-store-authenticated', 'role:kagawad']
         Route::get('/relief/{reliefBatch}', [KagawadReliefController::class, 'show'])->name('relief.show');
         Route::post('/relief/{reliefBatch}/received/{distribution}', [KagawadReliefController::class, 'received'])
             ->name('relief.received');
+
+        /*
+         * The residents of this Kagawad's own sectors, read-only.
+         *
+         * This is the one place a Kagawad sees people rather than households. It is
+         * GET-only and has no POST, PUT, PATCH or DELETE behind it, so "no editing"
+         * is a property of the route table rather than a rule that could be
+         * forgotten inside a controller.
+         *
+         * The sector scope is applied in the query (see KagawadSectorResidents), not
+         * by filtering a full list in the view, and an unassigned Kagawad is given
+         * the empty state rather than an unscoped list. Both matter: a scope applied
+         * in Blade would still put every other sector's household number in the page
+         * source, which is the thing this page exists to prevent.
+         */
+        Route::get('/residents', [KagawadResidentController::class, 'index'])->name('residents.index');
     });
 
 /*

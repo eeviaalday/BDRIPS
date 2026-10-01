@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kagawad;
 use App\Http\Controllers\Controller;
 use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
+use App\Support\KagawadSectorResidents;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -82,6 +83,20 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
+        // One extra count for the residents card, and it is scoped the same way as
+        // every other household figure on this page. The "still to receive" half is
+        // scoped a second time to verified residents, because an unverified profile
+        // is not on a distribution and counting one as outstanding would put a
+        // number on the dashboard that the list it links to cannot show.
+        $sectorResidentCounts = KagawadSectorResidents::counts(
+            $sectorIds,
+            ReliefBatch::query()
+                ->whereHas('distributions', fn ($query) => $query->forSectors($sectorIds))
+                ->orderByDesc('distribution_date')
+                ->orderByDesc('id')
+                ->first(),
+        );
+
         return view('kagawad.dashboard', [
             'sectorIds' => $sectorIds,
             'sectors' => $user->reliefKagawadSectors,
@@ -89,6 +104,7 @@ class DashboardController extends Controller
             'pendingCount' => (clone $distributions)->where('status', ReliefDistribution::STATUS_PENDING)->count(),
             'receivedCount' => (clone $distributions)->where('status', ReliefDistribution::STATUS_RECEIVED)->count(),
             'activeDistributions' => $activeDistributions,
+            'sectorResidentCounts' => $sectorResidentCounts,
         ]);
     }
 }

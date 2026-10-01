@@ -221,7 +221,7 @@ five a Secretary cannot open. **Only the Captain can change another person's rol
 restrict anyone, or touch a sector** — which is decision 1, and it is why a
 Secretary who receives a new Kagawad hands them to the Captain to assign.
 
-### Kagawad — `role:kagawad` (4 routes)
+### Kagawad — `role:kagawad` (5 routes)
 
 | Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
 |---|---|---|---|---|---|---|---|
@@ -229,6 +229,7 @@ Secretary who receives a new Kagawad hands them to the Captain to assign.
 | `kagawad.relief` | GET | `/kagawad/relief` | Denied | Denied | Allowed | Denied | Denied |
 | `kagawad.relief.show` | GET | `/kagawad/relief/{reliefBatch}` | Denied | Denied | Allowed | Denied | Denied |
 | `kagawad.relief.received` | POST | `…/received/{distribution}` | Denied | Denied | Allowed | Denied | Denied |
+| `kagawad.residents.index` | GET | `/kagawad/residents` | Denied | Denied | Allowed | Denied | Denied |
 
 A Kagawad can read only their own sector's checklist and mark only their own
 sector's households collected. An **Admin or Secretary gets 403 here** — the role
@@ -239,8 +240,10 @@ is refused with **409** if the batch is closed.
 `kagawad.relief.received` is the only write a Kagawad has anywhere in the
 application.
 
-**This table does not yet show the read-only resident list that decision 3
-specifies** — no such route exists. It is tracked as the one planned gap in
+`kagawad.residents.index` is the read-only resident list decision 3 specifies:
+residents of their own sectors, with relief status for a selected batch. It is
+scoped in the query, shows only name / household number / sector / verification /
+relief status, and has no write verb behind it. See
 [Code vs ROLES.md](#code-vs-rolesmd).
 
 ### Resident — `role:resident` (8 routes)
@@ -362,21 +365,28 @@ From `App\Support\RoleNavigation::sidebarFor()`. Every role's list ends with
   middleware and decision 1 all agree.
 - **Secretary** — 7 entries, no admin group: the six above plus My Account. All
   announcement capabilities, including delete, are reachable from here.
-- **Kagawad** — 3 entries, deliberately the smallest: Dashboard, Relief
-  Distribution, My Account. This is what decision 3 looks like today; the
-  read-only resident list is the one addition still to come.
+- **Kagawad** — 4 entries, still the shortest list: Dashboard, Relief
+  Distribution, **My Sector Residents**, My Account. That third item is decision 3
+  — the Kagawad's own sector residents, not the staff directory, which is
+  `role:admin,secretary` and would render and then 403.
 - **Resident** — no sidebar of its own. It gets the public navigation (Home,
   Services, About, Contact, Announcements, Transparency) plus its two portal
   destinations, a profile menu, and **no Dashboard entry**, because a Resident's
   home is the public home page (`RoleNavigation:91`).
 
+The phone bottom bar is built from the same list
+(`layouts/navigation.blade.php` merges `$groups['main']` and `$groups['account']`),
+so the Kagawad's four destinations appear in both without either file knowing about
+the other.
+
 **No mismatches.** Every sidebar entry is on a route its role can actually open,
 and every admin-group entry is on a `role:admin` route. This is asserted rather
 than assumed: `tests/Feature/RoleNavigationTest.php` pins the exact lists — seven
-for a Secretary, "the Secretary's plus five" for an Admin, three for a Kagawad —
-and separately asserts that a Secretary is *not* given any admin-only route, that
-a Kagawad is *not* given any staff page, that a Kagawad is not offered Residents
-or Document Requests, and that My Account is reachable by every role.
+for a Secretary, "the Secretary's plus five" for an Admin, four for a Kagawad —
+and separately asserts that a Secretary is *not* given any admin-only route, that a
+Kagawad is *not* given any staff page, that a Kagawad is not offered the **staff**
+Residents page, the Verification queue or Document Requests, and that My Account
+is reachable by every role.
 
 ---
 
@@ -425,56 +435,75 @@ There is no `captain` role; the Captain is the Admin.
 
 ## Code vs ROLES.md
 
-Where the implementation does not yet match the specification above. One item.
+Where the implementation does not match the specification above.
 
-### The Kagawad resident view is not built yet — planned
+**Nothing outstanding.** Decision 3's read-only resident view is built.
 
-**Decision 3** says a Kagawad may view the residents of their own sector(s) with
-their relief status per batch, read-only. **No such route, controller, page or
-sidebar entry exists.** A Kagawad today has four routes — dashboard, relief list,
-one batch, and marking collected — and no way to see a resident's record at all.
+### Implemented — the Kagawad resident view
 
-What is already in place, and does not need rebuilding:
+`GET /kagawad/residents` → `kagawad.residents.index`, inside the existing
+`role:kagawad` group, rendered by `Kagawad\ResidentController` and queried through
+`App\Support\KagawadSectorResidents`. Kagawad routes are now five; this is the
+fifth.
 
-- **The scoping mechanism is correct and reusable.** `User::assignedSectorIds()`
-  (`User.php:219`) resolves a Kagawad's sectors, and
-  `ReliefDistribution::scopeForSectors()` (`ReliefDistribution.php:79`) is the
-  filter the new query would use. The 404-not-403 convention
-  (`Kagawad/ReliefController.php:23`) is the pattern to copy for a resident
-  detail route, so a guessed profile id cannot confirm the row exists.
-- **The role area is correctly walled off.** `role:kagawad` already returns 403 to
-  an Admin or Secretary, so a new route inside it inherits that.
-- **Read-only is the default.** A Kagawad's only existing write is
-  `kagawad.relief.received`. A resident list adds no write path, which is what
-  keeps decision 3's "no editing" true by construction rather than by a guard.
+How it satisfies decision 3:
 
-Two things will need to change when it is built:
+- **Own sectors only.** The sector filter is a `whereIn` on
+  `resident_profiles.sector_id`, applied before anything else and never widened.
+  A household in another sector is absent from the page *source*, not merely
+  unlinked — proven against the raw HTML in
+  `KagawadSectorResidentsTest::a_resident_from_another_sector_is_absent_from_the_html_not_merely_unlinked`.
+- **No unscoped fallback.** An unassigned Kagawad gets the shared unassigned empty
+  state and the controller returns before any query runs, so there is no code path
+  that produces an unscoped list.
+- **Read-only, structurally.** The route is a single `GET` with no POST, PUT,
+  PATCH or DELETE behind it, and the controller has one method. "No editing" is a
+  property of the route table, not a rule inside a method.
+  (`the_route_offers_no_write_verb_at_all`.)
+- **Privacy by selection, not omission.** The query returns a name, household
+  number, sector, verification state and relief state. National ID, birthdate,
+  contact number, address, ID photo and request history are never selected, so
+  there is nothing to leak; `the_query_selects_only_the_five_permitted_fields`
+  asserts the column list.
+- **Relief status per batch** via a correlated subquery on
+  `relief_distributions`, joined on `household_number` **and** `sector_id` so a
+  number collision in another sector cannot surface a neighbour's collection.
+- **No N+1.** The status arrives as a subselect on the row, so the query count is
+  identical at 1 and at 20 residents
+  (`the_query_count_does_not_grow_with_the_number_of_residents`).
 
-1. **`tests/Feature/RoleNavigationTest.php` currently asserts the opposite.** It
-   pins a Kagawad at exactly three destinations and asserts
-   `test_a_kagawad_is_not_intended_to_see_residents_or_document_requests`. A
-   read-only resident list is **not** a contradiction of that test's intent — a
-   Kagawad must still not see Document Requests, and must still not see the
-   *staff* Residents page — but the assertions will need rewriting rather than
-   leaving to fail. Add a Kagawad destination and keep the Document Requests
-   prohibition.
-2. **The Kagawad matrix in this file** currently shows Denied on every residents
-   route, which is accurate for the staff pages and, as written, says nothing
-   about a page that does not exist. It should gain a row when the route lands.
+Refusals follow the route middleware, so the role areas still do not overlap: a
+Resident, a Secretary and the Captain each get **403**, and a guest is redirected
+to `/login`.
 
-> **One question worth settling at the same time.** Decision 3 says "their assigned
-> sector**s**", plural, but `sectors.kagawad_user_id` is `UNIQUE`
-> (`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad can hold **at
-> most one** sector today. The plural is either forward-looking — a Kagawad may be
-> given several sectors later, which would need that index dropped — or casual.
-> The existing scoping code already handles several sectors correctly
-> (`assignedSectorIds()` returns an array and the queries use `whereIn`), so the
-> only blocker would be the unique index. Worth confirming before the resident
-> list is designed around a single sector.
+### Two judgement calls recorded
 
-Everything else in the tables above matches the specification.
+1. **The batch default is the latest *active* batch, not the latest batch.** A
+   closed batch can carry a later `distribution_date` than any open one, and
+   defaulting to it would open the page on a worklist nobody can act on. Closed
+   batches are still selectable — a Kagawad checking a past handout is reasonable.
+2. **"Not yet received" is reserved for residents who are on the batch's
+   checklist.** A verified resident absent from the checklist reads **"Not on this
+   batch"**, and an unverified one reads **"No relief status"** — because "not yet
+   received" is a claim about a batch they are not on. The legend under the filter
+   bar says so.
+
+### Still open: the plural in "sector(s)"
+
+Decision 3 says "their assigned sector**s**", but
+`sectors.kagawad_user_id` is `UNIQUE`
+(`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad can hold **at most
+one** sector today.
+
+This is now visible in the product rather than only in the schema: the sector
+filter on this page renders only when a Kagawad holds more than one sector, and
+that branch is currently unreachable. The code is already written for the plural —
+`assignedSectorIds()` returns an array and the queries use `whereIn` — so the only
+blocker is the unique index. The end-to-end test is present and
+`markTestSkipped` with that reason, so dropping the index turns it on.
 
 ---
+
 
 ## Suspicious
 
@@ -555,9 +584,10 @@ is, and `RoleNavigationTest` covers it — but nothing structural would stop the
 two drifting apart, and a template can only ever *hide* a control, never refuse
 the request behind it.
 
-The three Owner decisions are currently held in three unrelated places — two
-middleware groups, a sidebar list, and a test. This is the item that would let them
-drift.
+The three Owner decisions are currently held in four unrelated places — two
+middleware groups, a sidebar list, and a test — and the fourth (the Kagawad
+resident view) had to be added to all of them by hand. This is the item that
+would let them drift.
 
 ### 9. Smaller things, listed for completeness
 
