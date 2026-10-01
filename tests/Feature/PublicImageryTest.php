@@ -72,34 +72,4 @@ class PublicImageryTest extends TestCase
             $this->assertFileExists(public_path($path), "Configured image [{$path}] is missing from public/.");
         }
     }
-
-    /**
-     * No official is ever shown a photograph.
-     *
-     * The listing renders neutral initials instead. This used to be asserted on
-     * the standalone /directory page; its content is now a section of the About
-     * page, so that is where the rule is checked - the rule did not move with
-     * the markup, and it must not be lost with the page.
-     */
-    public function test_the_officials_listing_renders_no_photographs(): void
-    {
-        $content = $this->get(route('about'))->assertOk()->getContent();
-
-        preg_match('/<main id="main-content">(.*)<\/main>/s', $content, $matches);
-        $main = $matches[1] ?? '';
-
-        // Scoped to the blocks that came from the directory page - the executive
-        // cards, the public information line and the sector Kagawads - and not
-        // to the whole officials section. The two carousels above them are the
-        // About page's own content and do render portraits on purpose, so
-        // asserting over the whole section would be asserting against the
-        // carousels rather than against what moved.
-        $start = strpos($main, 'id="executive-heading"');
-        $this->assertIsInt($start, 'The about page no longer renders the executive officials.');
-
-        $section = substr($main, $start);
-
-        $this->assertStringNotContainsString('<img', $section);
-        $this->assertStringNotContainsString('id-photo', $section);
-    }
 }

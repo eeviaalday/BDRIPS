@@ -752,12 +752,18 @@ class PublicAboutSectionTest extends TestCase
     /**
      * The About page's officials section, boundaries included.
      *
-     * Balances the section tags rather than stopping at the first closing one.
-     * The executive roles, the public information line and the sector Kagawads
-     * used to be a page of their own and are now sections inside this one, so
-     * the first "</section>" after the opening is one of theirs, not the end of
-     * the block - and a helper that stopped there would quietly hand every
-     * assertion a truncated slice of the page.
+     * Balances the section tags rather than stopping at the first closing one. A
+     * component inside the section may itself be a section, and a helper that
+     * stopped at the first "</section>" would quietly hand every assertion a
+     * truncated slice of the page - which is what it used to do.
+     *
+     * The character class is [\s>] and not a plain space. Blade emits a
+     * multi-line opening tag, so the shell's own "<section" is followed by a
+     * newline rather than a space. A class of [ >] therefore fails to count the
+     * very tag this helper is walking from, the first match becomes the closing
+     * tag, the depth goes negative and the section never appears to close. That
+     * is a bug this helper had and only did not show while a nested section
+     * happened to balance it out.
      */
     private function officialsSection(string $content): string
     {
@@ -773,7 +779,7 @@ class PublicAboutSectionTest extends TestCase
         $this->assertIsInt($opening, 'The officials section is not a section element.');
 
         $slice = substr($content, $opening);
-        preg_match_all('/<section[ >]|<\/section>/', $slice, $tags, PREG_OFFSET_CAPTURE);
+        preg_match_all('/<section[\s>]|<\/section>/', $slice, $tags, PREG_OFFSET_CAPTURE);
 
         $depth = 0;
         $end = null;
