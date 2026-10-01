@@ -15,7 +15,11 @@ Scope: Secretary, Kagawad and Admin screens only. Full audit: `docs/STAFF_UI_AUD
 
 ## SHARED — do not edit
 
-`layouts/public.blade.php` · `components/{shell,page-header,breadcrumb,data-table,empty-state,btn,status-badge,stat-card,card,alert,field,select-field,input-label,input-error,confirm-dialog,icon,request-timeline}.blade.php` · `account/partials/details.blade.php` · `components/resident/*` · `tailwind.config.js` · `resources/css/app.css` · `app/Models/*` · `config/bdrpis.php` · `app/Support/RoleNavigation.php`
+`layouts/public.blade.php` · `components/{shell,page-header,breadcrumb,data-table,empty-state,btn,status-badge,stat-card,card,alert,field,select-field,input-label,input-error,confirm-dialog,icon,request-timeline}.blade.php` · `account/partials/details.blade.php` · `components/resident/*` · `tailwind.config.js` · `resources/css/app.css` · `app/Models/*` · `config/bdrpis.php`
+
+`app/Support/RoleNavigation.php` — staff/Kagawad/Admin nav items may be added or
+changed here; resident and public entries must stay byte-identical (guarded by
+`RoleNavigationTest`).
 
 **Trap:** `/account` renders `account/edit.blade.php` (`x-public-layout`, Resident) *or*
 `account/edit-staff.blade.php` (`x-app-layout`, staff) on `$user->isResident()`. Only the latter
