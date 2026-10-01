@@ -4,6 +4,8 @@
     'options',
     'value' => null,
     'placeholder' => 'Select...',
+    'clientInvalid' => null,
+    'clientMessage' => null,
     'hint' => null,
     'id' => null,
     'class' => '',
@@ -33,6 +35,7 @@
     $describedBy = [];
     if ($hint) { $describedBy[] = $controlId.'-hint'; }
     if ($errors->has($name)) { $describedBy[] = $controlId.'-error'; }
+    if ($clientMessage) { $describedBy[] = $controlId.'-client-error'; }
 
     $current = (string) old($name, $value ?? '');
 
@@ -50,6 +53,7 @@
         name="{{ $name }}"
         @if ($describedBy) aria-describedby="{{ implode(' ', $describedBy) }}" @endif
         @if ($errors->has($name)) aria-invalid="true" @endif
+        @if ($clientInvalid) x-bind:aria-invalid="{{ $clientInvalid }} ? 'true' : null" @endif
         {{ $attributes->only(['required', 'disabled', 'multiple'])->merge([
             'class' => $surfaces[$variant] ?? $surfaces['default'],
         ]) }}
@@ -73,4 +77,12 @@
             <span>{{ $message }}</span>
         </p>
     @enderror
+
+    @if ($clientMessage)
+        <p id="{{ $controlId }}-client-error" x-show="{{ $clientInvalid }}" x-cloak
+            class="mt-1.5 flex items-start gap-1 text-xs font-medium text-red-700">
+            <x-icon name="x-circle" class="mt-px h-3.5 w-3.5 shrink-0" />
+            <span>{{ $clientMessage }}</span>
+        </p>
+    @endif
 </div>

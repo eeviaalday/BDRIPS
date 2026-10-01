@@ -112,7 +112,7 @@ class RegisterRequest extends FormRequest
             'nationality.required' => 'Select your nationality.',
             'nationality_other.required_if' => 'Enter your nationality.',
             'address.required' => 'Your complete address is required.',
-            'sector_id.required' => 'Select your sector or purok.',
+            'sector_id.required' => 'Select your sector.',
             'email.required' => 'Your email address is required.',
             'email.unique' => 'This email address is already registered. Please use another email or log in.',
             'household_number.required' => 'Your household reference number is required.',

@@ -11,6 +11,8 @@
     'class' => '',
     'revealable' => false,
     'variant' => 'default',
+    'clientInvalid' => null,
+    'clientMessage' => null,
 ])
 
 @php
@@ -38,6 +40,7 @@
     $describedBy = [];
     if ($hint) { $describedBy[] = $inputId.'-hint'; }
     if ($errors->has($name)) { $describedBy[] = $inputId.'-error'; }
+    if ($clientMessage) { $describedBy[] = $inputId.'-client-error'; }
 
     $surfaces = [
         'default' => 'block w-full rounded-lg border-navy-200 bg-white text-sm text-navy-900 shadow-sm transition placeholder:text-navy-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-600/25 focus:outline-none',
@@ -114,6 +117,7 @@
                 x-ref="file"
                 @if ($describedBy) aria-describedby="{{ implode(' ', $describedBy) }}" @endif
                 @if ($errors->has($name)) aria-invalid="true" @endif
+                @if ($clientInvalid) x-bind:aria-invalid="{{ $clientInvalid }} ? 'true' : null" @endif
                 {{ $attributes->only(['required', 'disabled', 'accept'])->merge(['class' => 'file-input']) }}
                 x-on:change="fileName = $event.target.files[0]?.name ?? ''"
             />
@@ -149,6 +153,7 @@
                 @if ($placeholder) placeholder="{{ $placeholder }}" @endif
                 @if ($describedBy) aria-describedby="{{ implode(' ', $describedBy) }}" @endif
                 @if ($errors->has($name)) aria-invalid="true" @endif
+                @if ($clientInvalid) x-bind:aria-invalid="{{ $clientInvalid }} ? 'true' : null" @endif
                 {{ $attributes->only(['required', 'autocomplete', 'readonly', 'disabled', 'min', 'max', 'step', 'accept'])->merge([
                     'class' => trim($surface.' '.$left.' '.$right.($mono ? ' font-mono' : '')),
                 ]) }}
@@ -183,4 +188,12 @@
             <span>{{ $message }}</span>
         </p>
     @enderror
+
+      @if ($clientMessage)
+          <p id="{{ $inputId }}-client-error" x-show="{{ $clientInvalid }}" x-cloak
+              class="mt-1.5 flex items-start gap-1 text-xs font-medium text-red-700">
+              <x-icon name="x-circle" class="mt-px h-3.5 w-3.5 shrink-0" />
+              <span>{{ $clientMessage }}</span>
+          </p>
+      @endif
 </div>

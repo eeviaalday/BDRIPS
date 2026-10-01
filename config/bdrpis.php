@@ -130,16 +130,68 @@ return [
     | values the way civil status is.
     |
     | The sector list is NOT here. Sectors are rows in a table that
-    | resident_profiles holds a foreign key to, so the purok names are data
+    | resident_profiles holds a foreign key to, so the sector names are data
     | rather than configuration - see the migration that replaced the "Sector 1"
     | placeholders. The dropdowns order by id to reproduce the intended reading
     | order rather than sorting alphabetically.
+    |
+    | A resident's sector is the one and only residential area they are asked
+    | for. There is no purok field alongside it: the sectors table carries an
+    | optional purok_name for a sub-purok the staff screen can record, but that
+    | is a staff-side annotation, is null for every row today, and is never
+    | collected from a resident. The finer description of where in the sector
+    | someone lives belongs in the free-text address.
     |
     */
 
     'registration' => [
 
+        /*
+         | How each field is checked in the browser before the wizard will move on
+         | from the step it sits on.
+         |
+         | This is the same set of fields the steps above list, described rather
+         | than repeated: "name" appears once in the step and once here, and the
+         | two are read from the same config, so a field cannot be added to a
+         | step and left out of the browser's idea of what that step requires.
+         |
+         | The types are deliberately coarse. A browser cannot know that a date is
+         | before 1905 or that an address is really an address, and it is not
+         | trying to: it answers one question, "is this field filled in with
+         | something of the right shape", and RegisterRequest answers the rest
+         | when the form is posted. Anything that decides whether a registration
+         | is allowed is decided by the server.
+         |
+         | The two conditional rules are the ones a flat list cannot express.
+         | nationality_other is collected only when the resident picks "Others",
+         | and password_confirmation is a comparison rather than a value, so both
+         | are keyed by the field they depend on.
+         */
+        'field_rules' => [
+            'name' => ['type' => 'text', 'message' => 'Enter your full name.'],
+            'date_of_birth' => ['type' => 'date', 'message' => 'Enter your date of birth.'],
+            'gender' => ['type' => 'select', 'message' => 'Select your gender.'],
+            'civil_status' => ['type' => 'select', 'message' => 'Select your civil status.'],
+            'nationality' => ['type' => 'select', 'message' => 'Select your nationality.'],
+            'nationality_other' => ['type' => 'text', 'message' => 'Enter your nationality.'],
+            'address' => ['type' => 'text', 'message' => 'Enter your complete address.'],
+            'sector_id' => ['type' => 'select', 'message' => 'Select your sector.'],
+            'email' => ['type' => 'email', 'message' => 'Enter your email address.'],
+            'household_number' => ['type' => 'text', 'message' => 'Enter your household reference number.'],
+            'valid_id_photo' => ['type' => 'file', 'message' => 'Attach a photo or scan of your valid ID.'],
+            'password' => ['type' => 'password', 'message' => 'Choose a password.'],
+            'password_confirmation' => ['type' => 'password_confirmation', 'message' => 'Repeat your password.'],
+        ],
+
+        /*
+         | The message for a field the browser has decided is empty but that has
+         | no message of its own above, so a field added later cannot advance the
+         | wizard with no explanation on screen.
+         */
+        'default_field_message' => 'This field is required.',
+
         'steps' => [
+
             ['key' => 'personal', 'label' => 'Personal Info', 'heading' => 'Personal Information',
                 'fields' => ['name', 'date_of_birth', 'gender', 'civil_status', 'nationality', 'nationality_other']],
             ['key' => 'address', 'label' => 'Address', 'heading' => 'Where You Live',

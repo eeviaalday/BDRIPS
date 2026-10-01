@@ -95,7 +95,7 @@
                         <x-input-error :messages="$errors->get('address')" class="mt-1" />
                     </div>
 
-                    <x-select-field id="sector_id" name="sector_id" label="Sector / Purok" variant="soft" required
+                    <x-select-field id="sector_id" name="sector_id" label="Sector" variant="soft" required
                         :options="\App\Models\Sector::orderBy('id')->pluck('sector_name', 'id')->all()" />
 
                     <x-file-upload name="id_photo" label="Replace valid ID"

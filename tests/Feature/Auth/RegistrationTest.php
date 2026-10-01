@@ -306,7 +306,7 @@ class RegistrationTest extends TestCase
         $this->assertSame(1, User::count());
     }
 
-    public function test_the_sector_dropdown_offers_the_barangays_puroks_in_their_own_order(): void
+    public function test_the_sector_dropdown_offers_the_barangays_sectors_in_their_own_order(): void
     {
         $content = $this->get('/register')->assertOk()->getContent();
 

@@ -235,7 +235,7 @@ a{color:var(--blue);font-weight:600}
         <ul class="perks">
             @foreach ([
                 ['icon' => 'user', 'text' => 'Your name, birth date and civil status'],
-                ['icon' => 'pin', 'text' => 'Your address and sector or purok'],
+                ['icon' => 'pin', 'text' => 'Your address and sector'],
                 ['icon' => 'mail', 'text' => 'An email we can confirm your account on'],
                 ['icon' => 'home', 'text' => 'Your household reference number'],
                 ['icon' => 'id-badge', 'text' => 'Your valid ID, and a password'],
@@ -265,19 +265,152 @@ a{color:var(--blue);font-weight:600}
          only has to take the ID photograph.
     --}}
     <section class="right">
-        <div class="wizard" x-data="{
+        <div class="wizard" x-on:input="clearError($event.target.name)" x-on:change="clearError($event.target.name)" x-data="{
             step: {{ $opensOn }},
             nationality: '{{ old('nationality', $defaultNationality) }}',
             lastStep: {{ $lastStep }},
+
             // Step number => label, so the visible step name is looked up from
             // the same config the stepper is built from rather than spelled out
             // a second time here.
             labels: @js(collect($steps)->mapWithKeys(fn (array $s, int $i): array => [$i + 1 => $s['label']])->all()),
+            fields: @js(collect($steps)->mapWithKeys(fn (array $s, int $i): array => [$i + 1 => $s['fields']])->all()),
+
+            // The rules, and the fallback message, from the same config the steps
+            // are built from. A field the wizard does not have a rule for is not
+            // required by the wizard; the server decides that, and it is the only
+            // thing that decides whether a registration is allowed.
+            rules: @js(config('bdrpis.registration.field_rules')),
+            defaultMessage: @js(config('bdrpis.registration.default_field_message')),
+            otherNationality: @js($otherNationality),
+            oldestBirthDate: @js(config('bdrpis.registration.oldest_acceptable_birth_date')),
+
+            // Field name => message, for the step being looked at. Cleared and
+            // rebuilt on every attempt rather than accumulated, so correcting one
+            // field and pressing Next again reports only what is still wrong.
+            errors: {},
+
+            // The fieldset for the step on screen. Every check is scoped to it, so
+            // a field belonging to a step the resident has not reached cannot
+            // block them, and a value they already typed on an earlier step is
+            // never re-validated behind their back.
+            currentFields() {
+                return this.$root.querySelector(`fieldset[data-step='${this.step}']`);
+            },
+
+            control(name) {
+                return this.currentFields()?.querySelector(`[name='${name}']`) || null;
+            },
+
+            // A field is satisfied when it is absent, because a field that is not
+            // rendered on this step is not this step's business, and when it holds
+            // something of the right shape otherwise.
+            isSatisfied(name, rule) {
+                const el = this.control(name);
+                if (! el) return true;
+
+                const value = (el.value || '').trim();
+
+                switch (rule.type) {
+                    case 'date': {
+                        if (value === '') return false;
+                        // An incomplete or impossible date has no usable value, and
+                        // comparing it would compare NaN and pass.
+                        const parsed = new Date(value);
+                        if (Number.isNaN(parsed.getTime())) return false;
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        if (parsed > today) return false;
+                        if (value < this.oldestBirthDate) return false;
+                        return true;
+                    }
+                    case 'email':
+                        if (value === '') return false;
+                        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+                    case 'password':
+                        if (value === '') return false;
+                        return value.length >= 8;
+                    case 'password_confirmation': {
+                        const password = this.control('password');
+                        return value !== '' && !!password && value === (password.value || '');
+                    }
+                    case 'file':
+                        // A file input holds a fake path, so only the presence of
+                        // one is meaningful here. Format and size are the
+                        // server's call.
+                        return el.files !== null && el.files.length > 0;
+                    case 'select':
+                        // The placeholder is a real option carrying an empty
+                        // value, so a select still showing its placeholder has
+                        // value === '' and is not a choice yet.
+                        return value !== '';
+                    case 'text':
+                    default:
+                        return value !== '';
+                }
+            },
+
+              // nationality_other is only collected when the resident picked the
+              // Others option, so it is required exactly then and never otherwise.
+            isRequired(name) {
+                if (name === 'nationality_other') {
+                    return this.nationality === this.otherNationality;
+                }
+                return true;
+            },
+
+            // Validate the step on screen. Returns true only when it may advance.
+            validateStep() {
+                const fields = this.currentFields();
+                this.errors = {};
+
+                if (!fields) return true;
+
+                for (const name of this.stepFields()) {
+                    if (!this.isRequired(name)) continue;
+                    if (this.isSatisfied(name, this.rules[name] || { type: 'text' })) continue;
+
+                    this.errors[name] = (this.rules[name] || {}).message || this.defaultMessage;
+                }
+
+                const failed = Object.keys(this.errors);
+                if (failed.length === 0) return true;
+
+                // First offending field, in the order the step lists them rather
+                // than the order the object was built, so focus lands at the top of
+                // what needs fixing.
+                const first = this.stepFields().find((name) => failed.includes(name));
+                this.$nextTick(() => {
+                    const el = this.control(first);
+                    if (!el) return;
+                    el.focus({ preventScroll: true });
+                    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                });
+
+                return false;
+            },
+
+            // Which fields this step declares, from the config.
+            stepFields() {
+                return this.fields[this.step] || [];
+            },
+
+            // Correcting a field clears its message, so the resident is not told
+            // about something they have just fixed while they are still typing.
+            clearError(name) { delete this.errors[name] },
+
             goTo(n) {
                 this.step = Math.min(Math.max(n, 1), this.lastStep);
                 this.$nextTick(() => this.$root.querySelector('[data-step-heading]')?.focus());
             },
-            next() { this.goTo(this.step + 1) },
+
+            // The only guarded direction. Going back is deliberately not: a
+            // resident who has gone past a field is allowed to return to it, and
+            // blocking that would be a worse dead end than a forward step.
+            next() {
+                if (!this.validateStep()) return;
+                this.goTo(this.step + 1);
+            },
             back() { this.goTo(this.step - 1) },
         }">
             <h3>Create your account</h3>
@@ -336,7 +469,7 @@ a{color:var(--blue);font-weight:600}
                          and no dependence on Alpine removing the attribute before
                          the form becomes visible, which would leave the form
                          blank if it ever did not. --}}
-                    <fieldset x-show="step === {{ $number }}" @if ($number !== $opensOn) x-cloak @endif>
+                    <fieldset data-step="{{ $number }}" x-show="step === {{ $number }}" @if ($number !== $opensOn) x-cloak @endif>
                         <legend class="sr-only">{{ $step['heading'] }}</legend>
 
                         <h2 class="step-heading" data-step-heading tabindex="-1">{{ $step['heading'] }}</h2>
@@ -349,20 +482,20 @@ a{color:var(--blue);font-weight:600}
                                 @case('personal')
                                     <x-field id="name" name="name" label="Full name" icon="user" variant="soft"
                                         :value="old('name')" placeholder="Juan Dela Cruz"
-                                        autocomplete="name" required class="span2" />
+                                        autocomplete="name" required class="span2"  :client-invalid="'errors.name'" :client-message="config('bdrpis.registration.field_rules.name.message')"/>
 
                                     <x-field id="date_of_birth" name="date_of_birth" type="date" variant="soft"
                                         label="Date of birth" :value="old('date_of_birth')"
                                         autocomplete="bday" required
-                                        hint="The Secretary cross-checks this against the master list." />
+                                        hint="The Secretary cross-checks this against the master list."  :client-invalid="'errors.date_of_birth'" :client-message="config('bdrpis.registration.field_rules.date_of_birth.message')"/>
 
                                     <x-select-field id="gender" name="gender" label="Gender" variant="soft"
                                         :options="config('bdrpis.registration.genders')"
-                                        :value="old('gender')" placeholder="Select Gender" required />
+                                        :value="old('gender')" placeholder="Select Gender" required  :client-invalid="'errors.gender'" :client-message="config('bdrpis.registration.field_rules.gender.message')"/>
 
                                     <x-select-field id="civil_status" name="civil_status" label="Civil status" variant="soft"
                                         :options="config('bdrpis.registration.civil_statuses')"
-                                        :value="old('civil_status')" placeholder="Select Civil Status" required />
+                                        :value="old('civil_status')" placeholder="Select Civil Status" required  :client-invalid="'errors.civil_status'" :client-message="config('bdrpis.registration.field_rules.civil_status.message')"/>
 
                                     {{-- Nationality is not a closed list, so
                                          "Others" swaps the select for a box
@@ -376,30 +509,36 @@ a{color:var(--blue);font-weight:600}
                                         :options="[$defaultNationality => $defaultNationality, $otherNationality => $otherNationality]"
                                         :value="old('nationality', $defaultNationality)"
                                         placeholder="Select Nationality" x-model="nationality" required
-                                        hint="Most residents here are Filipino." />
+                                        hint="Most residents here are Filipino."  :client-invalid="'errors.nationality'" :client-message="config('bdrpis.registration.field_rules.nationality.message')"/>
 
                                     <div x-show="nationality === @js($otherNationality)" x-cloak class="span2">
                                         <x-field id="nationality_other" name="nationality_other" variant="soft"
                                             label="Your nationality" :value="old('nationality_other')"
-                                            placeholder="e.g. American" />
+                                            placeholder="e.g. American"  :client-invalid="'errors.nationality_other'" :client-message="config('bdrpis.registration.field_rules.nationality_other.message')"/>
                                     </div>
                                     @break
 
                                 @case('address')
                                     <x-field id="address" name="address" label="Complete address" icon="pin" variant="soft"
-                                        :value="old('address')" placeholder="Purok 3, Barangay Linasin"
-                                        autocomplete="street-address" required class="span2" />
+                                        :value="old('address')" placeholder="House no. 12, Barangay Linasin"
+                                        autocomplete="street-address" required class="span2"  :client-invalid="'errors.address'" :client-message="config('bdrpis.registration.field_rules.address.message')"/>
 
-                                    <x-select-field id="sector_id" name="sector_id" label="Sector / Purok" variant="soft"
+                                    {{-- The sector is the unit this barangay records a
+                                         residence by, so it is labelled as one thing.
+                                         There is no separate purok field: the
+                                         dropdown is the sectors table itself, and
+                                         the household's finer subdivision is part of
+                                         the free-text address above. --}}
+                                    <x-select-field id="sector_id" name="sector_id" label="Sector" variant="soft"
                                         :options="$sectors->pluck('sector_name', 'id')"
                                         :value="old('sector_id')" placeholder="Select your sector" required
-                                        class="span2" />
+                                        class="span2"  :client-invalid="'errors.sector_id'" :client-message="config('bdrpis.registration.field_rules.sector_id.message')"/>
                                     @break
 
                                 @case('contact')
                                     <x-field id="email" name="email" type="email" label="Email address" icon="mail" variant="soft"
                                         :value="old('email')" placeholder="you@example.com"
-                                        autocomplete="username" required class="span2" />
+                                        autocomplete="username" required class="span2"  :client-invalid="'errors.email'" :client-message="config('bdrpis.registration.field_rules.email.message')"/>
 
                                     <x-alert variant="info" icon="mail" class="span2">
                                         Your email is how the Barangay Secretary reaches you about a request, and how
@@ -412,7 +551,7 @@ a{color:var(--blue);font-weight:600}
                                         label="Household reference number" icon="home"
                                         :value="old('household_number')" placeholder="e.g. HH-0001"
                                         mono required class="span2"
-                                        hint="Shown on your Barangay ID. Ask at the hall if you are not sure of it." />
+                                        hint="Shown on your Barangay ID. Ask at the hall if you are not sure of it."  :client-invalid="'errors.household_number'" :client-message="config('bdrpis.registration.field_rules.household_number.message')"/>
                                     @break
 
                                 @case('identity')
@@ -435,15 +574,15 @@ a{color:var(--blue);font-weight:600}
                                          other steps fit in. --}}
                                     <x-field id="valid_id_photo" name="valid_id_photo" type="file" variant="soft"
                                         label="Valid ID Photo / Document" icon="id-badge" required
-                                        accept=".jpg,.jpeg,.png,.pdf" class="span2" />
+                                        accept=".jpg,.jpeg,.png,.pdf" class="span2"  :client-invalid="'errors.valid_id_photo'" :client-message="config('bdrpis.registration.field_rules.valid_id_photo.message')"/>
 
                                     <x-field id="password" name="password" type="password" label="Password" variant="soft"
                                         icon="lock" autocomplete="new-password" revealable required
-                                        hint="Use at least 8 characters." />
+                                        hint="Use at least 8 characters."  :client-invalid="'errors.password'" :client-message="config('bdrpis.registration.field_rules.password.message')"/>
 
                                     <x-field id="password_confirmation" name="password_confirmation" type="password"
                                         variant="soft" label="Confirm password" icon="lock"
-                                        autocomplete="new-password" revealable required />
+                                        autocomplete="new-password" revealable required  :client-invalid="'errors.password_confirmation'" :client-message="config('bdrpis.registration.field_rules.password_confirmation.message')"/>
                                     @break
                             @endswitch
                         </div>
