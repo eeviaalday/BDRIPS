@@ -327,7 +327,7 @@
                             <li><a href="{{ route('services.index') }}#how-it-works" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">How It Works</a></li>
                             <li><a href="{{ route('about') }}#officials" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Officials Directory</a></li>
                             <li><a href="{{ route('announcements.index') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Announcements</a></li>
-                            <li><a href="{{ route('requests.track') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Track a Request</a></li>
+                            <li><a href="{{ route('resident.requests.index') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Track a Request</a></li>
                         </ul>
                     </div>
 

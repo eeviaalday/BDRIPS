@@ -147,7 +147,7 @@ class PublicFooterBannerTest extends TestCase
             route('contact'),
             route('about').'#officials',
             route('announcements.index'),
-            route('requests.track'),
+            route('resident.requests.index'),
             route('services.index').'#how-it-works',
         ];
 

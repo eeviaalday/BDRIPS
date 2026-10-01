@@ -5,7 +5,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kagawad\DashboardController as KagawadDashboardController;
 use App\Http\Controllers\Kagawad\ReliefController as KagawadReliefController;
 use App\Http\Controllers\PublicController;
-use App\Http\Controllers\RequestTrackingController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
 use App\Http\Controllers\Resident\VerificationController as ResidentVerificationController;
@@ -103,12 +102,24 @@ Route::middleware(['auth', 'verified', 'no-store-authenticated'])->group(functio
 // to find out whether they are expected at a handout.
 Route::get('/transparency', [TransparencyController::class, 'index'])->name('transparency.index');
 
-// Tracking a request by reference number. Takes a household number as a second
-// factor, because a reference is only four digits and would otherwise let
-// somebody walk a stranger's request. Throttled for the same reason.
-Route::get('/track', RequestTrackingController::class)
-    ->middleware('throttle:20,1')
-    ->name('requests.track');
+/*
+| The public tracking page is gone. It took a reference number and a household
+| number and answered for anybody who had both, and a resident now reads their own
+| requests from their own Document Requests page, where the same information sits
+| behind a login and beside everything else about the request.
+|
+| The address stays as a permanent redirect rather than a 404. It is in old
+| bookmarks, in search results and in messages people have already sent, and a
+| resident who has one of those in their history is a resident who should end up
+| looking at their own requests rather than at an error. The route name stays too,
+| so the links that are not being repointed in this change keep resolving.
+|
+| This does mean a resident whose email address is not yet confirmed loses the one
+| path they had to checking a request: this page needed no login, and the Document
+| Requests routes do. That was the trade for closing a public lookup, and it is
+| recorded here so it is a decision on the record rather than a surprise.
+*/
+Route::permanentRedirect('/track', '/resident/requests')->name('requests.track');
 
 /*
 |--------------------------------------------------------------------------

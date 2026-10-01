@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\DocumentRequest;
-use App\Models\DocumentType;
 use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
 use App\Models\ResidentProfile;
@@ -14,25 +12,22 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * The three public lookups: the transparency board, the household check, and
- * request tracking.
+ * The two public lookups that remain: the transparency board and a resident's own
+ * verification status.
  *
- * All three are unauthenticated and all three take a short, guessable key - a
- * household number, a four-digit reference. So the tests here are mostly about
- * what a page must NOT say, because the failure that matters is a stranger
- * learning a neighbour's business rather than a page not rendering.
+ * Request tracking used to be the third, and it is gone. It was a reference number
+ * plus a household number answered for anybody who had both, which made it the one
+ * place a resident's request was readable without signing in. A resident reads
+ * their own requests from their own Document Requests page now.
+ *
+ * What is left is still unauthenticated and still keyed on something short and
+ * guessable - a household number. So the tests here are mostly about what a page
+ * must NOT say, because the failure that matters is a stranger learning a
+ * neighbour's business rather than a page not rendering.
  */
 class PublicLookupsTest extends TestCase
 {
     use RefreshDatabase;
-
-    /**
-     * A document-type label that appears on no other page.
-     *
-     * The real service names all appear in the public footer, so asserting on
-     * one of them would pass whether or not the lookup found anything.
-     */
-    private const SENTINEL = 'Zonal Certification Document';
 
     // ---------------------------------------------------------------------
     // The transparency board
@@ -123,107 +118,6 @@ class PublicLookupsTest extends TestCase
     // Request tracking
     // ---------------------------------------------------------------------
 
-    /**
-     * A reference is BRGY-YYYY-NNNN. Four random digits is a few thousand
-     * possibilities, so tracking on the reference alone would let somebody walk
-     * a stranger's request: their document type, their timestamps, and their
-     * rejection reason - which is free text a Secretary wrote about them.
-     */
-    #[Test]
-    public function a_reference_alone_does_not_reveal_a_request(): void
-    {
-        $documentRequest = $this->documentRequest();
-
-        $content = $this->get(route('requests.track', [
-            'reference' => $documentRequest->reference_number,
-        ]))->assertOk()->getContent();
-
-        $this->assertStringNotContainsString(self::SENTINEL, $content);
-    }
-
-    #[Test]
-    public function the_right_household_number_with_the_reference_does_reveal_it(): void
-    {
-        $documentRequest = $this->documentRequest();
-
-        $this->get(route('requests.track', [
-            'reference' => $documentRequest->reference_number,
-            'household' => 'HH-1001',
-        ]))
-            ->assertOk()
-            ->assertSee(self::SENTINEL)
-            ->assertSee($documentRequest->reference_number);
-    }
-
-    #[Test]
-    public function the_wrong_household_number_is_refused(): void
-    {
-        $documentRequest = $this->documentRequest();
-
-        $this->get(route('requests.track', [
-            'reference' => $documentRequest->reference_number,
-            'household' => 'HH-0000',
-        ]))
-            ->assertOk()
-            ->assertDontSee(self::SENTINEL);
-    }
-
-    /**
-     * Even to the person who filed it, the tracked result is short of the
-     * record. They have proved they filed it; they have no need of the name and
-     * address on it, and a public page should not be echoing those.
-     */
-    #[Test]
-    public function a_tracked_request_shows_no_name_or_address(): void
-    {
-        $documentRequest = $this->documentRequest();
-        $user = $documentRequest->user;
-
-        $content = $this->get(route('requests.track', [
-            'reference' => $documentRequest->reference_number,
-            'household' => 'HH-1001',
-        ]))->assertOk()->getContent();
-
-        $this->assertStringNotContainsString($user->email, $content);
-    }
-
-    #[Test]
-    public function a_rejection_reason_is_shown_so_the_resident_knows_what_to_do(): void
-    {
-        $documentRequest = $this->documentRequest(status: DocumentRequest::STATUS_REJECTED);
-        $documentRequest->update(['rejection_reason' => 'Please state the receiving office instead.']);
-
-        $this->get(route('requests.track', [
-            'reference' => $documentRequest->reference_number,
-            'household' => 'HH-1001',
-        ]))
-            ->assertOk()
-            ->assertSee('Please state the receiving office instead.');
-    }
-
-    /**
-     * A request that does not exist and one whose household number is wrong must
-     * be indistinguishable, or this confirms a guessed reference.
-     */
-    #[Test]
-    public function a_wrong_reference_and_a_wrong_household_read_the_same(): void
-    {
-        $this->documentRequest();
-
-        $wrongReference = $this->get(route('requests.track', [
-            'reference' => 'BRGY-2020-0000',
-            'household' => 'HH-1001',
-        ]))->assertOk()->getContent();
-
-        $wrongHousehold = $this->get(route('requests.track', [
-            'reference' => 'BRGY-2020-0000',
-            'household' => 'HH-0000',
-        ]))->assertOk()->getContent();
-
-        $this->assertStringContainsString('could not find that request', $wrongReference);
-        $this->assertStringContainsString('could not find that request', $wrongHousehold);
-    }
-
     // ---------------------------------------------------------------------
     // Resident verification status
     // ---------------------------------------------------------------------
@@ -313,17 +207,6 @@ class PublicLookupsTest extends TestCase
         }
 
         return $batch->fresh();
-    }
-
-    private function documentRequest(string $status = DocumentRequest::STATUS_SUBMITTED): DocumentRequest
-    {
-        $profile = $this->profile('HH-1001');
-
-        return DocumentRequest::factory()->create([
-            'user_id' => $profile->user_id,
-            'document_type_id' => DocumentType::factory()->create(['label' => self::SENTINEL])->id,
-            'status' => $status,
-        ]);
     }
 
     private function profile(string $household, string $status = ResidentProfile::VERIFICATION_PENDING): ResidentProfile

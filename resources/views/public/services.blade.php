@@ -20,9 +20,9 @@
                 icon="document">
                 Request a Document
             </x-btn>
-            <x-btn :href="route('requests.track')" variant="outline" size="sm" icon="search">
-                Track a Request
-            </x-btn>
+              <x-btn :href="route('resident.requests.index')" variant="outline" size="sm" icon="search">
+                  Track a Request
+              </x-btn>
         </div>
     </x-page-header>
 
