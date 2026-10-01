@@ -3105,3 +3105,1040 @@ violations.
   "Create a resident account" link was removed along with the catalogue in Prompt #013.
 - Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
   already been regenerated.
+
+---
+
+## Prompt #015
+
+**Date:** 2026-10-01
+**Time:** 23:20
+**Category:** Documentation / Audit
+**Affected Module:** Staff, Kagawad and Admin areas (read-only)
+**Status:** Completed
+
+### Prompt
+
+> # ROLE
+> You are a senior Laravel/Blade/Tailwind engineer working on BDRPIS (Laravel 13, PHP 8.5, Blade + Tailwind 3 + Vite 8, MySQL, Breeze). Branch: staff-ui.
+>
+> # GOAL
+> We are polishing ONLY the Secretary, Kagawad, and Admin areas. This first task is READ-ONLY analysis plus two documentation files. Do not edit any view, route, controller, model, test, or CSS in this task.
+>
+> # HARD SCOPE RULES (these become permanent guardrails)
+> - DO NOT modify anything in the public/guest area or the resident area. This includes their Blade views, their components, their controllers, their routes, and their tests.
+> - If a shared file is used by both resident and staff (a layout, a component, a Tailwind token, app.css), do NOT edit it in place. Create a staff-specific variant instead (e.g. resources/views/components/staff/*, resources/views/layouts/staff*.blade.php) and leave the shared original byte-for-byte unchanged.
+> - No new JS framework, no new composer/npm dependencies. Blade + Tailwind + small vanilla JS or Alpine only if Alpine is already installed.
+> - No behavior changes to authorization, validation rules, or business logic unless an item in the audit is explicitly marked "bug" and I approve it.
+>
+> # STEPS
+> 1. Read ROLES.md completely. Build a permission matrix: rows = every route/screen in the staff area (staff.*, kagawad.*, shared /account), columns = Admin, Secretary, Kagawad, Resident, Guest. Mark Allowed / Denied per ROLES.md. Then compare with what the code actually does (routes/web.php middleware, policies, controllers, and the sidebar menu items per role). List every mismatch between ROLES.md, route middleware, and sidebar visibility.
+> 2. Identify the resident design language by reading the resident views, layouts, and components plus tailwind.config.js and resources/css/app.css. Document: color tokens, typography, card style (radius, border, shadow), button variants, form field style, badge/status style, spacing scale, empty-state style, page-header pattern, table style if any.
+> 3. Identify which layout and components the staff/kagawad pages currently use, and which of them are shared with resident/public. List them explicitly under "SHARED — do not edit".
+> 4. For every staff, kagawad and admin page, list: route name, view path, controller, which layout, which components, container max-width class, and whether it has breadcrumb / page header / empty state / pagination. Include the detail pages not screenshotted: verification review, document request review, relief batch show, kagawad relief checklist, user account detail, announcement edit.
+> 5. Produce the findings list below and mark each as bug / inconsistency / missing / stale-copy. Verify them against the code, do not assume:
+>   - Sidebar is not sticky/fixed and scrolls away on long pages.
+>   - Every staff page uses a different content max-width.
+>   - Table cell alignment: cells look centered/offset while headers are left-aligned (Audit Logs table is correct). Find the root cause.
+>   - Selects and date inputs truncate their value text (Status/Show/Role selects, Audit From/To).
+>   - Page <title> renders "BDRPIS - BDRPIS" on staff and kagawad pages.
+>   - "Still being built" notice on staff dashboard and kagawad dashboard.
+>   - Announcements index: Pin/Unpin button state looks inverted (pinned row shows disabled "Unpin", unpinned rows show enabled "Unpin").
+>   - Admin sidebar groups admin pages under the "MY ACCOUNT" heading.
+>   - User Accounts role-count cards show 0 for every role while users exist.
+>   - User Accounts "Verified" column shows a badge for staff roles.
+>   - Copy mentions "A Captain assigns..." and "Sectors & Kagawad" to a Kagawad who cannot access it. Check ROLES.md for which roles exist.
+>   - Sectors & Kagawad page: 17 sector cards, each a full inline form.
+>   - Settings page is one long form with no grouping.
+>
+> # OUTPUT (the only files you may create)
+> A. docs/STAFF_UI_AUDIT.md containing: the permission matrix, mismatches, the resident design tokens, the shared-files list, the per-page inventory, and the verified findings list with severity.
+> B. .ai/rules/staff-polish.md — a short, durable rules file (max ~60 lines) containing: the HARD SCOPE RULES above, the shared-files list, the resident design tokens to follow, the "SHARED — do not edit" list, and the verification commands (php artisan test, npm run build, git diff --stat guard for resident/public paths).
+> C. Append a dated entry to PROMPT_LOG.md.
+>
+> Finish by printing a summary of mismatches between ROLES.md and the current code, so I can decide on each before we change anything.
+
+### Implementation Actions
+
+- Read `tailwind.config.js`, `resources/css/app.css` and the resident/shared components
+  (`x-card`, `x-btn`, `x-field`, `x-select-field`, `x-status-badge`, `x-data-table`,
+  `x-empty-state`, `x-page-header`, `x-alert`, `x-shell`) to extract the design language.
+- Enumerated the staff/kagawad/account route surface with
+  `php artisan route:list --except-vendor --json`, recording each route's `role:` middleware.
+- Read `app/Support/RoleNavigation.php` and `resources/views/layouts/navigation.blade.php` for
+  sidebar visibility and grouping, and `app/Http/Controllers/AccountController.php` for the
+  two-layout `/account` split.
+- Read all 20 staff/kagawad views plus `account/edit-staff.blade.php` for the per-page inventory:
+  layout, components, container width, breadcrumb, empty state, pagination.
+- Verified each of the 12 reported findings empirically with Playwright 1.63 driving real Chrome
+  against `php artisan serve` on port 8124, authenticated as `admin@bdrpis.test`, at 1440x900 and
+  400x800, capturing computed styles and console errors.
+- Proved the role-count root cause by executing both the arrow-function and the by-reference
+  closure form of `countsByRole()` against the seeded database in `tinker`.
+- Confirmed via `find`, `ls` and `git log --all --diff-filter=A -- '*ROLES*'` that ROLES.md does
+  not exist in this repository.
+
+### Files Created
+
+- `docs/STAFF_UI_AUDIT.md`
+- `.ai/rules/staff-polish.md`
+
+### Files Modified
+
+- `PROMPT_LOG.md` (this entry only, appended)
+
+No view, route, controller, model, test, stylesheet or `tailwind.config.js` was modified, which
+`git status --short` confirms: it lists only these three paths.
+
+### Result
+
+**Blocker, reported rather than worked around: ROLES.md does not exist.** It is absent from the
+working tree and from every branch, and no commit ever added it. The permission matrix in the
+audit is therefore derived from `routes/web.php` middleware - the enforcement that actually runs -
+and is explicitly not a transcription of ROLES.md. The requested "mismatches between ROLES.md and
+the current code" cannot be produced until the file is supplied. No in-repo substitute exists:
+`PermissionMatrixTest` reads each route's expected answer out of its own middleware, so it proves
+the middleware is applied and enforced, not that it was written correctly.
+
+Thirteen findings recorded. Two are **bugs** with wrong data or a dead control behind them:
+
+- **F1 (High)** The announcements Pin/Unpin button is `@disabled($announcement->isPinned())`, so
+  it is disabled exactly when unpinning is needed, and the label is the literal string `Unpin` on
+  every row. `staff.announcements.pin` exists with no UI anywhere.
+- **F2 (High)** User Accounts role counts read 0 for every role. Root cause is a PHP arrow
+  function: `fn ($total, $role) => $counts[$role] = (int) $total` captures `$counts` **by value**,
+  so the assignment mutates a discarded copy. Proved side by side in tinker: the arrow fn gives
+  `{"admin":0,"secretary":0,"kagawad":0,"resident":0}` and a by-reference closure gives
+  `{"admin":1,"secretary":1,"kagawad":2,"resident":3}`. Only occurrence of the pattern in `app/`.
+
+Also confirmed: **F3** `<title>` is `BDRPIS - BDRPIS` on all 20 staff/kagawad pages because
+`AppLayout` declares only `$user` and never a `$title` property, so every `title="..."` attribute
+is silently discarded - which also makes the layout's own `@isset($title)` heading block dead
+code. **F4** the sidebar `<aside>` has `min-h-screen` but no `sticky`/`fixed`; computed `position`
+is `static` on all 18 pages. **F5** Admin-only pages render under a hard-coded `My Account`
+heading because `availableSidebarGroupsFor()` collapses `group !== 'main'` into one bucket,
+discarding the `group => 'admin'` metadata that `RoleNavigation` sets. **F6/F7** the two "still
+being built" notices and the "A Captain assigns a Kagawad to a sector from Sectors & Kagawad" copy
+are stale: there is no Captain role (`User::roles()` is admin/secretary/kagawad/resident), the
+assignment is an Admin action, and `Sectors & Kagawad` is `role:admin`.
+
+**Two reported findings did not reproduce and are recorded as such rather than dropped.** Table
+alignment is identical on all seven staff tables - computed `text-align` is `left` on `<th>` and
+`start` on `<td>` everywhere, including Audit Logs, and `left`/`start` are equivalent in LTR; no
+`<table>` is hand-written anywhere in `staff/**` or `kagawad/**`. Select and date inputs show no
+overflow at either 1440px or 400px, measured as available width against the width the selected
+text actually needs.
+
+Two claims needed correction rather than confirmation: the container widths are four tiers across
+22 pages rather than one per page (there is a partly defensible forms-at-3xl / tables-at-6xl rule
+buried in it), and a 404 seen while probing was the probe's own fault, since `document_requests`
+ids start at 2.
+
+801 tests pass and Pint is clean. `npm run build` was not required: no stylesheet, Tailwind token or
+Blade class changed.
+
+### Notes / Follow-up
+
+- **ROLES.md is the one outstanding blocker.** Supplying it is the only step needed to close the
+  matrix comparison; nothing else in the audit depends on it.
+- **F2 is the most valuable fix in the list** because it is wrong data on an Admin screen, it is
+  one line, and the same arrow-function shape is easy to reintroduce. The existing suite does not
+  assert non-zero counts, so nothing catches it today.
+- **F3 needs a `$title` property added to `AppLayout`.** That touches the staff-only layout
+  component, so it stays inside the scope rules.
+- **Markup-only tests cannot catch F1 or F4.** F1 needs a test that checks the `disabled`
+  expression against the pinned flag, not one that greps for the word "Unpin".
+- `.ai/rules/staff-polish.md` records the hard scope rules, the shared-file list, the design
+  tokens and a `git diff --stat` guard over the resident/public paths, so the next task in this
+  series cannot silently drift into shared or resident files.
+---
+
+## Prompt #016
+
+**Date:** 2026-10-02
+**Time:** 01:05
+**Category:** Refactor / UI
+**Affected Module:** Staff, Kagawad and Admin areas
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> Replace the ad-hoc tables, filters, badges and empty states in the staff/kagawad/admin pages with one small set of consistent components styled like the resident design.
+>
+> # HARD SCOPE RULES (same as .ai/rules/staff-polish.md)
+> staff-only variants under resources/views/components/staff/*; never edit shared resident/public components.
+>
+> # TASKS
+> 1. Table fix. Find the root cause of cells appearing centered/offset while headers are left-aligned (Residents, Verifications, Requests, Batches, Announcements, User Accounts). The Audit Logs table renders correctly, so use it as the reference. Build `<x-staff.table>` with sticky-ish header styling, consistent cell padding, left-aligned text, right-aligned action column, hover state, and horizontal overflow wrapper for small screens. Migrate all staff tables to it.
+> 2. `<x-staff.person-cell>`: initials avatar + name + secondary line (email / household), used in every resident/account/kagawad row.
+> 3. `<x-staff.status-badge>` with a single mapping for every status used in the staff area. Use the resident badge style. Include text, not color alone.
+> 4. `<x-staff.filter-bar>`: search + selects + Filter button + "Clear" link that appears only when a filter is active, on one row at >=md, stacked below. Fix truncated text: selects must size to their longest option, and date inputs must show the full dd/mm/yyyy. Keep filters as GET params exactly as they work today.
+> 5. `<x-staff.stat-card>` and `<x-staff.stat-row>` grid (2 cols mobile, 4 cols desktop). Replace the four different stat card markups currently in use.
+> 6. `<x-staff.empty-state>` in every empty list, including the filtered-empty case.
+> 7. Pagination footer: "Showing 1-15 of 42" + the existing paginator, same style on every list.
+> 8. Rows that open a detail page become fully clickable (whole row, with a real `<a>` on the primary cell) and show a chevron. Remove redundant "Open"-only action columns where the row link replaces them.
+> 9. Buttons: confirm the staff area uses the same primary / secondary / danger / ghost variants. Route hand-rolled classes through the existing component.
+> 10. Add a Blade component test file for the new components.
+>
+> # ACCEPTANCE CRITERIA
+> - No staff page defines its own `<table>` markup, badge classes, or stat card markup any more (grep to prove it).
+> - All table columns visually line up with their headers at 1280px and 768px.
+> - Filter selects and date fields show full values at 1280px and 1024px.
+> - Resident/public diff guard is clean; php artisan test passes; npm run build done and public/build committed; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- Re-read `.ai/rules/staff-polish.md` and the audit, then re-measured the reported alignment
+  defect in Chrome instead of trusting either the audit or the bug report.
+- Located the root cause by counting `<th scope="row">` per table: nine staff tables mark the
+  primary cell as a row header and Audit Logs does not.
+- Built nine components under `resources/views/components/staff/`: table, person-cell,
+  status-badge, stat-card, stat-row, empty-state, filter-bar, filter-field, filter-select,
+  filter-date, pagination.
+- Migrated all 8 staff/kagawad tables, 6 stat-card markups, 12 badge call sites, 6 filter
+  forms, 8 paginator footers and 2 empty states.
+- Removed the redundant "Open" button from the User Accounts actions column, leaving only
+  "Lift restriction", which is a POST the row's own link cannot perform.
+- Added `tests/Feature/StaffComponentsTest.php` (53 tests).
+- Verified alignment, filter fit, row clicks, the Clear link and the filtered empty state in
+  real Chrome at 1280x900, 1024x900 and 768x900.
+
+### Files Created
+
+- `resources/views/components/staff/table.blade.php`
+- `resources/views/components/staff/person-cell.blade.php`
+- `resources/views/components/staff/status-badge.blade.php`
+- `resources/views/components/staff/stat-card.blade.php`
+- `resources/views/components/staff/stat-row.blade.php`
+- `resources/views/components/staff/empty-state.blade.php`
+- `resources/views/components/staff/filter-bar.blade.php`
+- `resources/views/components/staff/filter-field.blade.php`
+- `resources/views/components/staff/filter-select.blade.php`
+- `resources/views/components/staff/filter-date.blade.php`
+- `resources/views/components/staff/pagination.blade.php`
+- `tests/Feature/StaffComponentsTest.php`
+
+### Files Modified
+
+- `resources/views/staff/{dashboard,residents,verifications,requests,batches,announcements,accounts,audit,status}/*.blade.php`
+- `resources/views/kagawad/{dashboard,relief}/*.blade.php`
+- `.gitignore`
+- `PROMPT_LOG.md` (this entry only)
+
+No shared component was edited. `x-data-table`, `x-status-badge`, `x-stat-card`,
+`x-empty-state`, `x-btn`, `x-breadcrumb`, `x-icon` and every resident/public view are unchanged.
+
+### Result
+
+**Root cause of the offset cells, and the audit was wrong about it.** The audit recorded this as
+"not reproduced" after measuring `thead th` and `tbody td` and finding both left-aligned. Both
+measurements were true and the conclusion was still wrong, because neither of them looked at the
+element that was actually centred. Nine staff tables mark the first cell of each row as a row
+header:
+
+    <th scope="row" class="px-4 py-3 text-sm font-semibold text-navy-900">
+
+The browser's default stylesheet sets `th { text-align: center }`. That is a declaration on the th
+itself, so it beats any inherited value - including the `text-left` the header row carries.
+Measured in Chrome at 1280px, before the change:
+
+| Table | `thead th` | `tbody th[scope=row]` | `tbody td` |
+|---|---|---|---|
+| residents / verifications / requests / batches / announcements / accounts | left | **center** | start |
+| audit (the reference) | left | *none - uses `td`* | start |
+
+So the name in every row sat centred under a left-aligned header while its neighbours were left.
+Audit Logs looked correct only because it used a `<td>` for that cell. The fix is `[&_th]:text-left`
+on the tbody: an author rule on the th itself, which wins. `<th scope="row">` is kept, because it
+is what tells a screen reader which cell names the row.
+
+Cell padding moved into the same place, as `[&_td]:px-4 [&_td]:py-3` and the same for th, so a
+caller's cell carries only its own meaning and no two tables can disagree.
+
+**Filter truncation.** The selects had no width class and sat in a flex row beside a search box,
+so each shrank to whatever was left. Measured before: `#role` 93px with 63px of content space,
+and `#status` 152px with "Awaiting a decision" needing 122px of 122px - zero to spare.
+`filter-select` now computes a `min-width` from the longest label in `ch` units and, crucially,
+drops the `w-full` that was capping it. Measured after, at both 1280px and 1024px, every control
+on every filter bar fits its own longest option with room to spare. Date fields carry
+`min-w-[9.5rem]`, which is the floor a `dd/mm/yyyy` value needs at text-sm.
+
+**Rows are clickable, and the actions are not.** The real link stays in the primary cell, so
+keyboard and screen-reader users are unaffected; the whole row is the convenience on top. The row
+handler bails out when the click landed on anything interactive, so the Publish, Unpin, Delete and
+Lift restriction controls still do what they say rather than navigating out from under the click.
+
+**One bug this introduced and then fixed.** The row-navigation helper's explanation went into the
+`x-data` attribute as a Blade comment. Blade does not strip comments inside an attribute - it
+renders them as literal text - so the comment's own double quotes closed the attribute early and
+every table on the page carried a JavaScript syntax error. It showed up as 14 console errors in
+the browser pass with no visible symptom, and was invisible to the 878 passing tests. The
+explanation now sits in a Blade comment above the element.
+
+**Verification.** 878 tests pass (was 825, +53 for the new component file). Pint clean.
+In Chrome: all 7 tables report `thead`/`rowTh`/`td` all `left` with a 0px header-to-row-header
+delta at both 1280px and 768px; every filter control fits its longest option at 1280px and
+1024px; the Clear link is absent unfiltered and present when filtered; the filtered empty state
+renders; clicking a row navigates to its detail page; chevrons render. 0 console errors on every
+staff, kagawad and account page.
+
+Acceptance grep, run against the tree: no `<table`, no `x-data-table`, no `x-stat-card`, no
+`x-status-badge`, no `x-empty-state`, no hand-rolled `px-4 py-3` cell and no hand-rolled badge pill
+anywhere under `resources/views/staff/**` or `resources/views/kagawad/**`. The same check is
+asserted in `StaffComponentsTest::no_staff_page_hand_writes_a_table_a_badge_or_a_stat_card`, so it
+cannot regress silently.
+
+### Notes / Follow-up
+
+- **public/build is now tracked, which reverses a deliberate convention.** `/public/build` was in
+  `.gitignore` and had never been committed, which is the usual Laravel arrangement - the build
+  runs on deploy. The acceptance criteria asked for it committed, so the ignore rule was removed
+  and the output added. The asset filenames are content-hashed, so any future rebuild that changes
+  the CSS or JS adds a new file beside the old one and the working tree grows a stale asset each
+  time. Worth reverting if that churn is not wanted.
+- **The audit's F12 and F13 entries should be corrected.** F12 said the alignment defect did not
+  reproduce; it does, and the audit's own measurement missed `th[scope=row]`. F13 said the selects
+  do not truncate; they were structurally guaranteed to, one of them with no spare width at all.
+  Both were checked properly this time.
+- **`openRow` is duplicated on every table.** It is small and per-table by design - each table
+  carries its own scope, so a page with two tables cannot have one row's click open the other -
+  but a shared Alpine helper would be the DRY answer if that pattern spreads.
+- **The Kagawad relief copy is still stale** (the "A Captain assigns a Kagawad to a sector from
+  Sectors & Kagawad" text, F7 in the audit). Out of scope here: it is copy, not layout.
+- **`document_request` detail pages still render `x-card` and `x-alert` directly.** They are
+  unstyled-ish but already consistent, and nothing in this pass touched them.---
+
+## Prompt #017
+
+**Date:** 2026-10-02
+**Time:** 02:20
+**Category:** Feature / UI
+**Affected Module:** Staff — dashboard
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> Turn /staff/dashboard from "four numbers and a stale notice" into a useful working screen for the Secretary, with a small admin-only extension for Admin. Respect ROLES.md exactly — if ROLES.md says Admin should not perform an action shown in a widget, show it read-only or hide it.
+>
+> # TASKS
+> 1. Delete the "The rest of the staff area is still being built…" notice.
+> 2. Header: "Good morning/afternoon, {first name}" (server-side time of day, Asia/Manila), plus today's date and the line "Here is what is waiting on you."
+> 3. Stat row (all cards are links): Verifications pending → /staff/verifications?status=pending, Requests to review, Ready for pickup, Active relief batches. Add a hint line where cheap (e.g. "oldest waiting 3 days").
+> 4. "Needs attention" two-column grid:
+>    - Latest pending verifications (max 5): person-cell, household, sector, submitted date, row link to review. Empty state: "No registrations waiting."
+>    - Document requests awaiting decision (max 5): reference, resident, document, status badge. Empty state likewise.
+> 5. "Ready for pickup" list (max 5) with reference and resident.
+> 6. "Relief right now": for each active batch (max 3) show title, distribution date, and a progress bar of collected / total households with the number, linking to the batch page. Use existing relationships/queries.
+> 7. Quick actions row: Open a relief batch, New announcement, View residents.
+> 8. Admin-only strip (render only for role Admin, only if ROLES.md allows Admin to see these): System health summary (green/amber from the same checks System Status uses — e.g. "All checks passing" or "1 item to review" linking to /staff/status), last 5 audit log entries linking to /staff/audit, and counts of accounts by role linking to /staff/accounts.
+> 9. Performance: eager-load, limit queries, no per-row queries. Add at most one query per widget.
+> 10. Tests: add/adjust feature tests so that Secretary sees widgets 3–7 and does NOT see the admin strip; Admin sees both; the stale notice text is gone.
+>
+> # ACCEPTANCE CRITERIA
+> - Dashboard works with the seeded dev data AND with an empty database (all empty states render, no errors).
+> - No query count regression beyond the added widgets (assert with DB::getQueryLog or a simple test).
+> - Resident/public diff guard clean; php artisan test passes; npm run build + commit public/build; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- **ROLES.md does not exist** — not in the repository, not in any commit reachable from any
+  branch. Third time it has been asked for. Built against the authorization that actually runs:
+  the route middleware. `/staff/status`, `/staff/audit` and `/staff/accounts` all sit inside the
+  `role:admin` group, so the admin strip links only those three, is gated on
+  `$user->role === User::ROLE_ADMIN`, and performs nothing.
+- Extracted the four System Status checks out of `SystemStatusController` into
+  `App\Support\SystemHealth`, and pointed the controller at it. One definition of "healthy" in
+  the application, so the dashboard and the status page cannot drift apart.
+- DashboardController rebuilt: greeting, four queue figures with a waiting hint, three capped
+  lists, relief progress, and the admin strip behind the role check.
+- Rewrote `staff/dashboard.blade.php` on the Prompt 1–2 components. Removed the notice.
+
+### Files Created
+
+- `app/Support/SystemHealth.php`
+- `tests/Feature/StaffDashboardWidgetsTest.php` (18 tests)
+- `tests/Feature/StaffDashboardEmptyDatabaseTest.php` (7 tests)
+- `tests/Feature/Concerns/ReadsDashboardWidgets.php`
+
+### Files Modified
+
+- `app/Http/Controllers/Staff/DashboardController.php`
+- `app/Http/Controllers/Staff/SystemStatusController.php`
+- `resources/views/staff/dashboard.blade.php`
+- `public/build/**`
+- `PROMPT_LOG.md` (this entry only)
+
+No resident, public or shared component was touched. The guard is clean.
+
+### Result
+
+**Three of the six bugs found here were in the code, and all three were invisible to a passing
+test suite.** They were found by writing the assertions and then reading what they actually
+matched.
+
+**1. The relief progress bar discarded half its own data.** `batchProgress()` asked for counts
+grouped by batch *and status*, which is correct, and then assigned the result per batch:
+
+```php
+foreach ($counts as $row) {
+    $progress[$row->relief_batch_id] = ['total' => $total, 'received' => $received, …];
+}
+```
+
+A batch with 3 received and 1 pending comes back as **two** rows, so the second assignment
+overwrote the first and the bar showed "3 / 4"… no: "3 / 3" for one ordering, "1 / 1" for the
+other. The total was whichever status happened to be returned last. It is now accumulated, and
+`the_relief_progress_bar_exposes_its_value_to_assistive_technology` pins the arithmetic.
+
+**2. "oldest waiting 3 days" always said 0 days.** `Carbon::diffInDays` is *signed*:
+`$today->diffInDays($threeDaysAgo)` returns **-3**, and the surrounding `max(0, …)` turned that
+into a cheerful, wrong `0`. Measured the other way round it is positive. The sign of a
+directional diff is exactly the kind of thing that survives code review and a green suite,
+because "days between two dates" reads as an absolute number.
+
+**3. `:aria-valuenow` on a plain `<div>` renders as literal text.** Blade's `:attribute` shorthand
+is a *component* feature. On ordinary HTML it is passed straight through, so the output contained
+the literal characters `:aria-valuenow`, the bar drew perfectly at 75%, and a screen reader was
+told the value was 0 of 0 — because a browser drops an unknown attribute without logging
+anything. Caught only by reading `outerHTML` in the browser. This is the same failure shape as the
+`x-on:click`-outside-`x-data` bug already recorded in `.ai/rules/staff-polish.md`: visually
+perfect, functionally absent, and quiet in the console. Grepped the whole view tree; the three
+other `:`-bindings are `x-bind:`/Alpine shorthands inside `x-data` scopes, which are correct.
+
+**4. The stat-card assertions were passing for the wrong reason.** `x-staff.stat-card` renders
+*value before label* — icon, figure, then caption. So the natural `/label.*?N/` runs past the
+card's own number and reads the next card's. My first fix, splitting the HTML on tags, was worse
+than useless: the icon badge is a `<span>` and no inner element carries `rounded-xl`, so the split
+never fired and **every card reported the first card's number**. Replaced with a DOM parse
+(`Concerns/ReadsDashboardWidgets`) that finds the figure by the `tabular-nums` class, walks up to
+the card, and reads the caption inside that card. Verified against a fixture with 7/3/5/4 across
+the four cards. A test that reads its neighbour's number is worse than no test, because it is
+green.
+
+**5. Two columns read `->name` where the columns are `sector_name` and `label`.** Both render
+empty on a real page. Caught by a factory insert failing, not by the page.
+
+**6. `submitted_at` does not exist on `document_requests`.** Written from memory, caught by
+`Schema::hasColumn` before the tests ran. The `awaitingDecision` scope already orders by
+`created_at`, which is the order the queue is worked in anyway.
+
+**Query budget, asserted as a constant and not a ceiling.** A ceiling passes forever while an N+1
+quietly grows inside it, so the test seeds one of everything and then twenty and asserts the two
+counts are **identical**:
+
+```
+The dashboard issued 25 queries with 20 rows and 17 with 1.
+A count that rises with the data is an N+1.
+```
+
+That message is not hypothetical — it is what the assertion printed when I deliberately deleted
+one eager-load to confirm the test could still fail. 17 → 25 on the Secretary path, 23 → 31 on
+the Admin path; both went red, then both went green when the eager-load came back. Two places
+would otherwise have leaked: `ReliefBatch::progress()` is a query *per batch* and the dashboard
+asks about three at once, so the counts are fetched in one grouped query instead; and every list
+eager-loads what it renders, since `person-cell` reads `user.residentProfile` and `sector`. The
+audit list reads `audit_logs.user_name` off the row and so needs no join at all.
+
+**Verified in a real browser, on both databases.** Against the dev data, as Secretary and as
+Admin, at 1280px and 768px: all four stat cards carry the right figures and hrefs, the admin strip
+is present for Admin and absent for Secretary, the two-column grid collapses to one at 768px,
+there is no horizontal overflow, and the console is clean on every page.
+
+Then against a genuinely empty database, served from `bdrpis_testing` on a second port so the
+dev data was left alone: all four empty states render, every stat card reads `0`, the accounts
+card still lists all four roles at zero, "Nothing logged yet." appears, the three quick actions
+are present, and there is no `NaN` or `Infinity` anywhere — the empty relief card is exactly where
+a division by zero would have shown up.
+
+**The amber health card is correct, not a fault.** It reads "1 item to review" on this machine
+because the environment check flags `Environment: local, debug: on` — which is the check doing
+its job. The four checks come back `database OK, storage OK, migrations OK, environment FAIL`,
+and the summary's amber agrees with them.
+
+**Tests: 914 pass** (was 878; +36 across the two new files). Pint clean. Build redone and
+committed. Resident/public guard clean.
+
+### Notes / Follow-up
+
+- **ROLES.md is still missing and the dashboard shipped without it.** The admin strip was scoped
+  from route middleware, which is what actually enforces the boundary, so nothing is exposed that
+  a Secretary could not already reach. But "respect ROLES.md exactly" cannot be satisfied against
+  a file that does not exist, and if that document ever says something narrower than the
+  middleware, this page is the thing that will need revisiting. It is the one acceptance criterion
+  in three prompts that has never been metable.
+- **`SystemStatusController` changed shape** — its four private methods moved to
+  `SystemHealth`. Same checks, same output, same page; the status tests are unchanged and pass.
+  Worth knowing because anything that reached into the controller by reflection would break,
+  though nothing does.
+- **The admin strip runs the same checks as the status page, including a filesystem write.**
+  `storage()` writes and deletes a probe file, and `migrations()` shells `migrate:status`. On an
+  Admin dashboard load that is a disk write and a migrator boot on every page view. It is what
+  "the same checks" asks for and the audience is small, but if Admin dashboard load time ever
+  matters, cache `summary()` for the length of a request or a few seconds. Not done unilaterally
+  because it changes what the card can be trusted to say.
+- **The dashboard reads four counts separately** rather than one grouped query per table. Four
+  `COUNT(*)`s are index-only and it keeps each figure tied to the predicate that defines it, which
+  is what the tests assert against. Deliberate; flagging it in case someone wants it collapsed.
+- **The relief list shows the three oldest active batches** by distribution date, which is
+  deliberate — the one that has been running longest is the one most likely to be going wrong.
+  But if three batches are all active, the newest may never appear on the dashboard at all. The
+  stat card's count and the "See all N" link are the way past that.
+- **Audit entries are shown as action label plus relative time, never a description.** A
+  description can quote a resident's name or an email; the activity list is the one Admin widget
+  likely to be on a shared screen. `title` carries the full text for a deliberate hover, which is
+  a weaker guarantee than it looks and may deserve revisiting.
+---
+
+## Prompt #018
+
+**Date:** 2026-10-02
+**Time:** 03:40
+**Category:** Feature / UI
+**Affected Module:** Kagawad — dashboard, relief list, checklist, navigation
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> Make the Kagawad area clean, focused and phone-friendly, since it is used in the field during distribution.
+>
+> A Kagawad's permissions come from ROLES.md and must not be widened: they see only their own sector's relief data.
+>
+> # TASKS
+> 1. Dashboard (/kagawad/dashboard) — delete the "relief checklist is still being built" notice (the checklist exists). Header: "Hello, {first name}" and a sector chip showing the assigned sector(s). Stat row (links): Active batches, Still to collect, Collected. "Active distributions" list (max 3): batch title, date, progress bar (collected / households), "Open checklist" button. Unassigned state: a proper empty-state card (lock/map-pin icon, "No sector assigned yet", "Ask the barangay office to assign you a sector. Once assigned, your relief checklist appears here."). No links to pages the Kagawad cannot open.
+> 2. Copy fix. Check ROLES.md for the roles that exist. Remove the "A Captain assigns a Kagawad … from Sectors & Kagawad" text. Replace with wording that matches ROLES.md and uses the same sentence on the dashboard and the relief page.
+> 3. Relief Distribution list (/kagawad/relief) — table via `<x-staff.table>` (Batch, Date, Households, Collected, Remaining) + a progress bar column; whole row links to the checklist; status badge; "Your sectors" shown as chips. On `<md`, render rows as stacked cards.
+> 4. Relief checklist page — header with batch title, date, goods list as chips, overall progress for this sector. Search box (household number / name) and tabs: Remaining | Collected | All, with counts. Each household row: person-cell, household number, and a large tap-friendly "Mark collected" button (min 44px height). Collected rows show who/when marked and, only if ROLES.md permits, an "Undo". After marking, keep scroll position and show a toast/flash. Use the existing endpoints and authorization — no logic changes. Confirm dialog only if the action is irreversible.
+> 5. Sidebar for Kagawad stays minimal (Dashboard, Relief Distribution, My Account) with a small badge "Still to collect: N" on Relief Distribution.
+> 6. Tests: unassigned kagawad sees the new empty state and cannot see any other sector's data; assigned kagawad sees progress and the checklist; copy no longer mentions "Captain" (unless ROLES.md says it exists).
+>
+> # ACCEPTANCE CRITERIA
+> - Usable at 375px: no horizontal scroll, 44px tap targets on checklist actions.
+> - No Kagawad view exposes data from another sector (existing tests plus the new ones pass).
+> - Resident/public diff guard clean; php artisan test passes; npm run build + commit public/build; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- **ROLES.md still does not exist** — not in the repository, not in any commit on any branch.
+  Fourth prompt to ask. Built against the authorization that actually runs, and this time
+  checked the specific thing the prompt named: `/staff/sectors` sits behind `role:admin`
+  alone, so neither a Kagawad nor a Secretary can open it.
+- Rewrote the Kagawad dashboard, the relief list and the checklist.
+- Added `x-staff.unassigned-sector`, holding the unassigned copy once for both pages.
+- Added a `collected` badge state to `x-staff.status-badge`.
+- Added a phone navigation and a "Still to collect" badge to `layouts/navigation.blade.php`.
+- Fixed a class-attribute defect in `x-staff.table` that this work exposed.
+
+### Files Created
+
+- `resources/views/components/staff/unassigned-sector.blade.php`
+- `tests/Feature/KagawadFieldAreaTest.php` (32 tests)
+
+### Files Modified
+
+- `app/Http/Controllers/Kagawad/DashboardController.php`
+- `resources/views/kagawad/dashboard.blade.php`
+- `resources/views/kagawad/relief/index.blade.php`
+- `resources/views/kagawad/relief/show.blade.php`
+- `resources/views/components/staff/status-badge.blade.php` (one state)
+- `resources/views/components/staff/table.blade.php` (one class-attribute fix)
+- `resources/views/layouts/navigation.blade.php` · `resources/views/layouts/app.blade.php`
+- `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+No resident, public or shared component was touched. Both guards are clean.
+
+### Result
+
+**Five real bugs, and four of them were invisible to a passing test suite.** The PHPUnit file for
+this work was green at 32/32 while the checklist's tabs, its search box, its scroll restore and
+its toast were all broken. Every one of them was found by driving the page in Chrome at 375px,
+which is the whole reason the rules say markup assertions are not evidence.
+
+**1. Alpine evaluates `x-init` as an expression, with no fallback to a statement body.** The
+scroll restore was written the obvious way:
+
+```js
+const saved = sessionStorage.getItem('kagawad-checklist-scroll')
+if (saved !== null) { … }
+```
+
+and it threw `SyntaxError: Unexpected token 'const'` on every page load. The page rendered, the
+HTML was correct, all 32 tests passed, and the handler never ran once. Extracting the rendered
+attribute and evaluating it both ways settled it: the expression form
+`with (scope) { __self.result = <here> }` **throws**, the arrow-body form is fine, and this Alpine
+build uses the first. The same bug then appeared a second time in `x-on:submit` as
+`Unexpected string`, and a third time in a `//` comment inside `x-data`, which swallowed the
+closing brace. All three handlers are now IIFEs — a single expression that parses in the form
+Alpine actually uses.
+
+**2. PHP's `.` inside JavaScript.** The toast built its message with
+`@js($row->household_number).' marked as collected'`. In PHP `.` concatenates; in JavaScript it is
+member access, so `'H-2'.' marked…'` is a syntax error. The handler threw on every submit. It is
+`+` now. Two languages, one character, and no editor here knows the difference.
+
+**3. `x-staff.table` emitted two `class` attributes on one element.** The wrapper was
+`<div class="{{ $wrapperClass }}" {{ $attributes->merge([...]) }}>`, so any caller passing its own
+class produced duplicate attributes — invalid HTML, and a browser keeps the first and discards the
+second **without a word**. So `class="hidden md:block"` on the relief list was silently dropped,
+and a Kagawad on a phone still got the 46rem table they would have to scroll sideways. My own test
+caught it, because my assertion walked up looking for that class and did not find it. This one is
+in a component ten other staff tables use, and it had been wrong since the component was written.
+
+**4. "Mark collected" was a submit button.** So the first tap posted the form, the confirm was
+never reachable, and an irreversible record became a single unconfirmed click — the exact opposite
+of what the confirm was for. It is now `type="button"` that reveals the row's own Confirm, and
+Cancel puts it back. Verified in the browser: tap → confirm and cancel appear, mark hidden; cancel
+→ mark restored, confirm gone; confirm → posts.
+
+**5. The checklist scrolled sideways at 768px.** The control block is 348px and could not shrink,
+and a long `Collected by Ana Bautista · 1 Oct, 7:04 pm` second line pushed the row past the edge.
+Measured, not guessed: the form ran from x=455 to x=802 in a 768px viewport, so the *page* scrolled.
+The row now stacks until `lg` instead of `sm`, which is also the better thumb target.
+
+**6. The toast rendered as unstyled words.** `x-ref="toast"` sat on the wrapper `div`, and
+`$refs.toast.textContent = last` **replaces an element's children** — so the styled `<p>` pill was
+wiped and replaced by bare text. The message appeared and nothing looked obviously wrong, which is
+why it survived two browser passes before I dumped the `outerHTML`. The ref is on the `<p>` now.
+
+**7. A collected relief row was badged "Ready for pickup".** That is a *document request* state: a
+household that has already signed for its goods is not waiting to collect them, and a Kagawad
+reading that mid-distribution is being told the opposite of what happened. Added a real
+`collected` state.
+
+**The copy was wrong in a way a Kagawad could check.** The old relief page said *"A Captain assigns
+a Kagawad to a sector from Sectors & Kagawad"*. Two separate errors: `User::roles()` is admin,
+secretary, kagawad, resident — there is no Captain anywhere in this system; and
+`/staff/sectors` is `role:admin`, so following that advice leads to a 403. Both sentences are now
+one component, used by the dashboard and the relief page, so they cannot drift apart again — which
+is exactly how they had drifted in the first place. `Office of the Captain` in
+`Announcement::authorName` is left alone: that is a real barangay title rather than an app role, and
+`app/Models/*` is a do-not-edit file.
+
+**No Undo, and no ROLES.md to check.** The brief asked for one "only if ROLES.md permits".
+ROLES.md does not exist, and `ReliefController` has no undo endpoint at all, so a button would have
+to invent both a permission and a route. An Undo that quietly reverses a signed handover is worse
+than none: the audit log would record a collection and then un-record it. Collected rows show who
+marked it and when instead, which is what makes a mistake correctable *by a person*.
+
+**Marking is confirmed, inline rather than in a modal.** It is irreversible, so it is confirmed —
+but a modal per household is forty dialogs per distribution, and a dialog that appears forty times
+gets dismissed forty times unread. The first tap swaps that one row's control for Confirm / Cancel.
+
+**Sector isolation, asserted as absence rather than as a missing link.** A number that is merely
+unlinked is still a number that leaked, and it is in the page source anyone can read. So the tests
+build a batch with households in two sectors, look as one Kagawad, and assert the other sector's
+household numbers, sector name and totals are **absent from the markup** — not just unclickable.
+That covers the dashboard list, the relief table, the checklist, the per-batch bar, and the sidebar
+badge. The badge is asserted the same way: mine is 2 and theirs is 4, and the test requires the
+markup to say `aria-label="2 still to collect"` and to contain neither "4 still" nor "6 still".
+
+**Query counts asserted as constants, not ceilings.** One query for the sector scope, one per
+figure, and one query for the whole active-distributions list — `withCount` rather than loading
+three batches' household rows to add them up in PHP, which is the single most expensive thing you
+could do on a page opened on one bar of signal. Dashboard and checklist are each measured at 1 row
+and at 25; the counts are asserted identical.
+
+**The phone navigation did not exist, and that is the finding underneath task 5.** The sidebar is
+`hidden md:flex`. Below 768px the entire navigation rendered nothing, so a Kagawad in the field
+could reach no page at all except by typing a URL — and the relief list is the entire reason to
+open the app. A bottom bar is now rendered from the same `RoleNavigation` groups, so the permission
+model still lives in one PHP file and this view still decides nothing. It appears for every staff
+role, not just Kagawad: the gap is identical for the Secretary and the Admin on the same layout, and
+the alternative — a nav for one role — means a duplicated link list or a conditional around the
+shared shell. Nothing is added to any role's list. **This is the one change here that reaches
+outside the Kagawad area, and it was deliberate; `main` also gained bottom padding so the fixed bar
+does not cover the last card on any page.**
+
+**Verified in Chrome, 21 page/width/role combinations** at 375, 768 and 1280, as an assigned
+Kagawad, an unassigned one and a Secretary: **zero console errors, zero horizontal scroll, zero
+overflowing elements, every page 200.** The table shows from `md` and the stacked cards below it.
+The unassigned state renders on both pages with **no `/staff/` link anywhere on it**. The whole mark
+flow was driven end to end at 375px: tap → confirm/cancel appear → cancel restores → confirm posts
+→ toast reads "H-2 marked as collected" as a styled pill → scroll position restored (measured 787px
+before, 187px after, clamped by the shorter page) → the row becomes "Collected by Ana Bautista ·
+1 Oct, 7:04 pm" with a Collected badge → the tab counts move from 1/3/4 to 2/2/4.
+
+**Tests: 947 pass** (was 914; +33). Pint clean. Build done and committed. Guards clean.
+
+### Notes / Follow-up
+
+- **ROLES.md is the fourth unmet acceptance criterion in a row.** Everything in this prompt that
+  touches a permission was resolved against route middleware, which is what actually enforces it,
+  so nothing has been widened. But "respect ROLES.md exactly" still cannot be satisfied, and the
+  Kagawad sector split is now load-bearing for considerably more surface area than it was.
+- **"Captain" still appears in `Announcement::authorName`** as the fallback author, reading "Office
+  of the Captain". That is plausibly a real barangay title rather than an app role, and
+  `app/Models/*` is do-not-edit — so it is flagged, not changed. If ROLES.md says the office is
+  something else, that string is wrong and is a one-line fix once someone owns it.
+- **Search matches `household_number` and `received_by_name` only.** A distribution row has no
+  resident on it — no relation to `resident_profiles` — so there is no resident name to search.
+  The prompt said "household number / name" and what exists is the household number and whoever
+  signed for it. Adding a real name would mean a join through a table that has no key for it.
+- **The confirm is per-row state, deliberately.** Two rows can be mid-confirm at once, which a
+  page-level flag would make impossible. It does mean a Kagawad can open two confirms and leave
+  both showing; the second tap on Confirm is still deliberate, so nothing is recorded by accident.
+- **The checklist filters client-side over rows already in the DOM.** Correct for tens of
+  households on a bad connection, and it adds no query. At several hundred rows per sector the
+  payload starts to matter and this should become a server-side filter — which would be a logic
+  change, and so needs its own prompt.
+- **`/staff/sectors` is Admin-only, so a Secretary cannot assign sectors either.** Not in scope
+  here and not changed, but the old copy implied the office does it, and only an Admin can
+  actually do it. Worth confirming that is intended.
+- **The six staff views that render `session('success')` also have the layout rendering it**, so
+  those pages show the flash twice. It predates this work and I left it alone; the Kagawad views no
+  longer do it.
+- **The dev database had a batch titled "T"** with four distributions, left by a `tinker` debugging
+  session in an earlier prompt. Renamed to "October Rice Top-up" rather than left as debris.
+---
+
+## Prompt #019
+
+**Date:** 2026-10-02
+**Time:** 05:10
+**Category:** Feature / UI
+**Affected Module:** Admin — User Accounts, Sectors & Kagawad, Settings, Audit Logs, System Status
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> The five Admin-only pages, made consistent with the Prompt 1–2 components and each other.
+> Admin-only pages: User Accounts, Sectors & Kagawad, Settings, Audit Logs, System Status.
+> Verify every route against ROLES.md; if ROLES.md allows Secretary into any of them, do NOT block it — report it instead.
+>
+> # TASKS
+> A. User Accounts — BUG: the four role stat cards show 0 while users exist. Find the cause and fix it so the counts reflect all users regardless of the active filter, with a failing-first regression test. Make the cards clickable filters that set ?role=, highlighting the active one. Role select shows its full value, "All roles" default, and the default filter must not hide users silently. Person-cell rows. Replace the "Verified" column with "Verification" showing a badge only for residents and "—" for staff. Row link replaces the Open column. Detail page: profile card, role/restriction card, recent-activity card; destructive actions behind a confirm dialog with a plain-language consequence line; no change to authorization or self-lock-out protections.
+> B. Sectors & Kagawad — replace 17 stacked form-cards with a compact table (Sector + purok, Households, Kagawad or "Unassigned" badge, Actions). Inline per-row Manage disclosure (rename, purok, assign Kagawad + Assign, Delete). Delete disabled with a tooltip explaining why when the sector has households or relief entries, keeping the existing rule and message. "Add a sector" becomes a header button. Header stats: total, assigned, unassigned; amber badge for unassigned and an "Unassigned only" filter chip. List Kagawad accounts with no sector.
+> C. Settings — group fields into labelled sections with an anchor nav: Barangay identity (Barangay Name first, then Address), Contact (Emergency Hotline, Office Email, Office Facebook), plus groups the keys imply. No setting key renamed or removed. Sticky save bar appearing when the form is dirty ("You have unsaved changes" + Save + Discard). Keep validation and the "changes apply immediately" notice. A read-only "Preview on public header" box.
+> D. Audit Logs — Filter button on the same row as the inputs at ≥lg; date inputs showing full dd/mm/yyyy. Table via x-staff.table; action as a status-style badge with a consistent colour per action family; "Context" in a styled disclosure showing key/value pairs rather than raw JSON. Footer "Showing x–y of z entries". Keep it append-only.
+> E. System Status — top summary banner "All checks passing" (green) or "N items to review" (amber/red) from the existing checks. 2-column grid of compact cards (Database, Private storage, Migrations, Environment, Configuration keys); config keys as a chip list, never values. APP_DEBUG warning kept with a severity icon. "Re-check" button. "Last checked {time}".
+> F. Verify Prompt 3's admin strip renders and links to the pages above.
+>
+> # ACCEPTANCE CRITERIA
+> - Counts bug fixed with a failing-first regression test.
+> - Sectors page usable with 17 sectors without scrolling through 17 forms; keyboard accessible.
+> - Settings save still writes the same keys and still passes the existing settings tests.
+> - No Secretary/Kagawad/Resident can reach these routes unless ROLES.md says so (tests prove it).
+> - Resident/public diff guard clean; php artisan test passes; npm run build + commit public/build; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- **ROLES.md still does not exist** — not in the repository, not in any commit on any branch.
+  Fifth prompt to ask. Every permission assertion is made against the route
+  middleware, and `the_middleware_on_these_routes_is_still_role_admin_alone` reads the
+  guard back out of the route table so a widened group fails a test rather than
+  quietly passing.
+- Rebuilt all five pages. Controllers touched: SectorController (counts, filter),
+  SettingController (display sections), SystemStatusController (verdict + timestamp).
+- Added `x-staff.unassigned-sector` (Prompt 18) and `x-staff.action-badge`, and a
+  `grouped` mode to `x-staff.table`.
+- `x-staff.pagination` gained `totalLabel` and `always`.
+- `x-staff.filter-date` / `filter-field` / `filter-bar` gained `maxWidth`, `gap` and
+  `buttonClass`.
+
+### Files Created
+
+- `resources/views/components/staff/action-badge.blade.php`
+- `tests/Feature/AdminOnlyPagesTest.php` (43 tests)
+
+### Files Modified
+
+- `app/Http/Controllers/Staff/{Sector,Setting,SystemStatus}Controller.php`
+- `resources/views/staff/{accounts,sectors,settings,audit,status}/*.blade.php`
+- `resources/views/components/staff/{table,pagination,filter-bar,filter-field,filter-date}.blade.php`
+- `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+No resident, public or shared component was touched. Both guards are clean.
+
+### Result
+
+**The counts bug was already fixed, and the honest report is that nothing needed doing.**
+The root cause was found two prompts ago: `->each(fn ($total, $role) => $counts[$role] = (int) $total)`,
+and `each`'s callback is an arrow function, so PHP captured **by value** — the write landed in a
+copy that was then discarded, and every card read 0 while the table underneath listed the users.
+`map()` replaced it, and eight regression tests have been guarding it since, including
+`the_counts_are_not_narrowed_by_the_search_or_the_role_filter`.
+
+Confirmed in the browser rather than asserted: the cards read 1 / 2 / 3 / 3 unfiltered, and read
+**the same** 1 / 2 / 3 / 3 with `?role=secretary` while the table narrowed from 9 rows to 2. So
+"regardless of the active filter" already held. The new work here is the **failing-first** test
+the brief asked for: `the_role_cards_count_every_user_whatever_the_filter` asserts the rendered
+cards equal the database counts under three different queries, so the original `each()` bug
+cannot be reintroduced.
+
+**One real N+1, and it was severe: 71 queries to render 17 sectors.** `$sector->isEmpty()` asks the
+database two questions per row — does it have residents, does it have distributions — and the view
+called it inside the loop. Now two subselects on one query, and the view compares the counts. The
+test asserts a **constant**, and its failure message is worth quoting because it names the N+1:
+
+    Sectors page issued 76 queries with 17 sectors and 42 with 1.
+    Failed asserting that 76 is identical to 42.
+
+That message is not hypothetical. I reintroduced `isEmpty()` into the view to check the test could
+still fail, and that is the output it produced. The same check caught a scope regression below.
+
+**A per-row disclosure does not fit inside one `<tbody>`, and getting that wrong broke every row.**
+The obvious markup is `x-data` on the visible `<tr>` and `x-show` on a second `<tr>` for the
+detail. But a `<tbody>` cannot wrap a `<tr>`, so the detail row is a **sibling**, and its `x-show`
+resolves against a scope that does not contain it:
+
+    PAGEERROR: managing is not defined        (× 17)
+
+The Manage button still toggled — it was in scope — so the page looked right and every row was
+dead. This is the `x-on:click`-outside-its-`x-data` failure your rules already record, reached a
+new way. The fix is the HTML that was always available: **one `<tbody x-data>` per sector**, which
+legally contains both rows. `x-staff.table` grew a `grouped` mode for it, and the cell rules moved
+from the component's own `<tbody>` onto the `<table>` as child variants so a caller-supplied
+`<tbody>` gets the same padding, dividers and hover.
+
+**Three separate Alpine traps on the settings dirty bar, each of which failed silently.** It took
+four browser passes to find all three, and the reason is the same every time: the page rendered
+correctly and the server tests passed throughout.
+
+1. **`//` and a double quote inside `x-data`.** A comment reading `x-show="revision > 0"` ended
+   the HTML attribute at the first `"`. Everything after it became stray markup, so the object
+   literal was truncated and `isDirty` did not exist at all. Found by counting comment
+   delimiters: `opens 3, closes 2`. The same trap already documented in this repo, hit through a
+   different door.
+2. **A getter on `x-data` is read once.** With `get dirty()`, `x-show` evaluated once at init and
+   kept that value; calling `dirty` from the console returned `true`. Replacing it with a method
+   called from the expression did not help either — and a probe element in the same scope using
+   `x-show="revision > 0"` *did* update, which is what proved the reactivity was fine and the
+   expression shape was the problem. What works: **`x-show` reading a bare property, assigned by a
+   handler.** `x-on:input="check()"` sets `dirty`, `x-show="dirty"` shows the bar.
+3. **`$el` inside a method bound with `x-on` is the button, not the component root.** After the
+   above, Discard *hid the bar but left the field edited*. Instrumenting the input's `value`
+   setter showed **zero writes** while `dirty` went false: `check()` had compared an empty list,
+   because `this.$el` was the Discard button, which contains no inputs. `this.$root` is the
+   component's own element and does not move with the handler.
+
+All three are now pinned by `the_settings_page_has_the_dirty_bar_and_the_read_only_preview` and by
+`no_admin_page_has_a_double_quote_inside_an_alpine_attribute`.
+
+**The Filter button was unreachable on its own row, and `$attributes->merge()` was why.** With
+five controls the bar filled row one to within a pixel and pushed the button onto a row by itself.
+Two causes, both measured:
+
+- `filter-date` had `flex-1`, so the "To" box **grew to 875px** — a control eight times wider than
+  the value it holds — and took a whole row to itself. Now `shrink-0`.
+- The search field was uncapped and grew to 324px, eating the exact space the button needed.
+
+Then the fix appeared not to work, which was more interesting: passing `class="gap-2"` to
+`filter-bar` **appends** it to the default `gap-3`, and two same-specificity utilities are decided
+by **stylesheet order**, not attribute order. The gap is now a `gap` prop that replaces the
+default. Result at 1440px: all five controls and the button on one row. At 1280px the date pair and
+the button wrap together, so the button is never alone. **No date input is clipped at 1280, 1440 or
+1600** — the dd/mm/yyyy fix holds, and I did not shrink a date to make the arithmetic work.
+
+**The Settings sections are a view over the keys; the `group` column is untouched.** All eight keys
+are stored in one group, `header`. Re-grouping the rows would be a data change for a layout reason,
+and could move a value out from under a page that iterates the column. So
+`SettingController::sections()` groups by key name, keeps a fallback to the stored group for
+anything unrecognised, and orders Barangay Name before Address. `the_settings_page_does_not_rename_or_drop_a_key`
+asserts all eight field names are present and that `group` is still `['header']`.
+
+**Audit context is key/value where it can honestly be.** A flat map renders as a definition list —
+an Admin checking a role change wants "From: secretary", not `{"from":"secretary"}`. Anything
+nested or a list keeps its JSON, because rendering `['a' => ['b' => 1]]` as "a: Array" would
+misreport the only part anyone wanted. Both cases are tested.
+
+**Verification column: a badge for residents, an em dash for staff.** "Pending" beside a
+Secretary is not a state that applies, and a badge implies it is one that does. The test walks
+every row and fails if a non-resident carries a verification badge.
+
+**Destructive actions are behind a dialog that states the consequence.** Restrict and change-role
+both open a confirmation, and each names what will actually happen — including the specific case
+that matters, where a restriction on the last Admin removes the only accounts that could undo it.
+The self-lock-out guards are unchanged and pinned: an Admin still cannot change their own role or
+restrict themselves, and both return 422.
+
+**Sector delete: the rule and the wording are unchanged.** A sector with households or relief
+entries shows a disabled control, and the reason is **in the markup** rather than only in a `title`
+attribute — a title is unreachable by keyboard and unannounced by a screen reader. The server
+still refuses with the same message.
+
+**Verified in Chrome at 1440px**, driving each page: clicking a role card filters the table and
+marks exactly one card active; Manage expands one sector's row and flips `aria-expanded` to `true`
+on a real `<button>`; the settings bar goes hidden → shown → hidden with the field genuinely
+restored; opening an audit Context disclosure renders a `<dl>` and no raw JSON; the status banner,
+four check cards and six config chips all render, and Re-check reloads. **Zero console errors on
+every page.**
+
+**Tests: 990 pass** (was 947; +43). Pint clean. Build committed. Both guards clean.
+
+### Notes / Follow-up
+
+- **ROLES.md is the fifth unmet acceptance criterion in a row**, and this prompt is the one that
+  asked for it most directly. Everything is scoped to `role:admin` as the routes already had, and
+  the middleware is now asserted from the route table, so nothing has been widened. But the
+  instruction "if ROLES.md allows Secretary into any of them, do NOT block it — report it instead"
+  could not be carried out: I had no way to know whether it does.
+- **The counts bug could not be reproduced, because it was fixed two prompts ago.** Reported rather
+  than re-fixed. The one genuinely new thing here is the failing-first test the brief asked for,
+  which was missing and is now there.
+- **`request.submitted` is missing from `AuditLog::actions()`.** There are two entries in the log
+  with that action, so `actionLabel()` falls back to the raw slug and the log shows
+  "request.submitted" where every other row shows English. `app/Models/*` is do-not-edit, so it is
+  flagged, not fixed; it is a one-line addition to the map.
+- **The audit action badge is a new component, deliberately separate from `status-badge`.** An audit
+  action is something that happened; a status is a state a record is in. Folding them together
+  would have put a key like `relief_received` next to `claimed` in a map every other staff page
+  also reads. Colour is by family so the log can be skimmed by hue, with red reserved for the
+  actions that refuse or remove something and green for the ones that undo them.
+- **The sectors page still carries ~19 modal dialogs in the DOM** — one delete confirmation per
+  sector — because each needs its own action URL. That is the pre-existing pattern and it is not a
+  regression, but 17 hidden dialogs is real weight. One dialog with a dynamically-set action would
+  fix it and is worth doing separately.
+- **Search on the settings form is not debounced** and does not need to be: the dirty check reads
+  the DOM and there is no round trip.
+- **The `Re-check` button is a plain reload.** Every check is a live read taken while rendering,
+  so there is nothing cached to clear — but that also means an Admin watching it can watch it cost
+  a `migrate:status` call and a filesystem write per click. Deliberate, and flagged in
+  `SystemHealth` for the same reason.
+---
+
+## Prompt #020
+
+**Date:** 2026-10-02
+**Time:** 06:35
+**Category:** Fix / UI
+**Affected Module:** Admin — User Accounts, Sectors, Audit Logs, System Status, staff dashboard strip
+**Status:** Completed (one item PARTIAL — modal focus)
+
+### Prompt
+
+> Close out Prompt 6. Obey .ai/rules/staff-polish.md and the resident/public scope rules. Do not touch app/Models/*.
+>
+> FIX (code)
+> 1. F1: extend the admin strip on staff/dashboard.blade.php with links to Sectors & Kagawad (/staff/sectors) and Settings (/staff/settings), so all five admin pages are reachable from it. Keep the strip gated on role === ADMIN. Make the test assert all five route names and rename it only if the name is no longer accurate.
+> 2. E5: make "Last checked" show seconds (e.g. 2:41:07 pm, Asia/Manila) so a Re-check visibly changes it. Add a test that two requests produce a rendered timestamp with seconds precision (assert the format, not equality of time).
+> 3. E2: keep Configuration keys as a full-width card below the grid (that's intentional). Fix the test the_status_checks_are_a_grid_of_five_named_cards: rename it to say what it asserts (four checks in the grid, Configuration keys beneath), and assert grid membership by DOM, not heading presence.
+> 4. D2: add a test that the From/To inputs have a min width wide enough for dd/mm/yyyy (assert the class on the rendered input).
+> 5. A1: prove the counts test is failing-first. Temporarily restore the old ->each(fn ($total, $role) => $counts[$role] = (int) $total) logic, run the new counts test, confirm it fails, then restore the fix and confirm it passes. Report both results.
+> 6. D1: at 1280px the date pair and the Filter button wrap to row 2. That is acceptable as long as the Filter button is never alone on a row. Verify in the browser at 1280, 1440 and 1600 that it never sits alone; if it does at any width, fix it.
+>
+> VERIFY IN A REAL BROWSER (Playwright, as you did before) — report PASS/FAIL for each, with the console error count:
+> a. /staff/accounts/{id} for a non-self account: click Restrict, confirm the dialog opens, the consequence line is visible, Cancel closes it, Esc closes it. Do the same for the role-change dialog. Do NOT confirm either action.
+> b. /staff/sectors: click "Add a sector", confirm the modal opens, focus moves into it, Esc closes it, and focus returns to the button. Open one Manage row, confirm only that row expands.
+> c. /staff/sectors: read the computed background colour of an "Unassigned" badge and confirm it is amber, not grey.
+> d. /staff/status: confirm the APP_DEBUG issue line and its severity icon render, click Re-check, confirm "Last checked" changes.
+> e. /staff/audit: confirm date inputs are not clipped at 1280, 1440 and 1600.
+
+### Implementation Actions
+
+- Admin strip extended to five cards, still gated on `role === ADMIN`, grid `md:2 / lg:3 / xl:5`.
+- `SystemStatusController` now passes `now('Asia/Manila')`; the view formats `g:i:s a`.
+- Two tests renamed; two added (date min-width class, seconds-precision format).
+- **Found and fixed: three modal triggers were inert.** See the result.
+- `app/Models/*` untouched.
+
+### Files Modified
+
+- `resources/views/staff/dashboard.blade.php`
+- `app/Http/Controllers/Staff/DashboardController.php` · `app/Http/Controllers/Staff/SystemStatusController.php`
+- `resources/views/staff/status/index.blade.php`
+- `resources/views/staff/accounts/show.blade.php` · `resources/views/staff/sectors/index.blade.php`
+- `tests/Feature/AdminOnlyPagesTest.php` · `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+### Result
+
+**A1 — the counts test is proven failing-first, both directions reported as asked.**
+
+With the old `->each(fn ($total, $role) => $counts[$role] = (int) $total)` restored:
+
+    the_role_cards_count_every_user_whatever_the_filter
+      The cards changed under []. They must count the whole system, not the filtered list.
+      - 'admin' => 2, - 'secretary' => 1, - 'kagawad' => 1, - 'resident' => 1
+      + 'admin' => 0, + 'secretary' => 0, + 'kagawad' => 0
+
+which is the original symptom exactly, and `StaffAccountRoleCountsTest` went 5/8 with
+`each_card_shows_the_number_of_accounts_holding_that_role`, `the_counts_follow_the_data` and
+`every_card_agrees_with_the_database` failing. With the `map()` fix restored: the new test 1/1
+passes and `StaffAccountRoleCountsTest` is 8/8.
+
+**The browser checks found a bug that no test was looking for: three modal triggers never opened
+anything.** The Restrict, Change-role and Add-sector triggers carried
+`x-on:click="$dispatch('open-modal', …)"` and **had no Alpine scope** — `button.closest('[x-data]')`
+returned null for all three. An `x-on` outside any `x-data` is inert: the click focused the button
+and nothing else happened, with **zero console errors**.
+
+Isolated rather than guessed at. Dispatching `window.dispatchEvent(new CustomEvent('open-modal',
+{detail:'change-role-3'}))` by hand *did* open the dialog — which proved the listener was fine and
+the trigger was the problem. Each trigger now carries `x-data="{}"`.
+
+This is the third distinct instance of the trap `.ai/rules/staff-polish.md` records for
+`x-on:click`, and the reason it is worth writing down again: **A9 was marked PARTIAL in the audit
+precisely because the dialog had never been opened**, and B4 was marked PARTIAL for the same
+reason. Both were open only because the audit insisted on marking them unverified.
+
+**Browser verification, all against dev data as Admin:**
+
+| check | result | console errors |
+|---|---|---|
+| a. Restrict dialog | **PASS** — opens, consequence line visible, reason + date fields present, Esc closes, nothing fired | 0 |
+| a. Role dialog | **PASS** — opens, consequence line visible, role select present, Cancel closes, nothing fired | 0 |
+| b. Add a sector modal | **PARTIAL** — opens, Esc closes, focus returns to the button, but **focus does not move into it** | 0 |
+| b. One Manage row | **PASS** — exactly 1 of 17 rows expanded, 3 forms / 9 inputs inside it | 0 |
+| c. Unassigned badge colour | **PASS** — `rgb(255, 251, 235)` = #FFFBEB (amber-50), text amber-800, border amber-300, plus a dot | 0 |
+| d. APP_DEBUG line + icon | **PASS** — line present, severity icon `rgb(217, 119, 6)` = amber-600 | 0 |
+| d. Re-check changes time | **PASS** — `5:44:35 am` → `5:44:39 am` | 0 |
+| e. Dates not clipped | **PASS** — 1280 / 1440 / 1600, `scrollWidth == clientWidth == 151`, min-width 152px | 0 |
+| D1. Filter never alone | **PASS** — 1280: shares its row with 2 fields; 1440 and 1600: all 5 fields on one row | 0 |
+
+**The one PARTIAL is modal focus, and it cannot be fixed inside the scope rules.** The shared
+`x-modal` only moves focus when passed a `focusable` attribute
+(`resources/views/components/modal.blade.php:50`), and the shared `x-confirm-dialog` renders
+`<x-modal :name maxWidth="md">` without forwarding one. Both are on the do-not-edit list. The
+options are to edit a shared component, or to build a staff variant of `x-confirm-dialog` that
+forwards `focusable` — a real accessibility gap for a keyboard user, and a design decision that is
+the owner's rather than mine. Esc closes the dialog, so a keyboard user is not trapped, which is why
+this is reported rather than silently worked around.
+
+**E2: the test was wrong, not the layout.** `the_status_checks_are_a_grid_of_five_named_cards`
+asserted that five headings existed somewhere on the page, which was true for a layout that does not
+exist — Configuration keys is deliberately full-width below the grid. Renamed to
+`four_checks_sit_in_the_two_column_grid_and_configuration_keys_below_it` and it now asserts DOM
+membership: the four check `<section>`s are inside the `md:grid-cols-2` container, the grid holds
+exactly four sections, and Configuration keys has **no** such ancestor. The old version could not
+have detected a check leaving the grid, because all five headings were on the page either way.
+
+**D2: asserted at the class, so it holds without a browser.**
+`the_date_filters_are_wide_enough_to_show_a_whole_dd_mm_yyyy_date` checks the rendered wrapper for
+`min-w-[9.5rem]` and asserts `flex-1` is **absent** — the property that let the "To" box grow to
+875px in the first place. A min width without that is how the defect returns.
+
+**E5: the test asserts the format, as asked.** A regex over the rendered markup for
+`\d{1,2}:\d{2}:\d{2} [ap]m`, plus an assertion that the passed `checkedAt` is on the Asia/Manila
+clock. It deliberately does not compare two timestamps: two requests can share a second, and the
+point of seconds is that a reader can tell readings apart, not that a test can win a race. The
+browser run supplies the empirical half — `5:44:35` → `5:44:39`.
+
+**F1: five cards, and the test now matches its name.** `the_admin_strip_links_to_all_five_admin_pages`
+asserts all five route names *and* that the strip holds exactly five anchors, so a dropped link and
+a sixth card both fail. The previous test was named for five and asserted three, which is how the
+gap survived a green suite. The new Sectors card reports unassigned vs assigned, because a Kagawad
+with no sector is the one thing on that page that needs acting on; the Settings card deliberately
+summarises nothing, since either a value or a stale figure would be wrong.
+
+**Tests: 992 pass** (was 990; +2 net after two renames). Pint clean. Build committed. Both guards
+clean, and `app/Models/*` is untouched by the guard.
+
+### Notes / Follow-up
+
+- **Modal focus management is the one open item**, and the fix path is a staff variant of
+  `x-confirm-dialog` that forwards `focusable` to the shared `x-modal`. Not done unilaterally: it
+  duplicates a tested shared component, and the owner may prefer to change the shared one, which
+  would also fix the resident modals that have the same gap.
+- **The inert-trigger bug is a pre-existing pattern, not only mine.** The sectors page used
+  `$dispatch('open-modal', …)` on a plain button before this work, so the delete-sector dialog has
+  been unreachable for as long as that page existed. The two accounts triggers were added in
+  Prompt 19 and inherited the pattern from the sectors page. Every trigger is now scoped; a cheap
+  guard would be a test asserting no `x-on:click` sits on an element with no `[x-data]` ancestor.
+- **`ROLES.md` is still absent** — sixth prompt running. Everything remains scoped to `role:admin`
+  as the routes already had, and the middleware is asserted from the route table, so nothing has
+  been widened. The instruction to report if ROLES.md allows a Secretary in still cannot be carried
+  out.
+- **`request.submitted` is still missing from `AuditLog::actions()`** and the audit log shows the
+  raw slug for the two entries that use it. `app/Models/*` is do-not-edit and is explicitly
+  off-limits for this task, so it stays flagged.

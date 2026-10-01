@@ -166,18 +166,35 @@ class AccountController extends Controller
     }
 
     /**
+     * How many accounts hold each role, including the roles nobody holds.
+     *
+     * Every role gets an entry even when its count is zero, because the row of
+     * cards above the table shows one card per role and a card that appears and
+     * disappears as the last holder is removed makes the row look broken.
+     *
+     * Written as a single array_replace over the groupBy rather than as a loop
+     * that fills an accumulator. The previous version used
+     *
+     *     ->each(fn ($total, $role) => $counts[$role] = (int) $total);
+     *
+     * which is an arrow function: PHP captures by value there, so the write went
+     * into a copy that was then discarded and every card read 0 while the
+     * accounts table underneath listed them all. map() is safe for the same
+     * reason the loop was not - it returns a new collection instead of writing
+     * into a captured variable - so the accumulator this function used to have is
+     * gone rather than merely corrected.
+     *
      * @return array<string, int>
      */
     private function countsByRole(): array
     {
-        $counts = array_fill_keys(User::roles(), 0);
-
-        User::query()
+        $counts = User::query()
             ->selectRaw('role, count(*) as total')
             ->groupBy('role')
             ->pluck('total', 'role')
-            ->each(fn ($total, $role) => $counts[$role] = (int) $total);
+            ->map(fn ($total): int => (int) $total)
+            ->all();
 
-        return $counts;
+        return array_replace(array_fill_keys(User::roles(), 0), $counts);
     }
 }

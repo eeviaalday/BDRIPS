@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -28,16 +29,75 @@ class SettingController extends Controller
         $settings = Setting::query()->orderBy('group')->orderBy('key')->get();
 
         return view('staff.settings.index', [
-            // Grouped in PHP from one read, because the page renders one panel
-            // per group and querying per group would be a round trip each.
-            'groups' => $settings
-                ->groupBy('group')
-                ->map(fn ($rows, $group): array => [
-                    'label' => ucfirst(str_replace('_', ' ', (string) $group)),
-                    'settings' => $rows,
-                ])
-                ->values(),
+            'sections' => $this->sections($settings),
+            // The published values, read from the rows rather than from the form,
+            // because the preview is meant to answer "what is live right now" -
+            // a preview that echoed the inputs would show unsaved text and claim
+            // to be the public header.
+            'published' => $settings->pluck('value', 'key'),
         ]);
+    }
+
+    /**
+     * The sections the form is laid out in.
+     *
+     * The `group` column is not touched. All eight keys are stored in one group,
+     * "header", and the public templates read them by key - so re-grouping the
+     * rows would be a data change for a layout reason, and one that could move a
+     * value out from under a page that iterates the column. The sections below
+     * are presentation only and are built from the key names.
+     *
+     * A key that is not listed falls back to its own stored group, so a key added
+     * by a later migration still appears on this page without a code change. That
+     * is the same guarantee the previous single-panel layout gave.
+     *
+     * @param  Collection<int, Setting>  $settings
+     * @return Collection<int, array{label: string, anchor: string, settings: Collection<int, Setting>}>
+     */
+    private function sections($settings)
+    {
+        $order = [
+            'identity' => ['label' => 'Barangay identity', 'keys' => ['barangay_name', 'barangay_address']],
+            'officials' => ['label' => 'Officials', 'keys' => ['punong_barangay', 'secretary_name']],
+            'contact' => [
+                'label' => 'Contact',
+                'keys' => ['emergency_hotline', 'office_phone', 'office_email', 'office_facebook'],
+            ],
+        ];
+
+        $byKey = $settings->keyBy('key');
+
+        $sections = collect();
+
+        foreach ($order as $anchor => $section) {
+            $rows = collect($section['keys'])
+                ->map(fn (string $key) => $byKey->get($key))
+                ->filter()
+                ->values();
+
+            if ($rows->isNotEmpty()) {
+                $sections->push([
+                    'label' => $section['label'],
+                    'anchor' => $anchor,
+                    'settings' => $rows,
+                ]);
+            }
+        }
+
+        // Anything unlisted, under its own stored group.
+        $placed = collect($order)->flatMap(fn (array $section): array => $section['keys'])->all();
+
+        $leftovers = $settings->reject(fn (Setting $setting): bool => in_array($setting->key, $placed, true));
+
+        foreach ($leftovers->groupBy('group') as $group => $rows) {
+            $sections->push([
+                'label' => ucfirst(str_replace('_', ' ', (string) $group)),
+                'anchor' => 'other-'.$group,
+                'settings' => $rows->values(),
+            ]);
+        }
+
+        return $sections->values();
     }
 
     /**

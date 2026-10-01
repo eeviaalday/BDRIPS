@@ -1,11 +1,11 @@
 {{--
-    The resident verification queue.
+    The verification queue.
 
-    A status predicate and a search predicate, combined rather than either/or. An
-    ungrouped OR between them would let the search term match every profile
-    regardless of status, so "pending" plus a name would quietly become
-    "everything" - which is how a Secretary ends up approving somebody they never
-    meant to look at.
+    The queue a Secretary works through, so it leads with who is waiting rather than
+    with the figures. The waiting count sits beside the heading because it is the one
+    number a Secretary opens this page to see, and it is a filter as much as a
+    figure: the Status select is on "Pending review" by default, which is what makes
+    the count and the list agree.
 --}}
 <x-app-layout :user="auth()->user()" title="Resident Verification">
     <div class="mx-auto w-full max-w-6xl space-y-6">
@@ -18,47 +18,49 @@
                     Check each registration against the master list, then approve or reject it.
                 </p>
             </div>
-            <x-stat-card label="Waiting" :value="$pendingCount" tone="gold" icon="clock" variant="badged" />
+            <x-staff.stat-card label="Waiting" :value="$pendingCount" tone="gold" icon="clock" />
         </header>
 
-        <form method="GET" action="{{ route('staff.verifications.index') }}" class="flex flex-wrap items-end gap-3">
-            <div class="min-w-[16rem] flex-1">
-                <label for="q" class="block text-sm font-semibold text-navy-800">Search</label>
-                <input id="q" name="q" type="search" value="{{ $search }}"
-                    placeholder="Name, household number, or national ID"
-                    class="mt-1.5 w-full rounded-lg border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200">
-            </div>
-            <div>
-                <label for="status" class="block text-sm font-semibold text-navy-800">Status</label>
-                <select id="status" name="status"
-                    class="mt-1.5 rounded-lg border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200">
-                    @foreach ($states as $value => $label)
-                        <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <x-btn type="submit" variant="navy" size="md" icon="search">Filter</x-btn>
-        </form>
+        <x-staff.filter-bar :action="route('staff.verifications.index')"
+            :has-filters="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING"
+            :clear-href="route('staff.verifications.index')">
+            <x-staff.filter-field name="q" label="Search" :value="$search"
+                placeholder="Name, household number, or national ID" />
+            <x-staff.filter-select name="status" label="Status" :options="$states" :value="$status" />
+        </x-staff.filter-bar>
 
-        <x-data-table :columns="[['label' => 'Resident'], ['label' => 'Household'], ['label' => 'Sector'], ['label' => 'Submitted'], ['label' => 'Status']]"
-            caption="Resident verification queue" empty-title="Nothing in this queue"
-            empty-description="No profile matches the current filter.">
+        <x-staff.table
+            :columns="[
+                ['label' => 'Resident'],
+                ['label' => 'Household'],
+                ['label' => 'Sector'],
+                ['label' => 'Submitted'],
+                ['label' => 'Status'],
+            ]"
+            caption="Resident verification queue"
+            :empty-title="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING
+                ? 'No profiles match these filters'
+                : 'Nothing waiting'"
+            :empty-description="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING
+                ? 'Try a different search, or clear the filters to see everyone.'
+                : 'Every registration has been looked at.'"
+            empty-icon="id-badge"
+            :empty-action-label="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING ? 'Clear filters' : null"
+            :empty-action-href="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING ? route('staff.verifications.index') : null">
             @foreach ($profiles as $profile)
-                <tr>
-                    <th scope="row" class="px-4 py-3 text-sm font-semibold text-navy-900">
-                        <a href="{{ route('staff.verifications.show', $profile) }}" class="hover:underline">
-                            {{ $profile->user?->name }}
-                        </a>
-                        <span class="block text-xs font-normal text-slate-500">{{ $profile->user?->email }}</span>
+                <tr x-on:click="openRow($event, @js(route('staff.verifications.show', $profile)))">
+                    <th scope="row">
+                        <x-staff.person-cell :name="$profile->user?->name" :secondary="$profile->user?->email"
+                            :href="route('staff.verifications.show', $profile)" chevron />
                     </th>
-                    <td class="px-4 py-3 font-mono text-xs text-navy-800">{{ $profile->household_number }}</td>
-                    <td class="px-4 py-3 text-sm text-slate-600">{{ $profile->sector?->sector_name ?? '—' }}</td>
-                    <td class="px-4 py-3 text-sm text-slate-600">{{ $profile->created_at?->format('j M Y') }}</td>
-                    <td class="px-4 py-3"><x-status-badge :status="$profile->verification_status" size="sm" /></td>
+                    <td class="font-mono text-xs text-navy-800">{{ $profile->household_number }}</td>
+                    <td class="text-sm text-slate-600">{{ $profile->sector?->sector_name ?? '—' }}</td>
+                    <td class="text-sm text-slate-600">{{ $profile->created_at?->format('j M Y') }}</td>
+                    <td><x-staff.status-badge :status="$profile->verification_status" size="sm" /></td>
                 </tr>
             @endforeach
-        </x-data-table>
+        </x-staff.table>
 
-        <div>{{ $profiles->links() }}</div>
+        <x-staff.pagination :paginator="$profiles" />
     </div>
 </x-app-layout>

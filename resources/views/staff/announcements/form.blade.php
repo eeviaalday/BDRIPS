@@ -24,6 +24,14 @@
             </p>
         </header>
 
+        {{-- The success alert, matching the index. Without it the Pin from button
+             below reported nothing: pin() flashes "Scheduled and pinned." and
+             returns here, and this form rendered errors only, so the message was
+             flashed into a page that never showed it. --}}
+        @if (session('success'))
+            <x-alert variant="success" icon="check-circle">{{ session('success') }}</x-alert>
+        @endif
+
         @if ($errors->any())
             <x-alert variant="danger" icon="x-circle">
                 <ul class="list-disc space-y-1 pl-4">
@@ -79,7 +87,9 @@
         </x-card>
 
         @if ($announcement->exists)
-            <x-card tone="white" padding="p-6">
+            {{-- The id is the target of the Pin link on the index: that route needs
+                 a date, so Pin navigates here rather than posting. --}}
+            <x-card id="pin-and-publish" tone="white" padding="p-6">
                 <h2 class="mb-4 text-base font-bold text-navy-900">Pin and publish</h2>
 
                 <div class="flex flex-wrap items-end gap-3">

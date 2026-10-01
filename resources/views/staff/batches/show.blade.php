@@ -22,7 +22,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-3">
-                <x-status-badge :status="$batch->status" />
+                <x-staff.status-badge :status="$batch->status" />
                 @if ($batch->isActive())
                     <x-confirm-dialog name="close-batch"
                         title="Close this batch?"
@@ -44,18 +44,18 @@
             <x-alert variant="success" icon="check-circle">{{ session('success') }}</x-alert>
         @endif
 
-        <div class="grid gap-4 sm:grid-cols-3">
-            <x-stat-card label="Households on the list" :value="$progress['total']" tone="navy" icon="users" variant="badged" />
-            <x-stat-card label="Collected" :value="$progress['received']" tone="green" icon="check-circle" variant="badged" />
-            <x-stat-card label="Still to collect" :value="$progress['pending']" tone="gold" icon="clock" variant="badged" />
-        </div>
+        <x-staff.stat-row>
+            <x-staff.stat-card label="Households on the list" :value="$progress['total']" tone="navy" icon="users" />
+            <x-staff.stat-card label="Collected" :value="$progress['received']" tone="green" icon="check-circle" />
+            <x-staff.stat-card label="Still to collect" :value="$progress['pending']" tone="gold" icon="clock" />
+        </x-staff.stat-row>
 
         @if ($batch->items() !== [])
             <x-card tone="white" padding="p-5">
                 <h2 class="mb-3 text-sm font-bold text-navy-900">Goods in this batch</h2>
                 <ul class="flex flex-wrap gap-2">
                     @foreach ($batch->items() as $item)
-                        <li class="rounded-full bg-navy-50 px-3 py-1 text-xs font-medium text-navy-800">{{ $item }}</li>
+                        <li><x-staff.status-badge status="neutral" :label="$item" :dot="false" /></li>
                     @endforeach
                 </ul>
             </x-card>
@@ -64,19 +64,27 @@
         <x-card tone="white" padding="p-6">
             <h2 class="mb-4 text-base font-bold text-navy-900">Progress by sector</h2>
 
-            <x-data-table :columns="[['label' => 'Sector'], ['label' => 'Kagawad'], ['label' => 'Households'], ['label' => 'Collected'], ['label' => 'Remaining']]"
+            <x-staff.table
+                :columns="[
+                    ['label' => 'Sector'],
+                    ['label' => 'Kagawad'],
+                    ['label' => 'Households', 'align' => 'right'],
+                    ['label' => 'Collected', 'align' => 'right'],
+                    ['label' => 'Remaining', 'align' => 'right'],
+                ]"
                 caption="Progress by sector" empty-title="No households on this list"
-                empty-description="Open the batch with at least one sector selected to add households.">
+                empty-description="Open the batch with at least one sector selected to add households."
+                empty-icon="folder">
                 @foreach ($sectors as $row)
                     <tr>
-                        <th scope="row" class="px-4 py-3 text-sm font-semibold text-navy-900">{{ $row['sector']->sector_name }}</th>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $row['sector']->kagawad?->name ?? 'Unassigned' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $row['total'] }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $row['received'] }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $row['total'] - $row['received'] }}</td>
+                        <th scope="row">{{ $row['sector']->sector_name }}</th>
+                        <td class="text-sm text-slate-600">{{ $row['sector']->kagawad?->name ?? 'Unassigned' }}</td>
+                        <td class="text-right tabular-nums text-slate-600">{{ $row['total'] }}</td>
+                        <td class="text-right tabular-nums text-slate-600">{{ $row['received'] }}</td>
+                        <td class="text-right tabular-nums font-semibold text-navy-800">{{ $row['total'] - $row['received'] }}</td>
                     </tr>
                 @endforeach
-            </x-data-table>
+            </x-staff.table>
         </x-card>
     </div>
 </x-app-layout>

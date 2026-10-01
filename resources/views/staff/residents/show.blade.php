@@ -15,7 +15,7 @@
                 <h1 class="text-xl font-bold text-navy-900">{{ $profile->user?->name }}</h1>
                 <p class="mt-1 text-sm text-gray-600">{{ $profile->user?->email }}</p>
             </div>
-            <x-status-badge :status="$profile->verification_status" />
+            <x-staff.status-badge :status="$profile->verification_status" />
         </header>
 
         <x-card tone="white" padding="p-6">
@@ -38,22 +38,22 @@
         <x-card tone="white" padding="p-6">
             <h2 class="mb-4 text-base font-bold text-navy-900">Document requests</h2>
 
-            @if ($requests->isEmpty())
-                <x-empty-state icon="document" title="No requests" description="This resident has not asked for a document." />
-            @else
-                <x-data-table :columns="[['label' => 'Reference'], ['label' => 'Document'], ['label' => 'Status']]"
-                    caption="Document requests by this resident">
+            <x-staff.table :columns="[['label' => 'Reference'], ['label' => 'Document'], ['label' => 'Status']]"
+                    caption="Document requests by this resident"
+                    empty-title="No requests"
+                    empty-description="This resident has not asked for a document."
+                    empty-icon="document">
                     @foreach ($requests as $documentRequest)
-                        <tr>
-                            <th scope="row" class="px-4 py-3 font-mono text-xs font-semibold text-navy-900">
-                                <a href="{{ route('staff.requests.show', $documentRequest) }}" class="hover:underline">{{ $documentRequest->reference_number }}</a>
+                        <tr x-on:click="openRow($event, @js(route('staff.requests.show', $documentRequest)))">
+                            <th scope="row">
+                                <x-staff.person-cell :name="$documentRequest->reference_number" mono
+                                    :href="route('staff.requests.show', $documentRequest)" chevron />
                             </th>
-                            <td class="px-4 py-3 text-sm text-navy-800">{{ $documentRequest->documentType?->label ?? 'Retired document' }}</td>
-                            <td class="px-4 py-3"><x-status-badge :status="$documentRequest->status" size="sm" /></td>
+                            <td class="text-sm text-navy-800">{{ $documentRequest->documentType?->label ?? 'Retired document' }}</td>
+                            <td><x-staff.status-badge :status="$documentRequest->status" size="sm" /></td>
                         </tr>
                     @endforeach
-                </x-data-table>
-            @endif
+                </x-staff.table>
         </x-card>
     </div>
 </x-app-layout>

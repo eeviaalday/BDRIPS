@@ -30,7 +30,7 @@
                         <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Civil status</dt><dd class="mt-1 text-sm text-navy-900">{{ $profile->user?->civil_status ?? '—' }}</dd></div>
                         <div class="sm:col-span-2"><dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Address</dt><dd class="mt-1 text-sm text-navy-900">{{ $profile->address }}</dd></div>
                         <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sector</dt><dd class="mt-1 text-sm text-navy-900">{{ $profile->sector?->sector_name ?? '—' }}</dd></div>
-                        <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</dt><dd class="mt-1"><x-status-badge :status="$profile->verification_status" size="sm" /></dd></div>
+                        <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</dt><dd class="mt-1"><x-staff.status-badge :status="$profile->verification_status" size="sm" /></dd></div>
                     </dl>
                 </x-card>
 
@@ -92,7 +92,7 @@
                             to the audit log.
                         </p>
                     @else
-                        <x-empty-state icon="upload" title="No ID on file"
+                        <x-staff.empty-state icon="upload" title="No ID on file"
                             description="This resident registered without attaching one, so check their other details carefully." />
                     @endif
                 </x-card>

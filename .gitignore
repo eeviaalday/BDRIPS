@@ -14,7 +14,10 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# /public/build is now tracked on purpose, so the staff UI can be reviewed from a
+# checkout without running a build first. The asset filenames are content-hashed,
+# so a rebuild that changes the CSS or JS leaves the previous hash behind - prune
+# the stale ones with `git rm -r --cached public/build/assets` before re-adding.
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage

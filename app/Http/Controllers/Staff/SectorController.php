@@ -25,19 +25,44 @@ use Illuminate\View\View;
  */
 class SectorController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        // "Unassigned only" is a GET parameter rather than a client-side toggle, so
+        // the filtered view can be linked to, bookmarked and reloaded, and so it can
+        // be asserted in a test without a browser.
+        $unassignedOnly = $request->boolean('unassigned');
+
+        $sectors = Sector::query()
+            ->with('kagawad')
+            // Both counts here rather than through $sector->isEmpty() in the view.
+            //
+            // isEmpty() asks the database two questions per sector - does it have
+            // residents, does it have distributions - and the view called it once
+            // per row. Measured: 71 queries to render this page with the barangay's
+            // 17 sectors, about four each. The counts are two subselects on the one
+            // query, and the view compares them.
+            ->withCount(['residents', 'distributions'])
+            ->when($unassignedOnly, fn ($query) => $query->whereNull('kagawad_user_id'))
+            ->orderBy('sector_name')
+            ->get();
+
         return view('staff.sectors.index', [
-            'sectors' => Sector::query()
-                ->with(['kagawad', 'residents'])
-                ->withCount('residents')
-                ->orderBy('sector_name')
-                ->get(),
+            'sectors' => $sectors,
+            'unassignedOnly' => $unassignedOnly,
             'unassignedKagawad' => User::query()
                 ->where('role', User::ROLE_KAGAWAD)
                 ->whereDoesntHave('reliefKagawadSectors')
                 ->orderBy('name')
                 ->get(),
+            'totals' => [
+                'total' => Sector::query()->count(),
+                'assigned' => Sector::query()->whereNotNull('kagawad_user_id')->count(),
+                // The third figure is a subtraction rather than its own count: a
+                // sector with a kagawad_user_id that no longer points at a user is
+                // assigned as far as the column is concerned and unassigned as far
+                // as the work is, and "assigned" must not over-report it.
+                'unassigned' => Sector::query()->whereNull('kagawad_user_id')->count(),
+            ],
         ]);
     }
 

@@ -73,7 +73,10 @@
                     </div>
                 </header>
 
-                <main class="flex-1 p-6">
+                {{-- pb-24 below md clears the fixed phone navigation in
+                     layouts/navigation, which sits at the bottom of the viewport. Without
+                     it the last card on every staff page is unreachable behind the bar. --}}
+                <main class="flex-1 p-6 pb-24 md:pb-6">
                     @isset($title)
                         <h1 class="mb-5 text-xl font-bold text-navy-900">{{ $title }}</h1>
                     @endisset

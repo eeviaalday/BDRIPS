@@ -18,7 +18,7 @@
                 <h1 class="text-xl font-bold text-navy-900">{{ $documentRequest->documentType?->label ?? 'Document request' }}</h1>
                 <p class="mt-1 font-mono text-sm text-gray-600">{{ $documentRequest->reference_number }}</p>
             </div>
-            <x-status-badge :status="$documentRequest->status" />
+            <x-staff.status-badge :status="$documentRequest->status" />
         </header>
 
         <x-card tone="white" padding="p-6">
