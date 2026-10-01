@@ -265,7 +265,11 @@ class ResidentRequestFilterTest extends TestCase
 
         $this->assertStringContainsString("open-modal', 'requests-locked", $html);
         $this->assertStringContainsString('New requests are locked', $html);
-        $this->assertStringContainsString(route('resident.verification.status'), $html);
+        $this->assertStringContainsString(
+            route('account.edit', ['tab' => 'verification']),
+            $html,
+            'The lock does not offer the way out.'
+        );
         $this->assertStringNotContainsString("open-modal', 'new-request", $html);
     }
 
@@ -276,7 +280,10 @@ class ResidentRequestFilterTest extends TestCase
     #[Test]
     public function every_chip_is_a_link_to_a_real_url(): void
     {
-        $html = $this->actingAs($this->resident())
+        $resident = $this->resident();
+        DocumentRequest::factory()->submitted()->create(['user_id' => $resident->id]);
+
+        $html = $this->actingAs($resident)
             ->get(route('resident.requests.index'))
             ->assertOk()
             ->getContent();
@@ -295,7 +302,10 @@ class ResidentRequestFilterTest extends TestCase
     #[Test]
     public function the_chips_agree_with_the_cards(): void
     {
-        $html = $this->actingAs($this->resident())
+        $resident = $this->resident();
+        DocumentRequest::factory()->underReview()->create(['user_id' => $resident->id]);
+
+        $html = $this->actingAs($resident)
             ->get(route('resident.requests.index', ['status' => 'under_review']))
             ->assertOk()
             ->getContent();
