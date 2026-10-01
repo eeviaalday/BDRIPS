@@ -229,8 +229,22 @@ class ResidentRequestFilterTest extends TestCase
     // Slots
     // ---------------------------------------------------------------------
 
+    /**
+     * The card at zero is a real control that explains itself, not a disabled
+     * plate.
+     *
+     * It used to render with as="disabled" here, which is a button the resident
+     * cannot activate at all. Pressing it did nothing and said nothing, which is
+     * the failure mode the other two states were already fixed for. It now
+     * answers with the same limit toast the New Request button uses, so a
+     * resident learns why from either control.
+     *
+     * The assertions are on the card's own markup, not on the page, because
+     * "disabled" appears in class names all over the page and a page-wide
+     * assertion for it passes whatever the card does.
+     */
     #[Test]
-    public function the_slots_card_is_disabled_at_zero(): void
+    public function the_slots_card_explains_at_zero_rather_than_being_disabled(): void
     {
         $resident = $this->resident();
 
@@ -244,9 +258,12 @@ class ResidentRequestFilterTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertStringContainsString('None left', $html);
-        $this->assertStringContainsString('disabled', $html);
-        $this->assertStringNotContainsString("open-modal', 'new-request", $html);
+        $card = $this->slotsCard($html);
+
+        $this->assertStringContainsString('None left', $card);
+        $this->assertStringContainsString('show-toast', $card);
+        $this->assertStringNotContainsString("open-modal', 'new-request", $card);
+        $this->assertStringNotContainsString('disabled', $card);
     }
 
     /**
@@ -452,6 +469,35 @@ class ResidentRequestFilterTest extends TestCase
     public static function statusFilterExpectations(): array
     {
         return self::statusFilters();
+    }
+
+    /**
+     * Just the Slots remaining card's own markup.
+     *
+     * The card renders as an <a> or a <button> depending on what pressing it
+     * means, so this takes the first element that carries the label and returns
+     * the whole card. Assertions scoped to it cannot be satisfied by a string
+     * that happens to appear elsewhere on the page - which is exactly how the old
+     * page-wide assertion for the word "disabled" passed.
+     */
+    private function slotsCard(string $html): string
+    {
+        $document = new \DOMDocument;
+
+        $previous = libxml_use_internal_errors(true);
+
+        $document->loadHTML('<?xml encoding="UTF-8">'.$html);
+
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        foreach ((new \DOMXPath($document))->query('//a|//button') as $node) {
+            if (str_contains($node->textContent, 'Slots remaining')) {
+                return (string) $document->saveHTML($node);
+            }
+        }
+
+        $this->fail('The Slots remaining card was not found as an <a> or a <button>.');
     }
 
     /**

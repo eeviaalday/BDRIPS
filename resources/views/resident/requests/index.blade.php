@@ -32,6 +32,38 @@
         page they are on does not explain itself.
     --}}
     <x-shell>
+        {{--
+            One Alpine scope for the whole page.
+
+            This is not decoration. Alpine only initialises a directive on an
+            element that sits inside an x-data scope, so without this wrapper
+            every $dispatch on this page was inert: the "New Request" button and
+            the Slots card carry x-on:click, and with no scope to bind them to,
+            pressing them ran nothing at all and reported nothing. There was no
+            console error either, because Alpine never saw the attribute - which is
+            why the markup looked right and the button did nothing.
+
+            The bare <div x-data> with no expression is the pattern the sibling
+            resident page already uses (relief.blade.php) for exactly this reason.
+            It gives the page's own controls somewhere to dispatch from without
+            inventing shared state they do not have.
+        --}}
+        <div x-data>
+        @php
+            /*
+             * The slot-limit wording, written once. Two controls on this page
+             * answer for it - the New Request button and the Slots card - and two
+             * copies of a sentence that a resident may read on the same screen is
+             * two things to keep in step. The figure is $limit, which the
+             * controller read from DocumentRequest::OPEN_REQUEST_LIMIT, so the
+             * number on screen is the number the server enforces.
+             */
+            $limitTitle = 'Request limit reached';
+            $limitMessage = 'You have reached the maximum of '.$limit.' document requests. '
+                .'Please wait until an existing request no longer counts toward your limit '
+                .'before submitting another request.';
+        @endphp
+
         @if (! $canCreate && ! auth()->user()->residentProfile?->isVerified())
             <x-alert variant="warning" icon="lock" class="mb-6">
                 New requests are locked. You can request documents once the Barangay Secretary
@@ -53,26 +85,41 @@
                 tone="navy" icon="document" as="link" :href="route('resident.requests.index', ['status' => 'open'])"
                 :active="$statusFilter === 'open'" />
 
-            {{-- 2. Slots remaining. Opens the New Request dialog, or the lock
-                 dialog for a resident who cannot use it yet.
+            {{-- 2. Slots remaining. A real button in every state, because a control
+                 that cannot be activated is worse than one that explains itself:
+                 a resident pressing a dead card learns less than one reading why.
 
-                 A pending resident is shown a dash and the words "Locked until
-                 verified" rather than the number 3. Three is the allowance, not
-                 something they can spend, and printing it on a card they cannot
-                 act on reads as a refusal rather than as a state. The card is
-                 still a button: a control that silently does nothing is worse
-                 than one that explains itself. --}}
-            @if ($slotsRemaining === 0)
-                <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining" hint="None left"
-                    tone="gold" icon="lock" as="disabled" />
-            @elseif ($canCreate)
+                 The number is always $slotsRemaining, computed by the controller
+                 from DocumentRequest::OPEN_REQUEST_LIMIT and the requests that
+                 count toward it. An earlier version printed a literal "&mdash;"
+                 here instead, which was an HTML entity passed where the
+                 component expects a value and then escaped a second time by
+                 {{ }} - so residents read the characters "&mdash;" on the card.
+
+                 What changes between the three states is what a press means, and
+                 the hint that says so:
+
+                   not verified  -> the lock dialog, and "Locked until verified",
+                                     because the slots exist but cannot be spent
+                                     until the Secretary has checked their ID.
+                   verified, none left -> the limit toast, and "None left".
+                   verified, room left  -> the New Request dialog. --}}
+            @if (! auth()->user()->residentProfile?->isVerified())
+                <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining"
+                    hint="Locked until verified" tone="gold" icon="lock" as="button"
+                    x-on:click="$dispatch('open-modal', 'requests-locked')" />
+            @elseif ($slotsRemaining === 0)
+                <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining"
+                    hint="None left" tone="gold" icon="lock" as="button"
+                    x-on:click="$dispatch('show-toast', {
+                        name: 'request-limit',
+                        title: '{{ $limitTitle }}',
+                        message: '{{ $limitMessage }}',
+                    })" />
+            @else
                 <x-resident.filter-card label="Slots remaining" :value="$slotsRemaining"
                     hint="Start a new request" tone="gold" icon="check-circle" as="button"
                     x-on:click="$dispatch('open-modal', 'new-request')" />
-            @else
-                <x-resident.filter-card label="Slots remaining" value="&mdash;"
-                    hint="Locked until verified" tone="gold" icon="lock" as="button"
-                    x-on:click="$dispatch('open-modal', 'requests-locked')" />
             @endif
 
             {{-- 3. Total on file -> clears the filter. Counted on the server over
@@ -146,10 +193,29 @@
         <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold text-navy-900">My Documents</h2>
 
-            {{-- Pending gets a lock on the button and the same dialog, so pressing
-                 it explains rather than refusing. --}}
+            {{-- Three states, and the button has to be a different control in each
+                 one, because "what does this do" is a different answer in each:
+
+                   verified, room left -> a link to the form.
+                   verified, at limit -> the limit toast. This used to dispatch the
+                     lock dialog, which is only rendered for an unverified
+                     resident, so at the limit the event had no listener and the
+                     press produced nothing visible at all.
+                   not verified -> the lock dialog, which explains and offers the
+                     way out.
+
+                 All three are real controls, so none of them is inert. --}}
             @if ($canCreate)
                 <x-btn :href="route('resident.requests.create')" variant="primary" size="md">+ New Request</x-btn>
+            @elseif (auth()->user()->residentProfile?->isVerified())
+                <x-btn type="button" variant="primary" size="md" icon="lock"
+                    x-on:click="$dispatch('show-toast', {
+                        name: 'request-limit',
+                        title: '{{ $limitTitle }}',
+                        message: '{{ $limitMessage }}',
+                    })">
+                    + New Request
+                </x-btn>
             @else
                 <x-btn type="button" variant="primary" size="md" icon="lock"
                     x-on:click="$dispatch('open-modal', 'requests-locked')">
@@ -343,6 +409,14 @@
                     @endforeach
                 </x-modal>
             </div>
+        @endif
+        </div>
+    {{-- Mounted once per page. It is fixed and off the document flow, so it
+             sits over the content rather than inside it, and z-[60] keeps it above
+             the navbar and the dialogs. Only rendered when it can actually fire:
+             a resident who can open the form has nothing to be told here. --}}
+        @if (! $canCreate && auth()->user()->residentProfile?->isVerified())
+            <x-resident.toast name="request-limit" />
         @endif
         </div>
     </x-shell>
