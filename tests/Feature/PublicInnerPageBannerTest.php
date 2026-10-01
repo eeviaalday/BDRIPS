@@ -38,7 +38,9 @@ class PublicInnerPageBannerTest extends TestCase
             'about' => ['about', 'About Our Barangay', 'About Us'],
             'announcements' => ['announcements.index', 'Community Announcements', 'Announcements'],
             'contact' => ['contact', 'Contact Us', 'Contact Us'],
-            'directory' => ['public.directory', 'Officials Directory', 'Officials Directory'],
+            // No /directory entry: the page is gone and its banner with it. The
+            // officials content it used to carry is now a section of /about, which
+            // is in this list already and is covered by the same assertions.
         ];
     }
 
@@ -255,7 +257,9 @@ class PublicInnerPageBannerTest extends TestCase
         // one would either render nothing, or reintroduce a second label above
         // the headline. Only the banner's own opening tag is read here: the
         // section headings in each page body still use eyebrows.
-        foreach (['services', 'about', 'announcements', 'contact', 'directory'] as $view) {
+        // No 'directory': the page is gone. Its officials content is now part of
+        // the about view, which is in this list and scanned like the others.
+        foreach (['services', 'about', 'announcements', 'contact'] as $view) {
             $source = file_get_contents(resource_path("views/public/{$view}.blade.php"));
 
             $this->assertSame(

@@ -73,22 +73,33 @@ class PublicImageryTest extends TestCase
         }
     }
 
-    public function test_officials_directory_renders_no_photographs(): void
+    /**
+     * No official is ever shown a photograph.
+     *
+     * The listing renders neutral initials instead. This used to be asserted on
+     * the standalone /directory page; its content is now a section of the About
+     * page, so that is where the rule is checked - the rule did not move with
+     * the markup, and it must not be lost with the page.
+     */
+    public function test_the_officials_listing_renders_no_photographs(): void
     {
-        $content = $this->get(route('public.directory'))->assertOk()->getContent();
+        $content = $this->get(route('about'))->assertOk()->getContent();
 
         preg_match('/<main id="main-content">(.*)<\/main>/s', $content, $matches);
         $main = $matches[1] ?? '';
 
-        // Every page now opens with a decorative banner photograph, so the
-        // assertion is scoped to the directory body that follows it. What it
-        // still guards is that no official is ever shown a photograph: the
-        // listing renders neutral initials instead.
-        $body = str_contains($main, '</section>')
-            ? substr($main, strpos($main, '</section>'))
-            : $main;
+        // Scoped to the blocks that came from the directory page - the executive
+        // cards, the public information line and the sector Kagawads - and not
+        // to the whole officials section. The two carousels above them are the
+        // About page's own content and do render portraits on purpose, so
+        // asserting over the whole section would be asserting against the
+        // carousels rather than against what moved.
+        $start = strpos($main, 'id="executive-heading"');
+        $this->assertIsInt($start, 'The about page no longer renders the executive officials.');
 
-        $this->assertStringNotContainsString('<img', $body);
-        $this->assertStringNotContainsString('id-photo', $body);
+        $section = substr($main, $start);
+
+        $this->assertStringNotContainsString('<img', $section);
+        $this->assertStringNotContainsString('id-photo', $section);
     }
 }

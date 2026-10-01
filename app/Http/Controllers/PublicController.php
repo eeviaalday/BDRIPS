@@ -53,6 +53,17 @@ class PublicController extends Controller
         return view('public.about', [
             'officeEmail' => Setting::get('office_email', 'floria123@yahoo.com'),
             'officeFacebook' => Setting::get('office_facebook', PublicLayout::FACEBOOK_PAGE),
+
+            // The officials section carries the executive roles, the public
+            // information line and the per-sector Kagawads, all of which used to
+            // live on a separate /directory page. Same sources as that page did,
+            // so the admin Settings screen still edits every one of them:
+            // the settings table for the two roles and the hotline, and the
+            // sectors table for the assignments. Read live, so a Kagawad
+            // appointed in the admin area shows up here without anyone editing
+            // a template.
+            'officials' => $this->officials(),
+            'sectors' => Sector::with('kagawad')->orderBy('sector_name')->get(),
         ]);
     }
 
@@ -62,14 +73,6 @@ class PublicController extends Controller
     public function contact(): View
     {
         return view('public.contact', $this->contactDetails());
-    }
-
-    public function directory(): View
-    {
-        return view('public.directory', [
-            'sectors' => Sector::with('kagawad')->orderBy('sector_name')->get(),
-            'officials' => $this->officials(),
-        ]);
     }
 
     /**
@@ -201,8 +204,8 @@ class PublicController extends Controller
      *
      * The hotline is not in here: the office line and the hotline are the same
      * number for this barangay, so the public pages print one contact number.
-     * The hotline itself is still read for the officials directory, where it is
-     * presented as the public information line.
+     * The hotline itself is read by officials(), for the About page's public
+     * information line.
      *
      * @return array<string, string>
      */

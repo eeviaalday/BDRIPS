@@ -35,7 +35,18 @@ Route::get('/services', [PublicController::class, 'services'])->name('services.i
 Route::get('/about', [PublicController::class, 'about'])->name('about');
 Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 Route::get('/announcements', [PublicController::class, 'announcements'])->name('announcements.index');
-Route::get('/directory', [PublicController::class, 'directory'])->name('public.directory');
+
+/*
+| The officials used to have a page of their own at /directory. Its content is
+| now part of the About page's officials section, which is the only place a
+| reader now has to go, and every internal link points there directly.
+|
+| The address itself stays, as a permanent redirect, because it is in old
+| bookmarks, in search results and in messages people have already sent. The
+| route name stays too, so anything still generating route('public.directory')
+| resolves rather than throwing.
+*/
+Route::permanentRedirect('/directory', '/about#officials')->name('public.directory');
 
 /*
 |--------------------------------------------------------------------------

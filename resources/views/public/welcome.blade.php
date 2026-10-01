@@ -209,13 +209,19 @@
          link, so the entire target is clickable and the arrow is decorative.
          Each card carries an aria-label, because the visible text alone does not
          name the destination.
+
+         The optional "fragment" is for a card whose destination is a section of
+         a page rather than the top of one - the officials card lands on the
+         About page's officials section, so the link does not drop a reader at
+         the top of a long page and leave them to find it. Cards without a
+         fragment resolve exactly as they did before.
     --}}
     <x-shell id="services" tone="surface" top="pt-8 sm:pt-10 lg:pt-12">
         <x-section-heading align="left" title="Quick Services" class="text-left" />
 
         <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             @foreach (config('bdrpis.quick_services') as $quick)
-                <a href="{{ route($quick['route']) }}"
+                <a href="{{ route($quick['route']) }}{{ isset($quick['fragment']) ? '#'.$quick['fragment'] : '' }}"
                     aria-label="{{ $quick['title'] }} — {{ $quick['description'] }}"
                     class="group flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2">
                     <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full {{ $quick['badge'] }}">

@@ -145,7 +145,7 @@ class PublicFooterBannerTest extends TestCase
             route('transparency.index'),
             route('about'),
             route('contact'),
-            route('public.directory'),
+            route('about').'#officials',
             route('announcements.index'),
             route('requests.track'),
             route('services.index').'#how-it-works',
@@ -235,7 +235,7 @@ class PublicFooterBannerTest extends TestCase
 
     public function test_the_footer_appears_on_every_public_page(): void
     {
-        foreach (['home', 'services.index', 'about', 'announcements.index', 'contact', 'public.directory'] as $name) {
+        foreach (['home', 'services.index', 'about', 'announcements.index', 'contact'] as $name) {
             $footer = $this->footer($this->get(route($name))->assertOk()->getContent());
 
             $this->assertStringContainsString('max-w-7xl', $footer, "The [{$name}] page lost the footer band.");

@@ -440,13 +440,12 @@ class PublicAboutSectionTest extends TestCase
         // the literal string "&amp;" to {{ }}, which escapes the ampersand again,
         // and the page displays "&amp;" on screen instead of "&".
         //
-        // The about page no longer carries that heading - the two carousels say
-        // it in their own titles - so this is checked on the directory page,
-        // which still has it.
-        $directory = $this->get(route('public.directory'))->assertOk()->getContent();
+        // The heading that had the ampersand was the directory page's, and it
+        // went with the page. The rule it guarded still applies to everything
+        // else the About page renders, which is where the check lives now.
+        $about = $this->get(route('about'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Barangay Officials &amp; Directory', $directory);
-        $this->assertStringNotContainsString('&amp;amp;', $directory);
+        $this->assertStringNotContainsString('&amp;amp;', $about);
     }
 
     public function test_the_officials_section_starts_with_the_carousels_and_no_superfluous_heading(): void
@@ -597,13 +596,13 @@ class PublicAboutSectionTest extends TestCase
 
     public function test_the_about_page_no_longer_offers_the_directory_button(): void
     {
-        // Scoped to the page body: the header and the footer still link to the
-        // directory, which is intended - the point is that the about page no
-        // longer hands off to it.
+        // Scoped to the page body. The page that used to be handed off to is
+        // gone: its content is here now, and the footer and the quick services
+        // card point at this section rather than at an address of its own.
         $body = $this->mainRegion($this->get(route('about'))->assertOk()->getContent());
 
         $this->assertStringNotContainsString('View the full official directory', $body);
-        $this->assertStringNotContainsString(route('public.directory'), $body);
+        $this->assertStringNotContainsString('/directory', $body);
     }
 
     /**
@@ -722,9 +721,9 @@ class PublicAboutSectionTest extends TestCase
         // band, so they are left aligned on purpose.)
         $total = 0;
 
-        // /transparency is not in the sweep: the page is gone while the areas
-        // are rebuilt, so there is no section header on it to count.
-        foreach (['about', 'services.index', 'contact', 'announcements.index', 'public.directory'] as $route) {
+        // /transparency and /directory are not in the sweep: neither is a page
+        // any more.
+        foreach (['about', 'services.index', 'contact', 'announcements.index'] as $route) {
             $content = $this->mainRegion($this->get(route($route))->assertOk()->getContent());
 
             $centred = substr_count($content, 'text-center mx-auto max-w-2xl');
@@ -750,15 +749,47 @@ class PublicAboutSectionTest extends TestCase
      * The officials section of the about page, so the activity gallery above it
      * cannot satisfy a roster assertion.
      */
+    /**
+     * The About page's officials section, boundaries included.
+     *
+     * Balances the section tags rather than stopping at the first closing one.
+     * The executive roles, the public information line and the sector Kagawads
+     * used to be a page of their own and are now sections inside this one, so
+     * the first "</section>" after the opening is one of theirs, not the end of
+     * the block - and a helper that stopped there would quietly hand every
+     * assertion a truncated slice of the page.
+     */
     private function officialsSection(string $content): string
     {
         $start = strpos($content, 'id="officials"');
-        $end = strpos($content, '</section>', $start === false ? 0 : $start);
 
         $this->assertIsInt($start, 'The about page no longer renders an officials section.');
+
+        // Start at the opening <section> itself, not at the id inside it. The id
+        // is in the tag's attribute list, so slicing from it would begin after
+        // the opening tag had been counted and the balance would never close.
+        $opening = strrpos(substr($content, 0, $start), '<section');
+
+        $this->assertIsInt($opening, 'The officials section is not a section element.');
+
+        $slice = substr($content, $opening);
+        preg_match_all('/<section[ >]|<\/section>/', $slice, $tags, PREG_OFFSET_CAPTURE);
+
+        $depth = 0;
+        $end = null;
+
+        foreach ($tags[0] as [$tag, $offset]) {
+            $depth += $tag === '</section>' ? -1 : 1;
+
+            if ($depth === 0) {
+                $end = $offset + strlen($tag);
+                break;
+            }
+        }
+
         $this->assertIsInt($end, 'The officials section is not closed.');
 
-        return substr($content, $start, $end - $start);
+        return substr($slice, 0, $end);
     }
 
     /**

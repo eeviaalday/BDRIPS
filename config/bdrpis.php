@@ -339,7 +339,10 @@ return [
             'description' => 'Know your barangay officials and contact details.',
             'icon' => 'users',
             'badge' => 'bg-teal-50 text-teal-600',
-            'route' => 'public.directory',
+            // The officials are a section of the About page now, and the card
+            // should land on that section rather than at the top of a long page.
+            'route' => 'about',
+            'fragment' => 'officials',
         ],
 
     ],

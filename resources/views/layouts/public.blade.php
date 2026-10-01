@@ -82,7 +82,10 @@
                          * desktop bar.
                          */
                         $secondaryNav = [
-                            ['label' => 'Officials', 'url' => route('public.directory'), 'active' => request()->routeIs('public.directory')],
+                            // A shortcut to a section of the About page, not a tab of its own, so it
+                            // deliberately does not light up: two nav entries flagged current on one
+                            // page is a nav that cannot be trusted to say where you are.
+                            ['label' => 'Officials', 'url' => route('about').'#officials', 'active' => request()->routeIs('public.directory')],
                             ['label' => 'Relief Transparency', 'url' => route('transparency.index'), 'active' => request()->routeIs('transparency.*')],
                             ['label' => 'Track a Request', 'url' => route('requests.track'), 'active' => request()->routeIs('requests.track')],
                         ];
@@ -322,7 +325,7 @@
                             <li><a href="{{ route('about') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">About</a></li>
                             <li><a href="{{ route('contact') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Contact</a></li>
                             <li><a href="{{ route('services.index') }}#how-it-works" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">How It Works</a></li>
-                            <li><a href="{{ route('public.directory') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Officials Directory</a></li>
+                            <li><a href="{{ route('about') }}#officials" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Officials Directory</a></li>
                             <li><a href="{{ route('announcements.index') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Announcements</a></li>
                             <li><a href="{{ route('requests.track') }}" class="rounded transition hover:text-gold focus:outline-none focus-visible:text-gold">Track a Request</a></li>
                         </ul>
