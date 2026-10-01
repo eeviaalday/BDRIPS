@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Resident;
 
 use App\Http\Controllers\Controller;
+use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
+use App\Models\Sector;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -62,32 +64,80 @@ class ReliefController extends Controller
             'householdNumber' => $household,
 
             // The rows the table shows. Null while locked, so the view never runs
-            // a query it should not.
+            // a query it should not. The batch and the staff member who logged
+            // each row are read up front because the Details dialog prints both,
+            // and a dialog that lazy-loads is a dialog that stalls.
             'distributions' => $isVerified
-                ? $base()->when($statuses !== [], fn ($query) => $query->whereIn('status', $statuses))->get()
+                ? $base()
+                    ->with(['batch', 'loggedBy'])
+                    ->when($statuses !== [], fn ($query) => $query->whereIn('status', $statuses))
+                    ->get()
                 : null,
 
-            /*
-             * The three figures, counted over every batch this household has ever
-             * been on.
-             *
-             * Counted from the unfiltered base rather than from the collection
-             * being rendered: a count that changed when a chip was pressed would
-             * be a figure that lies, and the whole reason the cards are also the
-             * filter is that they are read together.
-             */
-            'totalCount' => $isVerified ? $base()->count() : 0,
-            'pendingCount' => $isVerified
-                ? $base()->where('status', ReliefDistribution::STATUS_PENDING)->count()
-                : 0,
-            'receivedCount' => $isVerified
-                ? $base()->where('status', ReliefDistribution::STATUS_RECEIVED)->count()
-                : 0,
+            ...$this->upcoming($isVerified ? (string) $household : null, $profile?->sector_id),
 
             'statusFilter' => $key,
             'isFiltered' => $key !== null,
             'statusFilters' => self::statusFilters(),
         ]);
+    }
+
+    /**
+     * The two cards above the table: what is coming, and how the barangay is doing.
+     *
+     * "Coming" is the open batch this household has not collected from yet - the
+     * one they are actually being asked to turn up for. It is found by asking
+     * which open batches have no received row for this household, so a household
+     * that has already collected is not told to come back for the same goods.
+     *
+     * "How the barangay is doing" is counts and nothing else. ReliefBatch::progress()
+     * runs one grouped query and returns three integers, and that is the whole of
+     * what leaves this method for that card. No household number, no name, no
+     * per-household status crosses this boundary - a resident reads their own row
+     * from the table below, and the aggregate is the only thing that is anybody
+     * else's business.
+     *
+     * @return array{nextBatch: ReliefBatch|null, batchProgress: array{total: int, received: int, pending: int}, sectorKagawad: ?string}
+     */
+    private function upcoming(?string $householdNumber, mixed $sectorId): array
+    {
+        $empty = [
+            'nextBatch' => null,
+            'batchProgress' => ['total' => 0, 'received' => 0, 'pending' => 0],
+            'sectorKagawad' => null,
+        ];
+
+        if ($householdNumber === null) {
+            return $empty;
+        }
+
+        // Ordered by date rather than by id, because the batch a resident has to
+        // attend next is the soonest one, not the first one that was created.
+        $open = ReliefBatch::query()
+            ->active()
+            ->whereDoesntHave('distributions', fn ($rows) => $rows
+                ->where('household_number', $householdNumber)
+                ->where('status', ReliefDistribution::STATUS_RECEIVED))
+            ->orderByDesc('distribution_date')
+            ->orderByDesc('id')
+            ->first();
+
+        // Nothing outstanding for this household. The progress card still has
+        // something true to say, so it falls back to the most recent open batch
+        // rather than showing a bar at zero when the barangay is mid-distribution.
+        $batch = $open ?? ReliefBatch::query()->active()->orderByDesc('distribution_date')->orderByDesc('id')->first();
+
+        if ($batch === null) {
+            return $empty;
+        }
+
+        return [
+            'nextBatch' => $open,
+            'batchProgress' => $batch->progress(),
+            'sectorKagawad' => $sectorId === null
+                ? null
+                : Sector::query()->with('kagawad')->find($sectorId)?->kagawad?->name,
+        ];
     }
 
     /**

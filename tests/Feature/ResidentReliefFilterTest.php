@@ -9,7 +9,6 @@ use App\Models\ResidentProfile;
 use App\Models\Sector;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -35,46 +34,6 @@ class ResidentReliefFilterTest extends TestCase
      * table is showing. A count that changed when a chip was pressed would be a
      * figure that lies.
      */
-    #[Test]
-    #[DataProvider('reliefFilters')]
-    public function the_figures_do_not_change_when_a_chip_is_pressed(?string $status): void
-    {
-        $resident = $this->verifiedResident();
-        $this->threeDistributions($resident);
-
-        $html = $this->actingAs($resident)
-            ->get(route('resident.relief', $status === null ? [] : ['status' => $status]))
-            ->assertOk()
-            ->getContent();
-
-        $this->assertSame('3', $this->figureIn($html, 'Relief batches'));
-        $this->assertSame('2', $this->figureIn($html, 'Waiting to receive'));
-        $this->assertSame('1', $this->figureIn($html, 'Received by my household'));
-    }
-
-    #[Test]
-    public function the_three_figures_are_real_links_that_filter(): void
-    {
-        $resident = $this->verifiedResident();
-        $this->threeDistributions($resident);
-
-        $html = $this->actingAs($resident)->get(route('resident.relief'))->assertOk()->getContent();
-
-        $this->assertMatchesRegularExpression(
-            '/<a\s+href="'.preg_quote(route('resident.relief'), '/').'"[^>]*aria-pressed="true"/',
-            $html,
-            'Relief batches does not clear the filter and claim to be active.'
-        );
-        $this->assertMatchesRegularExpression(
-            '/<a\s+href="'.preg_quote(route('resident.relief', ['status' => 'pending']), '/').'"/',
-            $html
-        );
-        $this->assertMatchesRegularExpression(
-            '/<a\s+href="'.preg_quote(route('resident.relief', ['status' => 'received']), '/').'"/',
-            $html
-        );
-    }
-
     // ---------------------------------------------------------------------
     // The filter
     // ---------------------------------------------------------------------
@@ -86,15 +45,20 @@ class ResidentReliefFilterTest extends TestCase
         $pending = $this->pendingDistribution($resident, ReliefBatch::factory()->create(['title' => 'Pending batch']));
         $received = $this->receivedDistribution($resident, ReliefBatch::factory()->create(['title' => 'Received batch']));
 
-        $pendingHtml = $this->actingAs($resident)
-            ->get(route('resident.relief', ['status' => 'pending']))->assertOk()->getContent();
-        $this->assertStringContainsString('Pending batch', $pendingHtml);
-        $this->assertStringNotContainsString('Received batch', $pendingHtml);
+        // Scoped to the table, because the chips filter the household's history and
+        // not the card above it. That card answers "am I expected somewhere", which
+        // is true of the barangay's open batches whether or not the reader has
+        // pressed a chip, and a batch this household has not collected from yet is
+        // named there by design.
+        $pendingTable = $this->tableIn($this->actingAs($resident)
+            ->get(route('resident.relief', ['status' => 'pending']))->assertOk()->getContent());
+        $this->assertStringContainsString('Pending batch', $pendingTable);
+        $this->assertStringNotContainsString('Received batch', $pendingTable);
 
-        $receivedHtml = $this->actingAs($resident)
-            ->get(route('resident.relief', ['status' => 'received']))->assertOk()->getContent();
-        $this->assertStringContainsString('Received batch', $receivedHtml);
-        $this->assertStringNotContainsString('Pending batch', $receivedHtml);
+        $receivedTable = $this->tableIn($this->actingAs($resident)
+            ->get(route('resident.relief', ['status' => 'received']))->assertOk()->getContent());
+        $this->assertStringContainsString('Received batch', $receivedTable);
+        $this->assertStringNotContainsString('Pending batch', $receivedTable);
     }
 
     #[Test]
@@ -233,7 +197,10 @@ class ResidentReliefFilterTest extends TestCase
 
         $html = $this->actingAs($resident)->get(route('resident.relief'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Bring a valid ID when claiming', $html);
+        // The guidance moved from a note under the status badge into the Details
+        // dialog's status box, which is where the rest of "what to bring" lives.
+        $this->assertStringContainsString('Bring a valid ID.', $html);
+        $this->assertStringContainsString('Distribution on', $html);
     }
 
     #[Test]
@@ -298,10 +265,14 @@ class ResidentReliefFilterTest extends TestCase
 
         $this->assertStringContainsString('Relief records unlock', $html);
 
-        // No figures, no chips, no table: a pending resident is told why rather
-        // than shown a filtered-looking empty page.
-        $this->assertStringNotContainsString('Relief batches', $html);
+        // No cards, no chips, no table: a pending resident is told why rather than
+        // shown a filtered-looking empty page. The card headings are checked
+        // because they are the only things that would render here for a verified
+        // resident, so their absence means the branch really did not run.
+        $this->assertStringNotContainsString('Next distribution for your household', $html);
+        $this->assertStringNotContainsString('Barangay-wide progress', $html);
         $this->assertStringNotContainsString('aria-label="Filter', $html);
+        $this->assertStringNotContainsString('<table', $html);
     }
 
     // ---------------------------------------------------------------------
@@ -401,6 +372,20 @@ class ResidentReliefFilterTest extends TestCase
     /**
      * The figure on the card carrying a given label.
      */
+    /**
+     * The history table on its own.
+     *
+     * The page carries a card above the table that is deliberately not filtered by
+     * the chips, so an assertion about what a chip hid has to look at the table
+     * rather than at the whole document.
+     */
+    private function tableIn(string $content): string
+    {
+        preg_match('/<table.*?<\/table>/s', $content, $matches);
+
+        return $matches[0] ?? '';
+    }
+
     private function figureIn(string $html, string $label): string
     {
         $this->assertStringContainsString($label, $html, "The {$label} card is missing.");
