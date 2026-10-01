@@ -658,7 +658,7 @@ return [
 
         [
             'title' => 'Track Your Request',
-            'description' => 'Follow the status of your request online at any time using your reference number.',
+            'description' => 'Follow the status of each request from your Document Requests page whenever you are logged in.',
         ],
 
         [

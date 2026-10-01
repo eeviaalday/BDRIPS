@@ -127,7 +127,7 @@
                         <ul class="mt-8 space-y-3.5 text-sm text-navy-200">
                             @foreach ([
                                 ['icon' => 'document', 'text' => 'Request supported barangay documents online'],
-                                ['icon' => 'search', 'text' => 'Track your request using its reference number'],
+                                ['icon' => 'search', 'text' => 'Track the status of your document requests'],
                                 ['icon' => 'shield', 'text' => 'Your personal data is protected under R.A. 10173'],
                             ] as $point)
                                 <li class="flex items-start gap-3">
