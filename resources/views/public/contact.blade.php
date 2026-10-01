@@ -141,7 +141,7 @@
                      all three panels line up along the foot, and the padding is on
                      the wrapper so it spaces the button rather than growing it. --}}
                 <div class="mt-auto pt-6">
-                    <x-btn :href="auth()->check() ? route('requests.track') : route('login')" variant="navy" size="lg"
+                    <x-btn :href="auth()->check() ? route('resident.requests.index') : route('login')" variant="navy" size="lg"
                         icon="search" class="w-full">
                         Track a Request
                     </x-btn>

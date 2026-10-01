@@ -232,13 +232,13 @@ class NavigationRoleAccessibilityTest extends TestCase
     #[Test]
     public function the_stubbed_destinations_are_reachable_from_the_navbar_and_resolve(): void
     {
-        // The navbar and footer still link to Relief Transparency and Track a
-        // Request, and the homepage's quick-services grid still links to the
-        // resident request form. Every one of them must resolve rather than
-        // throwing, and a link the finished pages use may not quietly disappear.
+        // The navbar and footer still link to Relief Transparency, and "Track a
+        // Request" now leads to the resident's own Document Requests. Every one of
+        // them must resolve rather than throwing, and a link the finished pages use
+        // may not quietly disappear.
         $header = $this->headerOn('/');
 
-        foreach (['transparency.index', 'requests.track'] as $name) {
+        foreach (['transparency.index', 'resident.requests.index'] as $name) {
             $this->assertStringContainsString(
                 route($name),
                 $header,
@@ -252,5 +252,15 @@ class NavigationRoleAccessibilityTest extends TestCase
                 "The route {$name} no longer resolves.",
             );
         }
+
+        // requests.track is in that second list and not the first on purpose. The
+        // address is a permanent redirect to Document Requests and nothing links to
+        // it any more, so the redirect has to keep working for the bookmarks and
+        // messages that still point at it, while the navbar points somewhere real.
+        // Asserted on the response rather than on route(), which only knows the
+        // route's own address and not where it sends anybody.
+        $this->get('/track')
+            ->assertStatus(301)
+            ->assertRedirect(route('resident.requests.index'));
     }
 }

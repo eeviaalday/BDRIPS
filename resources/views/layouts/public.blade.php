@@ -87,7 +87,12 @@
                             // page is a nav that cannot be trusted to say where you are.
                             ['label' => 'Officials', 'url' => route('about').'#officials', 'active' => request()->routeIs('public.directory')],
                             ['label' => 'Relief Transparency', 'url' => route('transparency.index'), 'active' => request()->routeIs('transparency.*')],
-                            ['label' => 'Track a Request', 'url' => route('requests.track'), 'active' => request()->routeIs('requests.track')],
+                            // Points at Document Requests, like the footer link and the
+                            // Services button. 'active' is false rather than a route
+                            // test: the page this leads to has no navbar tab of its
+                            // own, so nothing here can honestly claim to be the
+                            // current page.
+                            ['label' => 'Track a Request', 'url' => route('resident.requests.index'), 'active' => false],
                         ];
                     @endphp
 

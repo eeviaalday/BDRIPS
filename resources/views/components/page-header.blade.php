@@ -29,9 +29,9 @@
 @endphp
 
 {{--
-    Banner for every inner public page (/services, /about, /announcements,
-    /contact, /directory, /transparency, /track). One component so the seven
-    banners cannot drift apart in height, padding or alignment.
+      Banner for every inner public page (/services, /about, /announcements,
+      /contact, /directory, /transparency). One component so the six banners
+      cannot drift apart in height, padding or alignment.
 
     LAYOUT: one section, full bleed. The photograph is an absolutely positioned
     layer behind everything and the content is a single left-aligned column

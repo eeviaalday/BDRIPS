@@ -161,10 +161,11 @@ class LogoutBackButtonTest extends TestCase
         // login screen is theirs to make. If one loses it, a guest gets a
         // redirect nobody wrote rather than the login screen.
         //
-        // The list is what is still a stub. transparency.index and requests.track
-        // were stubs once and are real pages now - the board publishes aggregates
-        // only, and tracking takes a household number as a second factor - so
-        // they are covered by PublicLookupsTest instead of here.
+        // The list is what is still a stub. transparency.index and the old
+        // /track address were stubs once and are not pages now - the board
+        // publishes aggregates only, and /track is a permanent redirect to
+        // Document Requests - so they are covered by PublicLookupsTest and by
+        // NavigationRoleAccessibilityTest instead of here.
         $stubs = [
             'dashboard',
             'resident.requests.create',

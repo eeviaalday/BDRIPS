@@ -86,7 +86,7 @@
             </p>
             <p class="text-sm text-navy-600">
                 Already applied?
-                <a href="{{ route('requests.track') }}" class="font-semibold text-sky-700 underline underline-offset-2 hover:text-navy-900">Track your document request</a>.
+                  <a href="{{ route('resident.requests.index') }}" class="font-semibold text-sky-700 underline underline-offset-2 hover:text-navy-900">Track your document request</a>.
             </p>
         </div>
 
