@@ -4142,3 +4142,126 @@ clean, and `app/Models/*` is untouched by the guard.
 - **`request.submitted` is still missing from `AuditLog::actions()`** and the audit log shows the
   raw slug for the two entries that use it. `app/Models/*` is do-not-edit and is explicitly
   off-limits for this task, so it stays flagged.
+---
+
+## Prompt #021
+
+**Date:** 2026-10-02
+**Time:** 07:20
+**Category:** Fix / UI
+**Affected Module:** Staff — confirmation dialogs, audit action labels
+**Status:** Completed
+
+### Prompt
+
+> 1. Create `resources/views/components/staff/confirm-dialog.blade.php` as a staff-only variant of the shared `x-confirm-dialog` that forwards `focusable` to `x-modal`, so focus moves into the dialog on open (first input if any, otherwise the Cancel button). Leave the shared `x-confirm-dialog` and `x-modal` byte-for-byte unchanged.
+> 2. Switch every staff/kagawad/admin use of `x-confirm-dialog` to the staff variant: the Restrict and Change-role dialogs, the sector delete dialogs, the announcement delete dialog, the Kagawad "Mark collected" confirm if it uses one. Add `focusable` to the Add-a-sector modal.
+> 3. APPROVED SINGLE EXCEPTION: add the missing `request.submitted` label to `AuditLog::actions()` in `app/Models/AuditLog.php`. Touch nothing else in that file.
+> 4. Tests: assert the staff dialog renders the focusable target, and that the audit log shows an English label for `request.submitted`, not the raw slug.
+> 5. Browser-verify: open the Add-a-sector modal, Restrict dialog and Role dialog; confirm focus lands inside each, Esc closes, and focus returns to the trigger. Confirm the audit log no longer shows `request.submitted`. Report PASS/FAIL and the console error count.
+> 6. Run php artisan test, vendor/bin/pint --test, npm run build, and the resident/public/shared-components diff guard. Update PROMPT_LOG.md.
+
+### Implementation Actions
+
+- Added `x-staff.confirm-dialog`; the shared `x-confirm-dialog` and `x-modal` are untouched.
+- Switched all **8** staff `x-confirm-dialog` uses to the staff variant.
+- The Kagawad Mark-collected confirm needed no switch: it is an inline Confirm/Cancel, not a dialog.
+- `app/Models/AuditLog.php`: exactly one line added, `request.submitted => 'Request submitted'`.
+- Added `tests/Feature/StaffConfirmDialogTest.php` (15 tests).
+
+### Files Created
+
+- `resources/views/components/staff/confirm-dialog.blade.php`
+- `tests/Feature/StaffConfirmDialogTest.php`
+
+### Files Modified
+
+- `resources/views/staff/{accounts/show,announcements/index,batches/show,requests/show,sectors/index,verifications/show}.blade.php`
+- `app/Models/AuditLog.php` (one line, approved)
+- `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+### Result
+
+**Focus now moves into the dialog, and comes back out.** Verified in Chrome, 0 console errors
+on every scenario:
+
+| dialog | focus on open | Esc closes | focus after Esc | errors |
+|---|---|---|---|---|
+| Add a sector | `INPUT[name=sector_name]` — inside | yes | back on "Add a sector" | 0 |
+| Restrict | `INPUT[name=restricted_until]` — inside | yes | back on "Restrict this account" | 0 |
+| Change role | `SELECT[name=role]` — inside | yes | back on "Change role" | 0 |
+| Change role, via Cancel | — | yes | back on "Change role" | 0 |
+
+The Cancel path is asserted separately because it closes by a different route from Escape
+(`show = false` plus a dispatched event, rather than x-modal's own keydown handler) and could
+easily have been left without focus restoration.
+
+**Two things the shared `x-modal` needed from a wrapper, not an edit.** It reads
+`$attributes->has('focusable')` inside its own `x-init` and only then calls
+`firstFocusable().focus()`; and it hides itself on Escape but never returns focus. The staff
+variant therefore does both around it:
+
+- passes `focusable` through, and
+- remembers `document.activeElement` when its own `open-modal` event arrives — which is the
+  trigger, because x-modal waits 100ms before moving focus, so the trigger still holds focus at
+  that moment — and restores it on Escape, on Cancel and on `close-modal`.
+
+The wrapper is `display:contents`, so it creates no box around a `position:fixed` modal.
+First-input-not-Cancel falls out of document order: the slot renders above the buttons, so
+`firstFocusable()` reaches the reason box, the role select or the sector-name field, and lands on
+Cancel only for a dialog with no input — which is what the delete-sector dialog is, and what
+`a_dialog_with_no_input_puts_focus_on_cancel` asserts.
+
+**Three more inert triggers, found by verifying rather than assuming.** Switching the tag is not
+the same as making the dialog work, so every `$dispatch('open-modal', …)` trigger on the six staff
+pages that open one was walked in a browser for an Alpine scope. Three had none and were silently
+dead: **close a batch**, **reject a request**, **reject a registration** — all reachable only by
+URL-free nothing, with no console error. Each now carries `x-data="{}"`.
+
+Two triggers that *looked* unscoped are fine and were left alone: the announcement delete and the
+sector delete sit inside a `x-staff.table` row, and that component's wrapper carries
+`x-data="{ openRow(…) }"`, so they resolve. The sector delete is additionally inside the per-row
+`<tbody x-data>`. Confirmed by `closest('[x-data]')` in the browser rather than by reading the
+markup, because "is there a scope" is not answerable from the element itself.
+
+`every_open_modal_trigger_on_a_staff_page_is_inside_an_alpine_scope` now asserts this on every
+staff page that opens a dialog, so the defect cannot come back. Both new tests were checked by
+mutation, since a test that cannot fail is worse than no test:
+
+    removing `focusable`          -> the_staff_dialog_passes_focusable_to_x_modal
+                                      "The staff dialog no longer passes focusable"
+    removing x-data from a trigger -> every_open_modal_trigger_on_a_staff_page_...
+                                      "a trigger that dispatches open-modal has no Alpine scope, so it is inert: Reject request"
+
+**`request.submitted` now reads as English, and the gap that hid it is closed.**
+`actionLabel()` fell back to the raw slug for it because the map had every other `request.*` entry
+but that one. The audit table in Chrome now shows **Request submitted**, and no cell in the Action
+column contains a dot — verified by walking every row.
+
+The test asserts the table, not the page, and the distinction matters: the action *filter* carries
+the slug as each option's `value`, because that is the query parameter the form submits. Asserting
+the slug absent from the whole page would be asserting that the filter does not work.
+
+`every_action_the_application_logs_has_a_label` lists twenty action strings the code can emit and
+asserts none resolves to itself. That is the check that would have caught this on day one: the
+label map is only as good as the call that remembers to add to it.
+
+**Tests: 1007 pass** (was 992; +15). Pint clean. Build done. All three guards clean — resident/public
+and the shared components print nothing, and `app/Models` shows exactly the one approved line.
+
+### Notes / Follow-up
+
+- **The staff variant duplicates the shared component on purpose.** It is byte-identical apart
+  from `focusable`, the focus-restore wrapper and the comment explaining both. That is the cost of
+  the do-not-edit rule, and it is a real one: the next change to the shared dialog has to be made
+  twice. The alternative is editing the shared component, which would also fix the same gap in
+  the resident modals — and is the better long-term answer if the owner ever wants it.
+- **Focus is not trapped, and is not returned on one path.** Escape and Cancel both restore.
+  Dismissing by clicking the backdrop does not, because `x-modal` handles that internally with
+  `show = false` and dispatches nothing to observe. A one-line `x-on:click` on the backdrop would
+  close it, but `x-modal` is not mine to edit and the backdrop is not exposed; noted rather than
+  worked around.
+- **`x-modal` remains the only place focus is managed, and it is shared.** The staff dialog does
+  not reimplement it, so a future change to the focus trap or the tab cycle applies to both.
+- **ROLES.md is still absent** — seventh prompt running. Nothing in this task touched
+  authorization, and the `role:admin` middleware is still asserted from the route table.

@@ -49,7 +49,7 @@
                              form the trigger would have to reach. The component owns
                              the one <form> for the action precisely so an input
                              cannot end up posted under the wrong field name. --}}
-                        <x-confirm-dialog name="reject-verification"
+                        <x-staff.confirm-dialog name="reject-verification"
                             title="Reject this registration?"
                             message="The resident will be told the reason and can correct their details."
                             confirm-label="Reject, with this reason" tone="danger" method="POST"
@@ -65,9 +65,10 @@
                                 class="mt-1.5 w-full rounded-lg border border-navy-200 bg-navy-50/60 px-3.5 py-2.5 text-sm focus:border-navy-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-200"
                                 placeholder="What did the master list show, and what should the resident correct?"></textarea>
                             <p class="mt-1.5 text-xs text-slate-500">The resident reads this on their own page, so say what they should change.</p>
-                        </x-confirm-dialog>
+                        </x-staff.confirm-dialog>
 
                         <x-btn type="button" variant="danger" size="md" icon="x-circle"
+                            x-data="{}"
                             x-on:click="$dispatch('open-modal', 'reject-verification')">
                             Reject registration
                         </x-btn>

@@ -85,7 +85,7 @@
                 <div class="mt-6 border-t border-navy-100 pt-6">
                     {{-- The reason travels inside the dialog's own form, not in a
                          separate form a trigger would have to reach. --}}
-                    <x-confirm-dialog name="reject-request"
+                    <x-staff.confirm-dialog name="reject-request"
                         title="Reject this request?"
                         message="The resident will be told the reason and can apply again afterwards."
                         confirm-label="Reject, with this reason" tone="danger" method="POST"
@@ -98,9 +98,10 @@
                         <textarea id="rejection_reason" name="rejection_reason" rows="3" maxlength="1000" required
                             class="mt-1.5 w-full rounded-lg border border-navy-200 bg-navy-50/60 px-3.5 py-2.5 text-sm focus:border-navy-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-200"
                             placeholder="What is missing, and what should the resident do instead?"></textarea>
-                    </x-confirm-dialog>
+                    </x-staff.confirm-dialog>
 
                     <x-btn type="button" variant="danger" size="md" icon="x-circle"
+                        x-data="{}"
                         x-on:click="$dispatch('open-modal', 'reject-request')">
                         Reject request
                     </x-btn>

@@ -24,12 +24,13 @@
             <div class="flex items-center gap-3">
                 <x-staff.status-badge :status="$batch->status" />
                 @if ($batch->isActive())
-                    <x-confirm-dialog name="close-batch"
+                    <x-staff.confirm-dialog name="close-batch"
                         title="Close this batch?"
                         message="The checklist stays readable and a Kagawad can still see the history. It just stops accepting new households."
                         confirm-label="Close the batch" tone="danger" method="POST"
                         :form="route('staff.batches.close', $batch)" />
                     <x-btn type="button" variant="danger" size="sm" icon="lock"
+                        x-data="{}"
                         x-on:click="$dispatch('open-modal', 'close-batch')">Close batch</x-btn>
                 @else
                     <form method="POST" action="{{ route('staff.batches.reopen', $batch) }}">

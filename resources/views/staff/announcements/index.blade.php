@@ -110,7 +110,7 @@
                                 </x-btn>
                             @endif
 
-                            <x-confirm-dialog :name="'delete-'.$announcement->id"
+                            <x-staff.confirm-dialog :name="'delete-'.$announcement->id"
                                 title="Delete this announcement?"
                                 message="It disappears from the public page immediately. The record of who deleted it is kept in the audit log."
                                 confirm-label="Delete" tone="danger" method="DELETE"

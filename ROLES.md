@@ -1,0 +1,584 @@
+# ROLES.md
+
+> **The permission model for this barangay. Owned and confirmed by the barangay.**
+>
+> The route tables were read out of the running application — the route table, the
+> middleware on each route, the guards inside controllers and form requests, the
+> data scoping in each query, and the sidebar each role is given. The
+> [Owner decisions](#owner-decisions) below are the specification; the tables are
+> the implementation; [Code vs ROLES.md](#code-vs-rolesmd) records the one place
+> the code has not caught up yet.
+
+---
+
+## Owner decisions
+
+These are the specification. Everything else in this file is either how the code
+implements them or a note on how well it does.
+
+### 1. Admin is the Barangay Captain
+
+**Admin IS the Barangay Captain.** An Admin may do everything a Secretary can do,
+plus the Admin-only pages: User Accounts, Sectors & Kagawad, Settings, Audit Logs
+and System Status.
+
+The code matches this exactly. The staff routes are declared as
+`role:admin,secretary` for the shared operational pages and `role:admin` for the
+five Captain pages, and `RoleNavigation` gives the Admin the Secretary's list plus
+those five. There is no capability an Admin lacks that a Secretary has.
+
+This also settles a question the code itself could not answer: the old interface
+copy referred to "a Captain" assigning a Kagawad. There is no `captain` role in
+`User::roles()` — **the Captain is the Admin**, and Sectors & Kagawad is
+Admin-only because assigning a Kagawad is the Captain's job.
+
+### 2. A Secretary owns announcements outright
+
+**A Secretary may create, edit, publish, pin and DELETE announcements.** All five
+are intended, not oversights.
+
+All five are in the `role:admin,secretary` group, so this is already the case:
+`staff.announcements.create`, `.edit`, `.update`, `.publish`, `.pin`, `.unpin`
+and `.destroy`. An Admin can do all of them too, by decision 1.
+
+### 3. A Kagawad sees only their own sector, read-only
+
+**A Kagawad sees only their assigned sector(s).** Within that, a Kagawad may
+**view the residents of their own sector(s), together with their relief status per
+batch. It is read-only: no editing, and no data from any other sector.**
+
+The scoping half is built and enforced today. The resident view is the one piece
+that does not exist yet — see [Code vs ROLES.md](#code-vs-rolesmd).
+
+---
+
+## How to read this
+
+- **Allowed** — the route's middleware admits this role, and the specification
+  permits it.
+- **Denied** — the route exists and the middleware returns **403** for this role
+  (`EnsureUserHasRole:40`). A guest hitting a role-guarded route is redirected to
+  `/login` instead (`EnsureUserHasRole:36`), which is why "Guest" is a separate column.
+- Route names are the Laravel names, so they can be checked with
+  `php artisan route:list --name=...`.
+
+### Where authorisation actually lives
+
+There is **no `app/Policies` directory and no Gate definition anywhere in the
+application.** Nothing uses `@can` or `@role` in a Blade template. The entire
+permission model is three things:
+
+1. **Route middleware** — `role:admin`, `role:admin,secretary`, `role:kagawad`,
+   `role:resident` (`App\Http\Middleware\EnsureUserHasRole`).
+2. **Guards inside controllers and form requests** — `abort_if` and
+   `$validator->errors()->add()` in five controllers and one FormRequest, listed
+   under [Guards](#ad-hoc-guards-inside-controllers).
+3. **Data scoping in the query** — a Kagawad's rows are filtered to their own
+   sectors, and a resident's to their own household. A route being Allowed does
+   not mean every row behind it is visible; see [Data scoping](#data-scoping-by-role).
+
+### The `restricted` flag is enforced by the role middleware
+
+A restricted account is refused with 403 on every route that carries `role:`
+(`EnsureUserHasRole:55-57`). It keeps only `account.*`, `password.*` and `logout`,
+so a frozen account can still change its own password and sign out.
+
+Those three deliberately do **not** carry `role:` middleware, which means the
+restriction check does not run on them. That is the intended escape hatch, and the
+middleware says so — but it also means restriction enforcement is coupled to route
+middleware, which is noted at the end.
+
+---
+
+## Route inventory by area
+
+### Public — no authentication (`/`, 9 routes)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `home` | GET | `/` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `services.index` | GET | `/services` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `about` | GET | `/about` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `contact` | GET | `/contact` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `announcements.index` | GET | `/announcements` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `transparency.index` | GET | `/transparency` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `public.directory` | any | `/directory` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `requests.track` | any | `/track` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| — | GET | `/up` | Allowed | Allowed | Allowed | Allowed | Allowed |
+
+`/directory` and `/track` are **permanent redirects** (to `/about#officials` and
+`/resident/requests`), which is why they answer every HTTP verb.
+
+`/transparency` has no middleware and its controller reads no user, but the view
+wraps the only personalised part in `@auth` (lines 34–47), so a guest is fine.
+
+### Guest-only — sign in and register (8 routes)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `login` | GET, POST | `/login` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `register` | GET, POST | `/register` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `password.request` | GET | `/forgot-password` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `password.email` | POST | `/forgot-password` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `password.reset` | GET | `/reset-password/{token}` | Allowed | Allowed | Allowed | Allowed | Allowed |
+| `password.store` | POST | `/reset-password` | Allowed | Allowed | Allowed | Allowed | Allowed |
+
+All six are `guest` middleware, so a signed-in user of any role is redirected
+away rather than shown a second login form.
+
+**`/register` is open to the public, so anyone can create a Resident account.**
+Verification is not self-asserted — a new Resident lands in
+`verification_status = pending` — but account creation itself is ungated.
+
+### Signed in, any role (11 routes, 10 rows — `password.confirm` answers two verbs)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `logout` | POST | `/logout` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `password.update` | PUT | `/password` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `password.confirm` | GET, POST | `/confirm-password` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `verification.notice` | GET | `/verify-email` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `verification.verify` | GET | `/verify-email/{id}/{hash}` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `verification.send` | POST | `/email/verification-notification` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `dashboard` | GET | `/dashboard` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `account.edit` | GET | `/account` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `account.update` | PATCH | `/account` | Allowed | Allowed | Allowed | Allowed | Denied |
+| `account.password` | GET | `/account/password` | Allowed | Allowed | Allowed | Allowed | Denied |
+
+- `/dashboard` is a **signpost with no role guard**, by design ("the guard belongs
+  on the destination rather than on the arrow"). It redirects by role
+  (`EnsureUserHasRole::landingFor`): Kagawad → `kagawad.dashboard`, Admin and
+  Secretary → `staff.dashboard`, everyone else → `home`.
+- `/account` carries **no role middleware at all**, so all four roles reach it. It
+  renders `account/edit.blade.php` for a Resident and `account/edit-staff.blade.php`
+  for the other three, and `PATCH /account` writes only `name` and `email`.
+  A changed email clears `email_verified_at`, so an unproven address cannot keep a
+  session. It cannot change role or verification status — both are unreachable from
+  this route.
+- The five `verification.*` / `password.confirm` routes require only `auth`, not
+  `verified`, because they are what a user needs *in order to become* verified.
+
+### Staff — `role:admin,secretary` (29 routes)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `staff.dashboard` | GET | `/staff/dashboard` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.verifications.index` | GET | `/staff/verifications` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.verifications.show` | GET | `/staff/verifications/{profile}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.verifications.approve` | POST | `…/approve` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.verifications.reject` | POST | `…/reject` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.resident-verifications.id-photo` | GET | `…/id-photo` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.residents.index` | GET | `/staff/residents` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.residents.show` | GET | `/staff/residents/{profile}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.index` | GET | `/staff/requests` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.show` | GET | `/staff/requests/{documentRequest}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.review` | POST | `…/review` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.ready` | POST | `…/ready` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.claim` | POST | `…/claim` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.reject` | POST | `…/reject` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.batches.index` | GET | `/staff/batches` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.batches.create` | GET | `/staff/batches/create` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.batches.store` | POST | `/staff/batches` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.batches.show` | GET | `/staff/batches/{reliefBatch}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.batches.close` | POST | `…/close` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.batches.reopen` | POST | `…/reopen` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.index` | GET | `/staff/announcements` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.create` | GET | `/staff/announcements/create` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.store` | POST | `/staff/announcements` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.edit` | GET | `…/{announcement}/edit` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.update` | PUT | `…/{announcement}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.publish` | POST | `…/publish` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.pin` | POST | `…/pin` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.unpin` | POST | `…/unpin` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.announcements.destroy` | DELETE | `…/{announcement}` | Allowed | Allowed | Denied | Denied | Denied |
+
+The nine announcement routes are a Secretary's to operate in full, **including
+`destroy`** — that is decision 2, and it is intended. A Secretary can also verify
+and unverify residents, which follows from Resident Verification being a
+Secretary page.
+
+### Staff, Admin only — `role:admin` (14 routes)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `staff.accounts.index` | GET | `/staff/accounts` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.accounts.show` | GET | `/staff/accounts/{user}` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.accounts.role` | PUT | `…/{user}/role` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.accounts.restrict` | POST | `…/{user}/restrict` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.accounts.unrestrict` | POST | `…/{user}/unrestrict` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.sectors.index` | GET | `/staff/sectors` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.sectors.store` | POST | `/staff/sectors` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.sectors.update` | PUT | `/staff/sectors/{sector}` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.sectors.kagawad` | PUT | `…/{sector}/kagawad` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.sectors.destroy` | DELETE | `/staff/sectors/{sector}` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.settings.index` | GET | `/staff/settings` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.settings.update` | PUT | `/staff/settings` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.audit.index` | GET | `/staff/audit` | Allowed | **Denied** | Denied | Denied | Denied |
+| `staff.status.index` | GET | `/staff/status` | Allowed | **Denied** | Denied | Denied | Denied |
+
+This is the Captain's boundary, and the five Admin-only screens are exactly the
+five a Secretary cannot open. **Only the Captain can change another person's role,
+restrict anyone, or touch a sector** — which is decision 1, and it is why a
+Secretary who receives a new Kagawad hands them to the Captain to assign.
+
+### Kagawad — `role:kagawad` (4 routes)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `kagawad.dashboard` | GET | `/kagawad/dashboard` | Denied | Denied | Allowed | Denied | Denied |
+| `kagawad.relief` | GET | `/kagawad/relief` | Denied | Denied | Allowed | Denied | Denied |
+| `kagawad.relief.show` | GET | `/kagawad/relief/{reliefBatch}` | Denied | Denied | Allowed | Denied | Denied |
+| `kagawad.relief.received` | POST | `…/received/{distribution}` | Denied | Denied | Allowed | Denied | Denied |
+
+A Kagawad can read only their own sector's checklist and mark only their own
+sector's households collected. An **Admin or Secretary gets 403 here** — the role
+areas do not overlap in either direction, which is the direct consequence of
+decision 3 being read-only: a Kagawad neither needs nor gets staff pages. Marking
+is refused with **409** if the batch is closed.
+
+`kagawad.relief.received` is the only write a Kagawad has anywhere in the
+application.
+
+**This table does not yet show the read-only resident list that decision 3
+specifies** — no such route exists. It is tracked as the one planned gap in
+[Code vs ROLES.md](#code-vs-rolesmd).
+
+### Resident — `role:resident` (8 routes)
+
+| Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
+|---|---|---|---|---|---|---|---|
+| `resident.requests.index` | GET | `/resident/requests` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.requests.create` | GET | `/resident/requests/create` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.requests.store` | POST | `/resident/requests` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.requests.show` | GET | `/resident/requests/{documentRequest}` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.relief` | GET | `/resident/relief` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.verification` | GET | `/resident/verification` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.verification.update` | PATCH | `/resident/verification` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.verification.status` | GET | `/resident/verification/status` | Denied | Denied | Denied | Allowed | Denied |
+
+`resident.requests.show` **redirects to the index** rather than rendering a page,
+so the route name exists but there is no per-request screen and no ID to guess at.
+
+### No role middleware at all
+
+| URI | Method | Registered by | Notes |
+|---|---|---|---|
+| `/_boost/browser-logs` | POST | `laravel/boost` | Development tool. Flagged below. |
+| `/storage/{path}` | GET, PUT | `config/filesystems.php` `local.serve = true` | Laravel's local-disk file server. |
+
+---
+
+## Data scoping, by role
+
+A route being Allowed says nothing about the rows behind it.
+
+**Kagawad — scoped to their own sectors, and only their own.**
+`User::assignedSectorIds()` (`User.php:219`) resolves from
+`sectors.kagawad_user_id`, and every Kagawad query passes it through
+`ReliefDistribution::scopeForSectors()` (`ReliefDistribution.php:79`). A
+distribution outside those sectors returns **404, not 403**, deliberately, so a
+guessed id cannot confirm that the row exists — the reasoning is written at
+`Kagawad/ReliefController.php:23`. An unassigned Kagawad's
+`whereIn('sector_id', [])` matches nothing, so they see an empty list rather than
+everyone's. `sectors.kagawad_user_id` is `UNIQUE`
+(`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad holds at most one
+sector today — decision 3 says "sector(s)", and that plural is the open question
+noted in [Code vs ROLES.md](#code-vs-rolesmd).
+
+**Resident — scoped to their own household.**
+`resident.relief` queries
+`scopeForHousehold($user->residentProfile->household_number)`
+(`ReliefDistribution.php:95`); resident requests use `whereBelongsTo($user)`.
+Nothing reads another household. Public pages never offer a household-number
+lookup, and `/transparency` says why in the interface: the numbers are short
+enough to guess.
+
+**Staff — see everything, deliberately.** No sector filter anywhere in
+`app/Http/Controllers/Staff`.
+
+**Verification is not self-asserted.** A registered Resident starts
+`pending`. `resident.verification.update` lets a Resident change their household
+number, national/voter ID, address and sector, and doing so resets
+`verification_status` to pending and `is_verified` to false. Only
+`staff.verifications.approve` clears it.
+
+---
+
+## Ad-hoc guards inside controllers
+
+Everything below sits *behind* a route that already passed `role:`. These are the
+extra refusals, and they are the only place where the same action behaves
+differently for different rows of the same table.
+
+| Guard | Effect |
+|---|---|
+| `AccountController:89` | An Admin cannot change **their own** role — 422. |
+| `AccountController:90` | An Admin cannot set **any** Admin to a lower role — 422. |
+| `AccountController:129` | An Admin cannot restrict themselves — 422. |
+| `AccountController:152` | An Admin cannot lift their own restriction — 422. |
+| `AccountController:154` | Lifting a restriction on an unrestricted account — 409. |
+| `SectorController:152` | Assigning a non-Kagawad to a sector — 422. |
+| `SectorController:190` | A sector that still has households or relief entries cannot be deleted — redirected back with a message, naming both counts. |
+| `AnnouncementController:178` | Unpinning something not pinned — 409. |
+| `ReliefBatchController:142` | Closing an already-closed batch — 409. |
+| `ReliefBatchController:163` | Reopening an already-open batch — 409. |
+| `Kagawad/ReliefController:111` | Marking collected on a closed batch — 409. |
+
+### Business rules enforced in a FormRequest
+
+One more place holds real rules, and it is the one worth trusting most.
+`StoreDocumentRequestRequest::withValidator()` refuses a document request with a
+validation error rather than relying on a hidden button:
+
+| Guard | Effect |
+|---|---|
+| `StoreDocumentRequestRequest:83` | The profile must be **verified**. A pending resident is told to get verified, not that their account is broken. |
+| `StoreDocumentRequestRequest:92` | The account must not be **restricted**. |
+| `StoreDocumentRequestRequest:103` | At most `OPEN_REQUEST_LIMIT` (3) open requests. |
+
+The design is deliberate and the reason is written down at
+`StoreDocumentRequestRequest:79-82`: the gate is the **profile**, not
+`users.is_verified`. Each of the three is proven by posting directly, not by
+checking that a button is absent — `a_pending_resident_cannot_submit`,
+`a_restricted_resident_cannot_submit` and `a_fourth_open_request_is_refused` in
+`tests/Feature/ResidentDocumentRequestsTest.php`.
+
+Worth noting because it is the exception, not the rule: the *restriction* is
+enforced twice — here and by the role middleware — while *verified* is enforced
+only here. That is fine, but it means the two are not symmetric.
+
+---
+
+## What each role sees in the sidebar
+
+From `App\Support\RoleNavigation::sidebarFor()`. Every role's list ends with
+**My Account**, which is the one entry they all share.
+
+- **Admin** — 11 entries. The six a Secretary sees (Dashboard, Resident
+  Verification, Residents, Document Requests, Relief Distribution, Announcements)
+  plus **five** in the admin group: **User Accounts**, **Sectors & Kagawad**,
+  **Settings**, **Audit Logs**, **System Status**, then My Account. The five
+  admin-group entries are exactly the five `role:admin` screens, so the menu, the
+  middleware and decision 1 all agree.
+- **Secretary** — 7 entries, no admin group: the six above plus My Account. All
+  announcement capabilities, including delete, are reachable from here.
+- **Kagawad** — 3 entries, deliberately the smallest: Dashboard, Relief
+  Distribution, My Account. This is what decision 3 looks like today; the
+  read-only resident list is the one addition still to come.
+- **Resident** — no sidebar of its own. It gets the public navigation (Home,
+  Services, About, Contact, Announcements, Transparency) plus its two portal
+  destinations, a profile menu, and **no Dashboard entry**, because a Resident's
+  home is the public home page (`RoleNavigation:91`).
+
+**No mismatches.** Every sidebar entry is on a route its role can actually open,
+and every admin-group entry is on a `role:admin` route. This is asserted rather
+than assumed: `tests/Feature/RoleNavigationTest.php` pins the exact lists — seven
+for a Secretary, "the Secretary's plus five" for an Admin, three for a Kagawad —
+and separately asserts that a Secretary is *not* given any admin-only route, that
+a Kagawad is *not* given any staff page, that a Kagawad is not offered Residents
+or Document Requests, and that My Account is reachable by every role.
+
+---
+
+## Intended
+
+Behaviour that looks like a permission mistake on a first read, and is not. These
+are settled by the [Owner decisions](#owner-decisions) above and are listed so the
+next person reading the route table does not re-open them.
+
+### A Secretary can delete a published announcement
+
+`staff.announcements.destroy` is `DELETE` inside the `role:admin,secretary` group,
+so a Secretary can permanently remove a notice the public is currently reading.
+The audit log records *that* someone deleted it, not the notice itself, and
+nothing in the interface can undo it.
+
+**This is intended** — decision 2: a Secretary may create, edit, publish, pin and
+**delete** announcements. Announcements are the Secretary's area, and deletion is
+part of it. No guard is wanted here.
+
+It is recorded only because it is the sharpest edge in the application: it is the
+one destructive action available to the most numerous staff role, against content
+with no copy. The contrast with the two neighbouring delete rules is deliberate,
+not an inconsistency:
+
+| | Who | Guarded? |
+|---|---|---|
+| Delete an **announcement** | Secretary or Captain | No — **intended** (decision 2) |
+| Delete a **sector** | Captain only | Yes, refused while it still has households or relief entries (`SectorController:190`) |
+| Remove a **person** | Captain only | No delete exists at all — accounts are *restricted*, which is reversible |
+
+### Sectors and Settings belong to the Captain
+
+- **Only the Captain can assign a Kagawad to a sector.** A Secretary who receives
+  a new Kagawad cannot put them anywhere, and that Kagawad's dashboard stays empty
+  until the Captain assigns them. **Intended** — decision 1, and decision 3 makes
+  the assignment meaningful, because a Kagawad's entire remit is their sector.
+- **Only the Captain can change the barangay name, address or contacts** — the
+  values every public page reads. **Intended** under decision 1: these are
+  official identity values, held by the Captain.
+
+The former also explains the old "A Captain assigns a Kagawad…" interface copy.
+There is no `captain` role; the Captain is the Admin.
+
+---
+
+## Code vs ROLES.md
+
+Where the implementation does not yet match the specification above. One item.
+
+### The Kagawad resident view is not built yet — planned
+
+**Decision 3** says a Kagawad may view the residents of their own sector(s) with
+their relief status per batch, read-only. **No such route, controller, page or
+sidebar entry exists.** A Kagawad today has four routes — dashboard, relief list,
+one batch, and marking collected — and no way to see a resident's record at all.
+
+What is already in place, and does not need rebuilding:
+
+- **The scoping mechanism is correct and reusable.** `User::assignedSectorIds()`
+  (`User.php:219`) resolves a Kagawad's sectors, and
+  `ReliefDistribution::scopeForSectors()` (`ReliefDistribution.php:79`) is the
+  filter the new query would use. The 404-not-403 convention
+  (`Kagawad/ReliefController.php:23`) is the pattern to copy for a resident
+  detail route, so a guessed profile id cannot confirm the row exists.
+- **The role area is correctly walled off.** `role:kagawad` already returns 403 to
+  an Admin or Secretary, so a new route inside it inherits that.
+- **Read-only is the default.** A Kagawad's only existing write is
+  `kagawad.relief.received`. A resident list adds no write path, which is what
+  keeps decision 3's "no editing" true by construction rather than by a guard.
+
+Two things will need to change when it is built:
+
+1. **`tests/Feature/RoleNavigationTest.php` currently asserts the opposite.** It
+   pins a Kagawad at exactly three destinations and asserts
+   `test_a_kagawad_is_not_intended_to_see_residents_or_document_requests`. A
+   read-only resident list is **not** a contradiction of that test's intent — a
+   Kagawad must still not see Document Requests, and must still not see the
+   *staff* Residents page — but the assertions will need rewriting rather than
+   leaving to fail. Add a Kagawad destination and keep the Document Requests
+   prohibition.
+2. **The Kagawad matrix in this file** currently shows Denied on every residents
+   route, which is accurate for the staff pages and, as written, says nothing
+   about a page that does not exist. It should gain a row when the route lands.
+
+> **One question worth settling at the same time.** Decision 3 says "their assigned
+> sector**s**", plural, but `sectors.kagawad_user_id` is `UNIQUE`
+> (`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad can hold **at
+> most one** sector today. The plural is either forward-looking — a Kagawad may be
+> given several sectors later, which would need that index dropped — or casual.
+> The existing scoping code already handles several sectors correctly
+> (`assignedSectorIds()` returns an array and the queries use `whereIn`), so the
+> only blocker would be the unique index. Worth confirming before the resident
+> list is designed around a single sector.
+
+Everything else in the tables above matches the specification.
+
+---
+
+## Suspicious
+
+Not covered by an owner decision, and worth a look. Ordered by how much I would
+worry about it.
+
+### 1. A Secretary can view a resident's uploaded ID photo
+
+`staff.resident-verifications.id-photo` serves the image file for any profile. That
+is government-issued identity evidence, reachable by the most numerous staff role,
+on a list route, with no second factor and no access log of its own beyond the fact
+that a view is a read. It is presumably necessary to verify a registration — but
+it is worth an explicit decision rather than an accident of grouping.
+
+### 2. An Admin can restrict another Admin, but can never demote one
+
+`AccountController:90` refuses **any** change away from `admin`, not just the last
+one — the message says *"Demoting the last Admin would lock everyone out"*, but
+the code blocks all of them however many Admins exist. Meanwhile `restrict` has no
+equivalent guard beyond "not yourself", so **the Captain can freeze another
+Captain out of the system** while being unable to demote them. Two adjacent
+permissions, one far more permissive than the other, and the message describes a
+narrower rule than the code enforces.
+
+### 3. Restriction is only enforced on routes that carry `role:` middleware
+
+The check lives in `EnsureUserHasRole`, so it runs only where that middleware
+runs. Today that is correct — the exempt routes are `account.*`, `password.*` and
+`logout`, which is exactly the intended escape hatch. But the coupling is
+implicit: **a future route added without `role:` is automatically unrestrictable**,
+with nothing to catch it. Nothing in the test suite asserts that every
+authenticated route outside the escape hatch carries `role:`.
+
+This one gets sharper as roles are added, and it is the direct cost of having no
+policy layer (item 8).
+
+### 4. An unauthenticated `POST /_boost/browser-logs`
+
+Registered by `laravel/boost` with **no route middleware at all**. It is gated
+only by `shouldRun()`: enabled unless `BOOST_ENABLED=false`, never in unit tests,
+and only when `APP_ENV=local` **or** `APP_DEBUG=true`. On this machine `APP_ENV=local`,
+so it is live now. The risk is not this machine — it is a production deploy that
+leaves `APP_DEBUG=true`, which would expose an endpoint that accepts browser-log
+POSTs from anyone. It is a vendor route rather than application code, so it is
+listed here rather than fixed.
+
+### 5. A Resident can change their own sector
+
+`resident.verification.update` accepts `sector_id`. Re-submitting correctly resets
+verification to pending, so it cannot be used to skip the check — but a Resident
+can move themselves between sectors, and sector is what a relief checklist and a
+Kagawad's remit are built on. Decision 3 makes a Kagawad's sector meaningful, so
+this is worth confirming as intended self-service.
+
+### 6. `laravel/boost` is a dev dependency, and that is what keeps item 4 local
+
+`laravel/boost` sits in `require-dev`, alongside `laravel/pail` and `laravel/pao`
+— all three are correctly absent from a production install, and none is referenced
+by application code. The reason `/_boost/browser-logs` is nonetheless live here is
+simply that a local checkout has dev dependencies installed. So item 4 is a
+deployment-hygiene note, not a live exposure: it disappears on its own in
+production. Listed because it is the one route in the table that is not the
+application's own.
+
+### 7. `storage.local.serve = true` in `config/filesystems.php`
+
+This is what registers the unauthenticated `/storage/{path}` GET and PUT. It is
+Laravel's development default and Laravel only registers those routes when it is
+true, so it must be `false` in production. It is `true` here with `APP_ENV=local`,
+which is correct — noted only because it is a value that must not travel.
+
+### 8. There is no policy layer, so authorisation is invisible from the views
+
+No `app/Policies`, no Gates, no `@can` in any template. Every screen decides what
+to show from `$user->isAdmin()`-style conditionals in Blade, which is why
+`RoleNavigation` had to be kept in step with the routes **by hand**. It currently
+is, and `RoleNavigationTest` covers it — but nothing structural would stop the
+two drifting apart, and a template can only ever *hide* a control, never refuse
+the request behind it.
+
+The three Owner decisions are currently held in three unrelated places — two
+middleware groups, a sidebar list, and a test. This is the item that would let them
+drift.
+
+### 9. Smaller things, listed for completeness
+
+- `staff.accounts.role` accepts any role in `User::roles()`, so the Captain can
+  make a Resident into another Captain. Nothing requires a second Captain's
+  agreement.
+- `/register` is open to the public, so Resident accounts can be created by anyone.
+  Verification is the gate, not registration.
+- An Admin can change a resident's role to `kagawad` without assigning a sector,
+  which produces a Kagawad with an empty dashboard — a valid state, and the one
+  the sectors page warns about. Under decision 3 that Kagawad sees nothing at all.
+- `RoleNavigation` has no entry for any role outside the four constants, so an
+  unexpected `role` value in the database yields an empty sidebar rather than an
+  error.
+
+---
+
+## What is not covered here
+
+- **Row-level audit of every controller.** The guards above are the ones found by
+  searching for `abort_if`, `abort_unless` and `authorize`; a permission expressed
+  as a filtered query would not appear there.
+- **Anything about data the roles share.** The three staff roles all read the same
+  tables; only Kagawad and Resident are scoped.

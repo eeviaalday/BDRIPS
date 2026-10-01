@@ -130,7 +130,7 @@
                             Change role
                         </x-btn>
 
-                        <x-confirm-dialog name="change-role-{{ $account->id }}"
+                        <x-staff.confirm-dialog name="change-role-{{ $account->id }}"
                             title="Change this account's role?"
                             :message="sprintf('You are about to change %s from %s to a different role. They will keep their password and their sign-out, and lose or gain access depending on the role you pick.', $account->name, \Illuminate\Support\Str::lower(\App\Models\User::roleLabel($account->role)))"
                             confirm-label="Change role" tone="primary" method="PUT"
@@ -159,7 +159,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </x-confirm-dialog>
+                        </x-staff.confirm-dialog>
                     </div>
 
                     <div class="border-t border-navy-100 pt-6">
@@ -196,7 +196,7 @@
                 {{-- Restriction. Declared once, outside the branch above, because the
                      dialog owns the form and its inputs must submit from inside it. --}}
                 @unless ($account->isRestricted())
-                    <x-confirm-dialog name="restrict-{{ $account->id }}"
+                    <x-staff.confirm-dialog name="restrict-{{ $account->id }}"
                         title="Restrict this account?"
                         :message="sprintf('%s will be signed out of every page except changing their password and signing out. Nothing is deleted.', \Illuminate\Support\Str::before($account->name, ' '))"
                         confirm-label="Restrict account" tone="danger"
@@ -227,7 +227,7 @@
                                 class="mt-1.5 w-full rounded-lg border border-navy-200 bg-navy-50/60 px-3.5 py-2.5 text-sm focus:border-navy-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-200"
                                 placeholder="Kept in the audit log, so the record explains itself later."></textarea>
                         </div>
-                    </x-confirm-dialog>
+                    </x-staff.confirm-dialog>
                 @endunless
             @endif
         </x-card>

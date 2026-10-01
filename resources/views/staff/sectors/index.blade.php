@@ -235,7 +235,7 @@
                                         Delete sector
                                     </x-btn>
 
-                                    <x-confirm-dialog name="delete-sector-{{ $sector->id }}"
+                                    <x-staff.confirm-dialog name="delete-sector-{{ $sector->id }}"
                                         title="Delete this sector?"
                                         message="Nothing is filed under it, so nothing will be left pointing at a sector that is not there."
                                         confirm-label="Delete" tone="danger" method="DELETE"
@@ -270,7 +270,7 @@
         </x-staff.table>
 
         {{-- Add a sector, in the header button's modal. --}}
-        <x-confirm-dialog name="add-sector"
+        <x-staff.confirm-dialog name="add-sector"
             title="Add a sector"
             message="A sector is what relief checklists and resident addresses are scoped by, so it needs a name before anything can be filed under it."
             confirm-label="Add sector" tone="primary" :form="route('staff.sectors.store')">
@@ -288,7 +288,7 @@
                     value="{{ old('purok_name') }}"
                     class="mt-1.5 w-full rounded-lg border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200">
             </div>
-        </x-confirm-dialog>
+        </x-staff.confirm-dialog>
 
         {{-- The known empty-state path, made visible: a Kagawad with no sector
              sees nothing on their dashboard and their relief list. --}}
