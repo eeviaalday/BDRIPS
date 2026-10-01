@@ -26,6 +26,16 @@ class NoDocumentFeesTest extends TestCase
     use RefreshDatabase;
 
     /**
+     * The one sentence about cost that is allowed to exist on a resident page.
+     *
+     * Documents are free, and saying so is the useful thing to say. It is named
+     * here rather than inlined in the test so that the view and the test cannot
+     * drift: if the reassurance is reworded in one place, this test fails and
+     * says why, instead of quietly passing on a page that stopped saying it.
+     */
+    private const FREE_NOTE = 'No fee for barangay documents.';
+
+    /**
      * The schema, which is the half that cannot be argued with.
      */
     #[Test]
@@ -92,9 +102,9 @@ class NoDocumentFeesTest extends TestCase
     #[Test]
     public function the_new_request_page_never_mentions_a_fee(): void
     {
-        // A type has to exist, or the chooser renders no options and the page has
-        // nothing that could carry a price. Without this the assertion below
-        // passes on an empty <select> and proves nothing.
+        // A type has to exist, or the chooser renders no documents and the page
+        // has nothing that could carry a price. Without this the assertion below
+        // passes on an empty group and proves nothing.
         DocumentType::factory()->create(['is_active' => true]);
 
         $html = $this->actingAs($this->verifiedResident())
@@ -103,11 +113,26 @@ class NoDocumentFeesTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString('name="document_type_id"', $html);
-        $this->assertStringContainsString('<option', $html, 'The chooser rendered no options to check.');
+        $this->assertStringContainsString(
+            'type="radio"',
+            $html,
+            'The chooser rendered no documents to check, so a price could not have appeared.'
+        );
+
+        // The new-request page states that documents are free, and that sentence is
+        // the one place the word is allowed. It is removed before the check so
+        // this test cannot be satisfied by deleting the reassurance, and cannot be
+        // failed by keeping it.
+        $this->assertStringContainsString(
+            self::FREE_NOTE,
+            $html,
+            'The page no longer tells the resident that documents are free.'
+        );
+
         $this->assertDoesNotMatchRegularExpression(
             '/\bfees?\b/i',
-            $html,
-            'The document chooser still quotes a fee.'
+            str_replace(self::FREE_NOTE, '', $html),
+            'The document chooser still quotes a fee somewhere other than the free notice.'
         );
     }
 
