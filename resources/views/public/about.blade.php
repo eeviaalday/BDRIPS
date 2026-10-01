@@ -182,7 +182,11 @@
          passes the literal string "&amp;" through to {{ }}, which escapes the
          ampersand again and the page then shows "&amp;" on screen.
     --}}
-    <x-shell id="officials">
+    <x-shell id="officials" class="scroll-mt-16 lg:scroll-mt-20">
+        {{-- scroll-mt offsets the anchor target by the height of the sticky
+             navbar, so following a link to #officials lands on the section rather
+             than tucking its first heading underneath the bar. It changes where the
+             page stops when you arrive, not how it looks. --}}
         <div class="space-y-14">
             @foreach (['barangay', 'sk'] as $group)
                 <x-official-carousel

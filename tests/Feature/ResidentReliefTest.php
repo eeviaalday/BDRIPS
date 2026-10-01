@@ -131,13 +131,22 @@ class ResidentReliefTest extends TestCase
      * The batch schedule is public information, so a pending resident can see what
      * is going out even though their own record is locked.
      */
+    /**
+     * A pending resident still gets the locked page rather than an empty one.
+     *
+     * The "Batches going out now" list this used to assert is gone: the page is
+     * now a single section about the household, which a pending resident has no
+     * rows for, so showing them a list of other people's batches was the wrong
+     * thing to keep. What matters is that the page says why it is empty.
+     */
     #[Test]
-    public function a_pending_resident_can_still_see_which_batches_are_running(): void
+    public function a_pending_resident_is_told_the_records_are_locked(): void
     {
         $content = $this->actingAs($this->pendingResident('HH-1002'))
             ->get(route('resident.relief'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Batches going out now', $content);
+        $this->assertStringContainsString('Relief records unlock', $content);
+        $this->assertStringNotContainsString('These are the records for household', $content);
     }
 
     #[Test]

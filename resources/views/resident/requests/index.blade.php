@@ -138,6 +138,10 @@
             @endforeach
         </nav>
 
+        {{-- mt-4 separates the chips from the table below. Flush against a
+             bordered table they read as part of the same block and stop looking
+             switchable. --}}
+        <div class="mt-4">
         @if ($requests->isEmpty())
             @if ($isFiltered)
                 <x-empty-state icon="search" title="Nothing in this filter"
@@ -180,10 +184,9 @@
                     @foreach ($requests as $i => $documentRequest)
                         <tr>
                             <th scope="row" class="px-4 py-3 text-left">
-                                <a href="{{ route('resident.requests.show', $documentRequest) }}"
-                                    class="font-semibold text-navy-900 hover:underline">
+                                <span class="block font-semibold text-navy-900">
                                     {{ $documentRequest->documentType?->label ?? 'Retired document' }}
-                                </a>
+                                </span>
                                 <span class="mt-0.5 block font-mono text-xs text-slate-500">
                                     {{ $documentRequest->reference_number }}
                                 </span>
@@ -232,46 +235,67 @@
                             </div>
 
                             <div class="space-y-5 px-6 py-4">
-                                <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-3">
+                                <dl class="grid gap-4 sm:grid-cols-3">
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</dt>
                                         <dd class="mt-1">
-                                            <x-status-badge :status="$documentRequest->status" size="sm" soft />
+                                            <x-status-badge :status="$documentRequest->status" soft />
                                         </dd>
                                     </div>
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted</dt>
-                                        <dd class="mt-1 text-sm text-navy-900">
-                                            {{ $documentRequest->created_at?->format('j M Y') ?? '—' }}
+                                        <dd class="mt-1 text-sm font-medium text-navy-900">
+                                            {{ $documentRequest->created_at?->format('j M Y, g:i a') ?? '—' }}
                                         </dd>
                                     </div>
                                     <div>
                                         <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fee</dt>
-                                        <dd class="mt-1 text-sm text-navy-900">
-                                            {{ $documentRequest->fee_amount ?? '—' }}
+                                        <dd class="mt-1 text-sm font-medium text-navy-900">
+                                            {{ $documentRequest->fee_amount == 0
+                                                ? 'Free'
+                                                : 'PHP '.number_format((float) $documentRequest->fee_amount, 2) }}
                                         </dd>
                                     </div>
                                 </dl>
 
-                                <x-request-timeline :status="$documentRequest->status" :request="$documentRequest" />
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Stated purpose</p>
+                                    <p @class([
+                                        'mt-1 text-sm leading-relaxed text-navy-900',
+                                        'whitespace-pre-line' => $documentRequest->purpose,
+                                    ])>{{ $documentRequest->purpose ?: 'No purpose was stated on this request.' }}</p>
+                                </div>
 
-                                @if ($documentRequest->needsRejectionReason())
-                                    <div class="rounded-lg border border-red-200 bg-red-50 p-4">
-                                        <p class="text-sm font-semibold text-red-800">The office could not process this request</p>
-                                        <p class="mt-1 text-sm text-red-700">
-                                            {{ $documentRequest->rejection_reason ?? 'Ask at the barangay office what to change.' }}
+                                @if ($documentRequest->status === \App\Models\DocumentRequest::STATUS_REJECTED)
+                                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm">
+                                        <p class="font-semibold text-red-800">This request was not approved.</p>
+                                        <p class="mt-1 text-red-700">
+                                            {{ $documentRequest->rejection_reason
+                                                ?? 'The Secretariat did not record a reason. Please ask at the Barangay Hall.' }}
                                         </p>
                                     </div>
                                 @endif
+
+                                {{-- The one thing a ready document needs: where to go
+                                     and what to quote. It was on the page this dialog
+                                     replaced, so it stays. --}}
+                                @if ($documentRequest->status === \App\Models\DocumentRequest::STATUS_READY)
+                                    <div class="rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm">
+                                        <p class="font-semibold text-sky-900">Your document is ready.</p>
+                                        <p class="mt-1 text-sky-800">
+                                            Collect it at the Barangay Hall, quoting
+                                            <strong class="font-mono font-semibold">{{ $documentRequest->reference_number }}</strong>.
+                                        </p>
+                                    </div>
+                                @endif
+
+                                <x-request-timeline :status="$documentRequest->status" :request="$documentRequest" />
                             </div>
 
                             <div class="flex flex-col-reverse gap-2 bg-navy-50/50 px-6 py-4 sm:flex-row sm:justify-end">
-                                <x-btn type="button" variant="outline" size="md"
+                                <x-btn type="button" variant="navy" size="md"
                                     x-on:click="$dispatch('close-modal', 'track-request')">
                                     Close
-                                </x-btn>
-                                <x-btn :href="route('resident.requests.show', $documentRequest)" variant="navy" size="md">
-                                    View full request
                                 </x-btn>
                             </div>
                         </div>
@@ -279,5 +303,6 @@
                 </x-modal>
             </div>
         @endif
+        </div>
     </x-shell>
 </x-public-layout>

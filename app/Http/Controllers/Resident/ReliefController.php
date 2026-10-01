@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Resident;
 
 use App\Http\Controllers\Controller;
-use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,30 +23,83 @@ use Illuminate\View\View;
  */
 class ReliefController extends Controller
 {
+    /**
+     * The chips, and the status each one selects.
+     *
+     * One list, so the chips and the query filter cannot disagree.
+     *
+     * @return array<string, array{label: string, statuses: list<string>}>
+     */
+    public static function statusFilters(): array
+    {
+        return [
+            'pending' => [
+                'label' => 'Pending',
+                'statuses' => [ReliefDistribution::STATUS_PENDING],
+            ],
+            'received' => [
+                'label' => 'Received',
+                'statuses' => [ReliefDistribution::STATUS_RECEIVED],
+            ],
+        ];
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
         $profile = $user->residentProfile;
 
         $household = $profile?->household_number;
+        $isVerified = $profile?->isVerified() === true;
+
+        $key = $isVerified ? $this->statusFilter($request->query('status')) : null;
+        $statuses = $key === null ? [] : self::statusFilters()[$key]['statuses'];
+
+        $base = fn () => ReliefDistribution::query()->forHousehold((string) $household);
 
         return view('resident.relief', [
-            'isVerified' => $profile?->isVerified() === true,
+            'isVerified' => $isVerified,
             'householdNumber' => $household,
 
-            // Null while locked, so the view never runs a query it should not.
-            'distributions' => $profile?->isVerified() === true
-                ? ReliefDistribution::query()
-                    ->forHousehold((string) $household)
-                    ->get()
+            // The rows the table shows. Null while locked, so the view never runs
+            // a query it should not.
+            'distributions' => $isVerified
+                ? $base()->when($statuses !== [], fn ($query) => $query->whereIn('status', $statuses))->get()
                 : null,
 
-            // What is currently going out, which a resident can read whether or
-            // not they are verified: the schedule is public information.
-            'activeBatches' => ReliefBatch::query()
-                ->active()
-                ->orderByRaw('distribution_date is null, distribution_date asc')
-                ->get(),
+            /*
+             * The three figures, counted over every batch this household has ever
+             * been on.
+             *
+             * Counted from the unfiltered base rather than from the collection
+             * being rendered: a count that changed when a chip was pressed would
+             * be a figure that lies, and the whole reason the cards are also the
+             * filter is that they are read together.
+             */
+            'totalCount' => $isVerified ? $base()->count() : 0,
+            'pendingCount' => $isVerified
+                ? $base()->where('status', ReliefDistribution::STATUS_PENDING)->count()
+                : 0,
+            'receivedCount' => $isVerified
+                ? $base()->where('status', ReliefDistribution::STATUS_RECEIVED)->count()
+                : 0,
+
+            'statusFilter' => $key,
+            'isFiltered' => $key !== null,
+            'statusFilters' => self::statusFilters(),
         ]);
+    }
+
+    /**
+     * Reduce a requested filter to one that exists, or to none.
+     *
+     * An unrecognised value shows everything rather than an empty page: a stale
+     * or hand-edited URL should show a resident their record, not an error.
+     */
+    private function statusFilter(mixed $requested): ?string
+    {
+        $key = is_string($requested) ? $requested : null;
+
+        return ($key !== null && array_key_exists($key, self::statusFilters())) ? $key : null;
     }
 }

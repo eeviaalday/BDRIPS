@@ -56,8 +56,14 @@ class ResidentDocumentRequestsTest extends TestCase
         $resident = $this->verifiedResident();
         $request = DocumentRequest::factory()->forResident($resident)->create();
 
+        // The single-request page became the Track dialog on the list, so the old
+        // address redirects and the record is read from the list instead.
         $this->actingAs($resident)
             ->get(route('resident.requests.show', $request))
+            ->assertRedirect(route('resident.requests.index'));
+
+        $this->actingAs($resident)
+            ->get(route('resident.requests.index'))
             ->assertOk()
             ->assertSee($request->reference_number);
     }
@@ -276,9 +282,11 @@ class ResidentDocumentRequestsTest extends TestCase
             ->assertOk()
             ->assertSee($existing->reference_number);
 
+        // Redirects now; the read itself happens on the list above, which is
+        // where the Track dialog lives.
         $this->actingAs($resident)
             ->get(route('resident.requests.show', $existing))
-            ->assertOk();
+            ->assertRedirect(route('resident.requests.index'));
     }
 
     #[Test]

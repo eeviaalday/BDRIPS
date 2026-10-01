@@ -187,7 +187,7 @@ class DocumentRequestController extends Controller
         );
 
         return redirect()
-            ->route('resident.requests.show', $created)
+            ->route('resident.requests.index')
             ->with('success', sprintf(
                 'Your request was submitted. Quote reference %s at the Barangay Hall.',
                 $created->reference_number
@@ -195,15 +195,19 @@ class DocumentRequestController extends Controller
     }
 
     /**
-     * One request, in full.
+     * The old single-request page, now a redirect to the list.
      *
-     * Scoped through the user rather than resolved by id alone, so another
-     * resident's reference number returns exactly what a wrong one does.
+     * The detail view became the Track dialog on the list, which carries
+     * everything the page carried: status, the submitted date and time, the fee,
+     * the stated purpose, the rejection reason, the ready-for-collection notice
+     * and the timeline. A second page showing one resident's own record was a
+     * second thing to keep in step with the dialog.
+     *
+     * The route name stays, because the navbar, a bookmark and a message
+     * somebody sent can all point at it.
      */
-    public function show(Request $request, DocumentRequest $documentRequest): View
+    public function show(Request $request, DocumentRequest $documentRequest): RedirectResponse
     {
-        return view('resident.requests.show', [
-            'documentRequest' => $documentRequest->load('documentType'),
-        ]);
+        return redirect()->route('resident.requests.index');
     }
 }
