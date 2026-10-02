@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 /**
@@ -177,6 +178,48 @@ class AdminAreaTest extends TestCase
             ->assertStatus(422);
 
         $this->assertSame(User::ROLE_ADMIN, $other->fresh()->role);
+    }
+
+    /**
+     * The rule is "no Admin can be demoted", not "the last Admin cannot be
+     * demoted" - and the message has to say so.
+     *
+     * The old wording was "Demoting the last Admin would lock everyone out",
+     * which described a narrower rule than the guard enforces. A Captain reading
+     * it would expect a second demotion to be permitted while another Admin
+     * remained, and would be refused. The behaviour is unchanged; this pins the
+     * message so it cannot drift back to understating the rule.
+     *
+     * Asserted on the thrown HttpException rather than on a response body: the
+     * suite runs with APP_DEBUG off, so a 422 renders a generic error page and the
+     * message is deliberately not printed to the browser.
+     */
+    #[Test]
+    public function the_refusal_states_the_real_rule_and_points_at_restrict(): void
+    {
+        $admin = $this->admin();
+
+        // Two other Admins exist, so "the last Admin" could not apply here.
+        $first = User::factory()->admin()->create(['is_verified' => true]);
+        $second = User::factory()->admin()->create(['is_verified' => true]);
+
+        $this->withoutExceptionHandling();
+
+        foreach ([[$first, User::ROLE_SECRETARY], [$second, User::ROLE_KAGAWAD]] as [$target, $role]) {
+            try {
+                $this->actingAs($admin)
+                    ->put(route('staff.accounts.role', $target), ['role' => $role]);
+
+                $this->fail('The demotion should have been refused.');
+            } catch (HttpException $e) {
+                $this->assertSame(422, $e->getStatusCode());
+                $this->assertStringContainsString("An Admin's role cannot be lowered", $e->getMessage());
+                $this->assertStringContainsString('Restrict', $e->getMessage());
+                $this->assertStringNotContainsString('last Admin', $e->getMessage());
+            }
+
+            $this->assertSame(User::ROLE_ADMIN, $target->fresh()->role);
+        }
     }
 
     #[Test]

@@ -116,11 +116,29 @@
                                             :secondary="$documentRequest->user?->name"
                                             mono
                                             class="min-w-0" />
-                                        <div class="flex shrink-0 items-center gap-3">
-                                            <span class="hidden text-xs text-navy-500 sm:inline">
+                                        {{--
+                                            min-w-0 and truncate, not shrink-0.
+
+                                            The document-type label is the longest
+                                            string on this row - "First-Time Jobseeker
+                                            Certificate Submission" is longer than
+                                            the column at 1024px, where the two-column
+                                            grid halves each list. With shrink-0 the
+                                            label could not give way, so the row
+                                            pushed the whole document past the
+                                            viewport and every other panel on the
+                                            page scrolled sideways with it.
+
+                                            The badge keeps shrink-0: it is a pill
+                                            with a dot and a word, and a truncated
+                                            status is worse than a truncated type.
+                                        --}}
+                                        <div class="flex min-w-0 items-center gap-3">
+                                            <span class="hidden min-w-0 truncate text-xs text-navy-500 sm:inline">
                                                 {{ $documentRequest->documentType?->label ?? 'Retired document' }}
                                             </span>
-                                            <x-staff.status-badge :status="$documentRequest->status" size="sm" />
+                                            <span class="shrink-0"><x-staff.status-badge
+                                                :status="$documentRequest->status" size="sm" /></span>
                                         </div>
                                     </a>
                                 </li>

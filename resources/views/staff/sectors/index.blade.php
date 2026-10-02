@@ -18,7 +18,7 @@
     queries with 17 sectors. The rule and its wording are unchanged - the server
     still refuses, with the same message, and the button is only a courtesy.
 --}}
-<x-app-layout :user="auth()->user()" title="Sectors &amp; Kagawad">
+<x-app-layout :user="auth()->user()" title="Sectors & Kagawad">
     <div class="mx-auto w-full max-w-6xl space-y-6">
         <x-breadcrumb :items="[['label' => 'Staff', 'route' => 'staff.dashboard'], ['label' => 'Sectors & Kagawad']]" />
 

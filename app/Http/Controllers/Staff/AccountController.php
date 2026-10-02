@@ -87,7 +87,22 @@ class AccountController extends Controller
         // put it back. The route is already role:admin, so no other role reaches
         // this line and there is nothing else to check here.
         abort_if($user->is($request->user()), 422, 'You cannot change your own role.');
-        abort_if($user->isAdmin() && $target !== User::ROLE_ADMIN, 422, 'Demoting the last Admin would lock everyone out.');
+
+        /*
+         * Any Admin's role cannot be lowered - not only the last one.
+         *
+         * The old message here said "Demoting the last Admin would lock everyone
+         * out", which described a narrower rule than the code enforces: the guard
+         * refuses every demotion from admin, however many Admins exist. The
+         * behaviour is correct and unchanged; only the wording was wrong, and a
+         * message that understates the rule is worse than none, because a Captain
+         * who read it would expect the second demotion to be allowed.
+         *
+         * The message therefore states the real rule and points at the affordance
+         * that does work - Restrict, which is reversible. Demotion is not offered
+         * at all, so there is nothing to retry.
+         */
+        abort_if($user->isAdmin() && $target !== User::ROLE_ADMIN, 422, "An Admin's role cannot be lowered. Use Restrict to remove their access instead.");
 
         $from = $user->role;
 

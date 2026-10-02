@@ -4394,3 +4394,158 @@ scroll at any width.
   the dev database is *not* empty: it ships residents and batches in the demo
   Kagawad's own sector, which is what made the first browser pass fail for the
   right reason and the wrong reason at once.
+
+## Prompt #023
+
+**Date:** 2026-10-02
+**Time:** 14:15
+**Category:** Verification / Fix / Docs
+**Affected Module:** Staff area — shell, permissions matrix, documentation
+**Status:** Completed
+
+### What was asked
+
+Close out the staff/Kagawad/Admin polish. Verification plus small fixes only, with
+ROLES.md as the confirmed source of truth for permissions, and the resident/public
+area strictly out of bounds.
+
+### Regression guard
+
+`git diff --stat 485a279..HEAD` (485a279 is the commit before the polish began)
+over every resident/public path, controller, test, model, config, stylesheet and
+shared component. **One hit, and it is the owner-approved exception:**
+
+```
+ app/Models/AuditLog.php | 1 +
+```
+
+That is the single `'request.submitted' => 'Request submitted'` label line
+approved in prompt 021 and covered by `request_submitted_has_an_english_label`.
+Everything else is empty: no resident or public view, controller, test, model,
+config, stylesheet or shared component changed. The resident block of
+`routes/web.php` hashes identically across the range.
+
+### Four real defects found and fixed
+
+**F3, the one the audit had open for four prompts: `<title>` was `BDRPIS - BDRPIS`
+on all twenty staff pages.** `AppLayout` never declared `$title`, and a class
+component does not pick an attribute up from the tag — which `GuestLayout`
+already documents in its own docblock. The fix has a trap on the other side:
+`layouts/app` also had an `@isset($title) <h1>` block that had been dead code for
+exactly as long as `$title` was always null. Making `$title` arrive switches that
+block on, so it was removed in the same change — otherwise all twenty-two pages get
+a second `<h1>`. `StaffLayoutDocumentTitleTest` asserts all three halves: the title
+is right, `BDRPIS - BDRPIS` is gone, and there is still exactly one `<h1>`.
+
+**N1, horizontal overflow at exactly 1024px on the staff dashboard.** A
+`flex shrink-0` row held an untruncated document-type label. "First-Time Jobseeker
+Certificate Submission" is wider than the column once the two-column grid halves
+each list at 1024, so the row pushed the document 93px past the viewport and every
+panel on the page scrolled sideways. The label truncates; the status pill, which
+carries a dot and a word, deliberately does not.
+
+**N2, no sidebar item was marked current on any detail or form page.**
+`RoleNavigation::isCurrent()` has always documented that it honours a
+per-destination `pattern` "so a detail page still lights its parent" — and
+`pattern` was only ever set in the resident bar. On the nine staff screens that are
+a detail or a form, nothing matched, so the sidebar rendered with no current item
+at all. Patterns added to the six destinations that have children.
+
+Worth noting: the Kagawad relief link needed `kagawad.relief*`, not
+`kagawad.relief.*`. Its own route name has no `.index` suffix, so a dotted pattern
+matches the checklist page and the mark-collected post but **not the list page** —
+which is where a reader is most likely to be. The browser pass caught that one; the
+PHPUnit run did not.
+
+**N3, the Admin demotion message understated the rule.** It read "Demoting the last
+Admin would lock everyone out", but the guard refuses *every* demotion from
+`admin`. Behaviour unchanged. The message now states the real rule and points at
+Restrict, which is the affordance that actually works and is reversible.
+
+### Permissions: M4 closed
+
+`PermissionMatrixTest` derives each route's expected roles from the route's own
+`role:` middleware, so it can prove the middleware is applied but not that it was
+written correctly — the audit's M4. ROLES.md now exists, so
+`RolesMatrixTest` transcribes it independently: 56 role-guarded routes, each
+asserted to admit exactly the roles the document gives it, plus a structural guard
+that **any route with `auth` and no `role:` must appear on an explicit list**. That
+guard is what makes the `restricted` flag mean anything, since a route without
+`role:` never reaches the restriction check.
+
+The guard was negative-checked: removing `role:kagawad` from the Kagawad group
+fails two of the three structural tests, and the file was restored byte-identical.
+
+### ID photos: verified safe, and pinned
+
+`local.serve => true` registers an unauthenticated-looking `GET /storage/{path}`,
+and resident ID photos are on that disk. They are not reachable: the disk's
+`visibility` is absent, so it defaults to `private`, and Laravel's `ServeFile`
+requires a valid signed URL before it touches the file — 403 in development, 404 in
+production, traversal a 404. Confirmed by fetching a real photo unauthenticated.
+No photo is under `public/` or on the public disk. `ResidentIdPhotoAccessTest`
+pins all of it, so a future `visibility` change fails in the suite rather than in
+production.
+
+### Browser: 400/400 checks, zero console errors
+
+Six widths (375, 768, 1024, 1280, 1536, 1920) across all 18 staff and 4 Kagawad
+pages: 264 responsive checks, no horizontal scroll, no unintended text clipping.
+Accessibility: every input labelled, every `<th>` scoped, every table captioned, and
+the sidebar marks exactly one current item on all 22 screens. All eight
+`$dispatch('open-modal', …)` triggers have a real Alpine scope, open, and close on
+Escape.
+
+Three of the six initial failures were **my assertions being wrong**, and fixing
+them is the interesting part:
+
+- `aria-current` appears three times per page, not once. That is the breadcrumb, the
+  sidebar and the phone bottom bar — all three correct. "Exactly one" would have
+  been fixed by deleting a correct mark.
+- `sr-only` text is clipped to 1px on purpose. Flagging it was flagging the correct
+  thing.
+- The delete-sector dialog needs its per-row **Manage** expanded first. Clicking the
+  first Manage and moving on would have "passed" a dialog no user reaches without
+  opening the row.
+
+The delete-sector walk now expands rows until the control appears, which is what a
+user does.
+
+### Documentation
+
+- **README.md** replaced. Every claim verified against the working tree before
+  writing: Laravel 13.32, PHP 8.5.9, Tailwind 3.4.19, Vite 8, Alpine 3, PHPUnit 12,
+  six seed accounts and their roles, the `bdrpis_testing` requirement, and that
+  `public/build` is committed.
+- **docs/STAFF_UI_AUDIT.md** §8: resolved/deferred tables. F4, F5, F10, F11 are
+  **deferred, not fixed** — re-checked and still present. F8 is partly resolved.
+  The six out-of-scope resident/public items are listed with the reason each was
+  left.
+- **ROLES.md**: the one open question is resolved. A Kagawad holds exactly one
+  sector; the schema is not changed. The plural reads as "one or more", and the
+  sector filter on the Kagawad resident list is unreachable by design.
+
+### Verification
+
+**Tests: 1176 pass** (was 1036; +140), 7623 assertions, 1 skipped by owner decision,
+62s. Pint clean. Build current and byte-identical to what is committed. Both
+resident/public diff guards print nothing. **Browser: 400/400, 0 console errors.**
+
+### Notes / Follow-up
+
+- **Four audit findings are deferred and still reproducible.** F4 (sidebar scrolls
+  away), F5/M1/M2 (the five Admin destinations render under a "MY ACCOUNT"
+  heading, because `availableSidebarGroupsFor()` discards the `admin` group), F10
+  (settings is one ungrouped form), F11 (the accounts "Verified" column means
+  nothing for three of four roles). None is a correctness or security problem; all
+  are changes to layout or copy that are better made deliberately than as a
+  drive-by. F5 in particular wants one decision, not three patches.
+- **M3 is still a quiet failure.** `sidebarFor()` returns `[]` for a role outside
+  the four constants, so a fifth role would get an empty shell rather than a
+  refusal. Unreachable today.
+- **The test suite is the only place the permission model is now written down
+  twice** — ROLES.md and `RolesMatrixTest`. That is deliberate, and the point is
+  that they are compared rather than one being derived from the other. A change to
+  one has to be made in the other in the same commit, or the suite fails.
+- **I did not fix the four deferred findings.** They were not asked for, and three
+  of them change markup the owner may want to shape differently.

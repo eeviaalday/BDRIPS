@@ -76,10 +76,11 @@
                 {{-- pb-24 below md clears the fixed phone navigation in
                      layouts/navigation, which sits at the bottom of the viewport. Without
                      it the last card on every staff page is unreachable behind the bar. --}}
-                <main class="flex-1 p-6 pb-24 md:pb-6">
-                    @isset($title)
-                        <h1 class="mb-5 text-xl font-bold text-navy-900">{{ $title }}</h1>
-                    @endisset
+<main class="flex-1 p-6 pb-24 md:pb-6">
+{{-- No heading here. $title reaches this layout for the document title in <head>
+     only, because AppLayout is a class component and would have had to declare it
+     to get it that far. Printing it as an <h1> as well would give every staff page
+     a second one, next to the heading the page already renders. --}}
 
                     @if (session('success'))
                         <div class="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">

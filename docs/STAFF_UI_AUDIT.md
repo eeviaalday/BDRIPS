@@ -554,3 +554,74 @@ visible defects:
 - F2 root cause proven by executing both the arrow-function and by-reference closure forms against
   the seeded database in `tinker`.
 - Existing suite at the time of writing: **801 tests passing**, Pint clean.
+
+---
+
+## 8. Resolution status
+
+Added at the end of the staff-area polish. Every row was re-checked against the code
+in this working tree, not carried over from the finding text above — F4, F5, F10 and
+F11 are all still present, and F3 was still present until the last task.
+
+`ROLES.md` now exists and is owner-confirmed, so §0's blocker and §3.1's
+"cannot be produced" are both closed. `tests/Feature/RolesMatrixTest.php` now checks
+the route table against that document, which also closes M4 below.
+
+### 8.1 Findings from this audit
+
+| # | Finding | Severity | Status | Note |
+|---|---|---|---|---|
+| F1 | Pin/Unpin inverted, no Pin button | Bug | **Resolved** | Unpin is now offered only when the announcement is pinned. |
+| F2 | Role-count cards all read 0 | Bug | **Resolved** | `array_replace(array_fill_keys(...), $counts)`; cards show real counts. |
+| F3 | `<title>` is `BDRPIS - BDRPIS` on all 20 pages | Bug | **Resolved** | `AppLayout` now declares `$title` through its constructor, the same trap `GuestLayout` documents. The dead `@isset($title) <h1>` in `layouts/app` was removed at the same time, because making `$title` arrive would have given every page a second `<h1>`. Pinned by `StaffLayoutDocumentTitleTest` (43 cases: title, no `BDRPIS - BDRPIS`, exactly one `<h1>`). |
+| F4 | Sidebar scrolls away | Bug (UX) | **Deferred** | `<aside>` still has `min-h-screen` and no `sticky`/`fixed`/`h-screen`. Fixing it changes the layout for all three roles and belongs with a deliberate decision about the shell, not as a drive-by. |
+| F5 | Admin-only pages sit under "MY ACCOUNT" | Inconsistency | **Deferred** | `availableSidebarGroupsFor()` still folds `group !== 'main'` into one bucket and the heading is still hard-coded. This is M1/M2 and is the same root cause. |
+| F6 | "Still being built" notices | Stale copy | **Resolved** | Both notices removed. |
+| F7 | "Captain" / `Sectors & Kagawad` named to a Kagawad | Stale copy | **Resolved — reversed** | The Captain is the Admin (`ROLES.md` decision 1), so the copy now names them. It still carries no link, because `/staff/sectors` is `role:admin` and a Kagawad would get 403. `KagawadFieldAreaTest` now asserts the Captain is named *and* that no admin-only URL is linked. |
+| F8 | Container widths inconsistent across four tiers | Inconsistency | **Partly resolved** | Tables are uniformly `max-w-6xl` and forms `max-w-3xl`; the staff dashboard moved to `6xl` to match the queue beside it. The remaining `5xl` screens (`batches/show`, `status/index`, the two dashboards) hold wide tables, and narrowing them trades a cosmetic inconsistency for an overflow risk. Measured clean at 375–1920 as they stand. |
+| F9 | Sectors page is 17 full inline forms | Inconsistency | **Resolved** | Each row is collapsed behind a per-row **Manage** control. |
+| F10 | Settings is one ungrouped form | Inconsistency | **Deferred** | Still 1 form, 0 fieldsets, 0 legends. Grouping is a real improvement but a redesign, and it changes nothing about correctness. |
+| F11 | "Verified" column on staff accounts | Inconsistency | **Deferred** | The column still renders `is_verified` for every account, including roles where it means nothing. |
+| F12 | Table cell alignment | Not reproduced | **No action** | Every staff table is left-aligned; there is no hand-written `<table>` anywhere in `staff/**` or `kagawad/**`. |
+| F13 | Selects and date inputs truncate | Not reproduced | **No action** | Re-measured during the responsive pass; no control overflows at any of the six widths. |
+
+### 8.2 Mismatches raised in §3
+
+| # | Mismatch | Status | Note |
+|---|---|---|---|
+| M1 | `group => 'admin'` is never rendered as its own group | **Deferred** | Same root cause as F5. |
+| M2 | `navigation.blade.php` hard-codes the second heading as "My Account" | **Deferred** | Same root cause as F5. |
+| M3 | `sidebarFor()` returns `[]` for an unknown role | **Deferred** | Unreachable today. It fails quietly rather than refusing, which is worth fixing if a fifth role is ever added. |
+| M4 | `PermissionMatrixTest` reads its expectations from the route's own middleware | **Resolved** | `RolesMatrixTest` now transcribes `ROLES.md` independently, so a route with the *wrong* role fails. It also adds the structural guard the old file could not express: any route with `auth` and no `role:` must be on an explicit list. |
+
+### 8.3 Found during the close-out pass
+
+Not in the original audit; found by the responsive and accessibility sweeps.
+
+| # | Finding | Severity | Status | Note |
+|---|---|---|---|---|
+| N1 | Staff dashboard overflows horizontally at exactly 1024px | Bug | **Resolved** | A `flex shrink-0` row held an untruncated document-type label ("First-Time Jobseeker Certificate Submission"). At 1024px the two-column grid halves each list and the row pushed the whole document 93px past the viewport, so every panel on the page scrolled sideways. The label now truncates; the status pill still does not. |
+| N2 | No sidebar item is marked current on any detail or form page | Bug (a11y) | **Resolved** | `isCurrent()` has always claimed to honour a per-destination `pattern`, but `pattern` was only ever set in the resident bar. On the nine staff screens that are a detail or a form, nothing matched and the sidebar showed no current item at all. Patterns added; pinned by `StaffSidebarCurrentItemTest` (18 cases), including a negative check. |
+| N3 | The Admin "last Admin" message understated the rule | Stale copy | **Resolved** | The message said *"Demoting the last Admin would lock everyone out"*, but the guard refuses **every** demotion from `admin`. Behaviour unchanged; the message now states the real rule and points at Restrict. |
+| N4 | Resident ID photos and `/storage/{path}` | — | **Verified safe** | `local.serve => true` registers `GET /storage/{path}`, which looks like an unauthenticated file server. It is not: the disk's `visibility` is absent, so it defaults to `private`, and Laravel's `ServeFile` requires a valid signed URL before touching the file (403 in development, 404 in production; traversal is a 404). No photo is under `public/` or on the public disk. Pinned by `ResidentIdPhotoAccessTest` (9 cases) so a future `visibility` change fails here rather than in production. |
+
+### 8.4 Out of scope — resident and public area
+
+These are real and were reported, but the staff-area polish was not permitted to
+touch the resident or public area (`.ai/rules/staff-polish.md` rule 1). **Listed,
+not fixed.** Fixing any of them needs that constraint lifted.
+
+| Item | Why it was left |
+|---|---|
+| Verify a Resident lookup | Resident-area feature. The staff scope does not reach it. |
+| 5 unhandled homepage anchors | Public area. Anchors with no target, or targets with no anchor. |
+| 1536px+ public header width | Public `x-page-header`. Explicitly excluded from the responsive pass — "do not touch". |
+| `BDRPIS · BDRPIS` guest titles | Public/guest layout. The staff equivalent (F3) was fixed; this is the public one. |
+| Non-clickable registration step indicators | Resident registration wizard. |
+| Hero `min-h-[300px]` duplication | Resident/public hero. The staff account pages are asserted *not* to have gained one. |
+
+### 8.5 Owner decisions taken during the close-out
+
+| Decision | Consequence |
+|---|---|
+| A Kagawad holds **exactly one** sector. `sectors.kagawad_user_id` stays `UNIQUE`; the schema is not changed. | The plural in `ROLES.md` decision 3 reads as "one or more", never "several". The sector filter on the Kagawad resident list is unreachable **by design** — it renders only for more than one sector. The logic stays and is tested against the support class; the end-to-end test is `markTestSkipped` naming this reason. |

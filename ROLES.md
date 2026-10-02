@@ -284,9 +284,9 @@ guessed id cannot confirm that the row exists — the reasoning is written at
 `Kagawad/ReliefController.php:23`. An unassigned Kagawad's
 `whereIn('sector_id', [])` matches nothing, so they see an empty list rather than
 everyone's. `sectors.kagawad_user_id` is `UNIQUE`
-(`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad holds at most one
-sector today — decision 3 says "sector(s)", and that plural is the open question
-noted in [Code vs ROLES.md](#code-vs-rolesmd).
+(`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad holds **exactly one**
+sector — which is the owner's decision, not a limitation. See
+[Code vs ROLES.md](#code-vs-rolesmd).
 
 **Resident — scoped to their own household.**
 `resident.relief` queries
@@ -488,19 +488,28 @@ to `/login`.
    received" is a claim about a batch they are not on. The legend under the filter
    bar says so.
 
-### Still open: the plural in "sector(s)"
+### Resolved: one sector per Kagawad
 
-Decision 3 says "their assigned sector**s**", but
-`sectors.kagawad_user_id` is `UNIQUE`
-(`2026_09_22_025934_create_sectors_table.php:15`), so a Kagawad can hold **at most
-one** sector today.
+Decision 3 says "their assigned sector**s**". **The owner has decided: a Kagawad
+holds exactly one sector.** `sectors.kagawad_user_id` is `UNIQUE`
+(`2026_09_22_025934_create_sectors_table.php:15`) and that is correct as it stands.
+The schema is not to be changed.
 
-This is now visible in the product rather than only in the schema: the sector
-filter on this page renders only when a Kagawad holds more than one sector, and
-that branch is currently unreachable. The code is already written for the plural —
-`assignedSectorIds()` returns an array and the queries use `whereIn` — so the only
-blocker is the unique index. The end-to-end test is present and
-`markTestSkipped` with that reason, so dropping the index turns it on.
+This settles the question this file raised while the resident view was being built.
+Two consequences, both now settled rather than open:
+
+1. **The plural in decision 3 is read as "one or more", never as "several".** A
+   Kagawad's remit is a single sector.
+2. **The sector filter on the Kagawad resident list is unreachable and stays
+   that way.** It renders only when `count($sectorIds) > 1`
+   (`KagawadSectorResidents::filterOptions()`), which by this decision can never
+   happen. The code is left in place and the logic is still tested directly against
+   the support class, but the branch is dead by design rather than pending. If a
+   Kagawad ever does need several sectors, that is a schema change and a new owner
+   decision — not a UI change.
+
+The end-to-end test for the multi-sector case is `markTestSkipped` naming this
+reason, so it cannot be mistaken for an oversight.
 
 ---
 

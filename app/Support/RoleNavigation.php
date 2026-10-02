@@ -32,7 +32,12 @@ final class RoleNavigation
      * `group` separates the destinations from the account group so they can be
      * rendered as two lists rather than one undifferentiated run of links.
      *
-     * @return list<array{route: string, label: string, icon: string, group: string}>
+     * `pattern` is optional and marks a destination that has children of its own,
+     * so a detail or form page still lights the list it belongs to. It is absent on
+     * the destinations that are a single page, where the route name is the whole
+     * answer.
+     *
+     * @return list<array{route: string, label: string, icon: string, group: string, pattern?: string}>
      */
     public static function sidebarFor(string $role): array
     {
@@ -44,7 +49,11 @@ final class RoleNavigation
             // so the link would render and then refuse.
             User::ROLE_KAGAWAD => [
                 ['route' => 'kagawad.dashboard', 'label' => 'Dashboard', 'icon' => 'grid', 'group' => 'main'],
-                ['route' => 'kagawad.relief', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main'],
+                // 'kagawad.relief*' and not 'kagawad.relief.*': this destination's
+                // own route name has no .index suffix, so a dotted pattern would
+                // match the checklist page and the mark-collected post but NOT the
+                // list page itself - which is where a reader is most likely to be.
+                ['route' => 'kagawad.relief', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main', 'pattern' => 'kagawad.relief*'],
                 // The residents of this Kagawad's own sectors, read-only. It is
                 // here and not the staff Residents page because that page is
                 // role:admin,secretary: linking it would render and then 403. The
@@ -60,11 +69,11 @@ final class RoleNavigation
             // the staff resident queue this Secretary list opens.
             User::ROLE_SECRETARY => [
                 self::staffDashboardLink(),
-                ['route' => 'staff.verifications.index', 'label' => 'Resident Verification', 'icon' => 'id-badge', 'group' => 'main'],
-                ['route' => 'staff.residents.index', 'label' => 'Residents', 'icon' => 'users', 'group' => 'main'],
-                ['route' => 'staff.requests.index', 'label' => 'Document Requests', 'icon' => 'document', 'group' => 'main'],
-                ['route' => 'staff.batches.index', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main'],
-                ['route' => 'staff.announcements.index', 'label' => 'Announcements', 'icon' => 'megaphone', 'group' => 'main'],
+                ['route' => 'staff.verifications.index', 'label' => 'Resident Verification', 'icon' => 'id-badge', 'group' => 'main', 'pattern' => 'staff.verifications.*'],
+                ['route' => 'staff.residents.index', 'label' => 'Residents', 'icon' => 'users', 'group' => 'main', 'pattern' => 'staff.residents.*'],
+                ['route' => 'staff.requests.index', 'label' => 'Document Requests', 'icon' => 'document', 'group' => 'main', 'pattern' => 'staff.requests.*'],
+                ['route' => 'staff.batches.index', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main', 'pattern' => 'staff.batches.*'],
+                ['route' => 'staff.announcements.index', 'label' => 'Announcements', 'icon' => 'megaphone', 'group' => 'main', 'pattern' => 'staff.announcements.*'],
                 $account,
             ],
 
@@ -74,12 +83,12 @@ final class RoleNavigation
             // visible edit here instead of a silent one.
             User::ROLE_ADMIN => [
                 self::staffDashboardLink(),
-                ['route' => 'staff.verifications.index', 'label' => 'Resident Verification', 'icon' => 'id-badge', 'group' => 'main'],
-                ['route' => 'staff.residents.index', 'label' => 'Residents', 'icon' => 'users', 'group' => 'main'],
-                ['route' => 'staff.requests.index', 'label' => 'Document Requests', 'icon' => 'document', 'group' => 'main'],
-                ['route' => 'staff.batches.index', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main'],
-                ['route' => 'staff.announcements.index', 'label' => 'Announcements', 'icon' => 'megaphone', 'group' => 'main'],
-                ['route' => 'staff.accounts.index', 'label' => 'User Accounts', 'icon' => 'users', 'group' => 'admin'],
+                ['route' => 'staff.verifications.index', 'label' => 'Resident Verification', 'icon' => 'id-badge', 'group' => 'main', 'pattern' => 'staff.verifications.*'],
+                ['route' => 'staff.residents.index', 'label' => 'Residents', 'icon' => 'users', 'group' => 'main', 'pattern' => 'staff.residents.*'],
+                ['route' => 'staff.requests.index', 'label' => 'Document Requests', 'icon' => 'document', 'group' => 'main', 'pattern' => 'staff.requests.*'],
+                ['route' => 'staff.batches.index', 'label' => 'Relief Distribution', 'icon' => 'gift', 'group' => 'main', 'pattern' => 'staff.batches.*'],
+                ['route' => 'staff.announcements.index', 'label' => 'Announcements', 'icon' => 'megaphone', 'group' => 'main', 'pattern' => 'staff.announcements.*'],
+                ['route' => 'staff.accounts.index', 'label' => 'User Accounts', 'icon' => 'users', 'group' => 'admin', 'pattern' => 'staff.accounts.*'],
                 ['route' => 'staff.sectors.index', 'label' => 'Sectors & Kagawad', 'icon' => 'folder', 'group' => 'admin'],
                 ['route' => 'staff.settings.index', 'label' => 'Settings', 'icon' => 'settings', 'group' => 'admin'],
                 ['route' => 'staff.audit.index', 'label' => 'Audit Logs', 'icon' => 'shield-check', 'group' => 'admin'],
@@ -176,11 +185,21 @@ final class RoleNavigation
      * Whether a link is the current page, honouring the extra patterns a
      * destination declares so a detail page still lights its parent.
      *
-     * @param  array{route: string, label?: string, icon?: string, group?: string}  $link
+     * A link without a `pattern` matches its own route name exactly, which is right
+     * for a destination that has no children. A destination that does have children
+     * declares the prefix its children share, so opening a record still shows where
+     * you are: `staff.requests.show` lights "Document Requests", `staff.batches.create`
+     * lights "Relief Distribution".
+     *
+     * This is not cosmetic. Without it the sidebar shows no current item at all on
+     * every detail and form page - nine of the twenty-two staff screens - because
+     * nothing in the list matches a route name that only exists as a prefix.
+     *
+     * @param  array{route: string, label?: string, icon?: string, group?: string, pattern?: string}  $link
      */
     public static function isCurrent(array $link): bool
     {
-        return request()->routeIs($link['route']);
+        return request()->routeIs($link['pattern'] ?? $link['route']);
     }
 
     /**
@@ -192,10 +211,16 @@ final class RoleNavigation
     }
 
     /**
-     * @return array{route: string, label: string, icon: string, group: string}
+     * My Account, for every role.
+     *
+     * The pattern covers the password tab as well, so switching tabs does not make
+     * the sidebar look like nothing is selected. The two tabs are one destination
+     * with two views of it, which is how the account page itself presents them.
+     *
+     * @return array{route: string, label: string, icon: string, group: string, pattern: string}
      */
     private static function accountLink(): array
     {
-        return ['route' => 'account.edit', 'label' => 'My Account', 'icon' => 'user', 'group' => 'account'];
+        return ['route' => 'account.edit', 'label' => 'My Account', 'icon' => 'user', 'group' => 'account', 'pattern' => 'account.*'];
     }
 }

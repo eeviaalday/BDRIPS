@@ -98,8 +98,11 @@ class KagawadSectorResidentsTest extends TestCase
     public function a_kagawad_with_two_sectors_sees_both_and_still_nothing_else(): void
     {
         $this->markTestSkipped(
-            'sectors.kagawad_user_id is UNIQUE, so a Kagawad cannot hold two sectors. '
-            .'Drop that index to enable this; see KagawadSectorResidentsTest::the_sector_filter_offers_exactly_the_sectors_it_is_given.'
+            'The owner has decided a Kagawad holds exactly one sector, and '
+            .'sectors.kagawad_user_id is UNIQUE, so this state cannot be set up. '
+            .'The multi-sector logic is covered directly against the support class in '
+            .'KagawadSectorResidentsTest::the_sector_filter_offers_exactly_the_sectors_it_is_given. '
+            .'See ROLES.md, "Code vs ROLES.md".'
         );
     }
 
