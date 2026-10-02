@@ -4993,3 +4993,154 @@ to measure, and it refused to run outside `bdrpis_testing`. It is deleted. It is
 worth leaving a class in `database/seeders/` that writes eight fake users into a
 database, where someone will eventually run `db:seed --class` against the real one.
 Re-create it on demand rather than ship it.
+---
+
+## Prompt #027
+
+### The brief
+
+Two changes with an owner-approved exception to the scope rules, and only those
+two: a favicon on every page, and two links on the Services page. The public/guest
+and resident areas were editable for exactly this and nothing else.
+
+### The favicon: five documents, one partial
+
+Five files in this repository open a `<head>`, and that is the whole problem:
+
+    layouts/public.blade.php   carries every public page AND every resident page
+    layouts/guest.blade.php    unused by any current route, kept correct
+    layouts/app.blade.php      staff, Kagawad and account-staff
+    auth/login.blade.php       a whole document, does not go through the bundle
+    auth/register.blade.php    a whole document, does not go through the bundle
+
+The two auth pages are the reason this cannot be done in the layout alone. They
+are standalone documents with their own `<head>` and their own inline `<style>`,
+so an `@include` in a layout would never reach them.
+
+Each of the five got **one added line**, and nothing else:
+
+    +@include('partials.favicon')
+
+Five copies of two `<link>` tags is five places for the next change to reach only
+some of them, and a favicon that is right on six pages and missing on one is
+something a user notices before a developer does.
+
+The indentation of that line is copied from each file's own `<head>` rather than
+assumed, because the four layouts indent four spaces and the two auth pages
+indent none.
+
+### The logo is 500 x 500
+
+Exactly square, so `public/apple-touch-icon.png` is a straight copy with nothing
+cropped, scaled or re-encoded. `public/favicon.png` and `public/apple-touch-icon.png`
+are both byte-identical to `public/images/Zone 1_logo.png` — md5
+`6102a995fd062f580afd170ea16a381f` for all three, asserted by the test rather than
+by this note.
+
+**The original is not renamed, not moved and not deleted.** The space in
+`Zone 1_logo.png` has to be `%20` in every URL, which is what the copy exists to
+avoid, but the sidebar, the top bar and both auth pages still read it from where
+it was.
+
+### public/favicon.ico is zero bytes
+
+It exists, it has existed since the initial commit, and **it is 0 bytes**. It is
+not a Laravel default icon — it is an empty file. That is worth stating plainly
+because it is the reason the test asserts the PNG is really served and not merely
+linked: a `<link>` to a file that is not really there produces a broken tab icon
+with no error anywhere, and an empty `.ico` sitting next to it is exactly the
+thing that hides the problem.
+
+The file is left in place, not deleted. With an explicit `<link rel="icon">`
+present the browser does not probe `/favicon.ico`, and every page now declares
+**exactly one** icon — which is the assertion, because two declarations is a bug
+rather than a redundancy: the browser picks one, the other is dead markup, and
+which one it picks is not something a reader can see.
+
+`?v=` is the file's own mtime, not a hand-written version number. Replacing a
+favicon without changing the URL is the single most common reason one appears not
+to have updated, and the mtime changes by itself when the image does.
+
+### Services: two controls, five links
+
+The complete inventory of every anchor to `/register` or `/login` on the rendered
+page, before the change:
+
+| Source | Label | Count | Was |
+|---|---|---|---|
+| `public/services.blade.php:19` | Request a Document | 1 | register |
+| `public/services.blade.php:41` | Apply Now (per service card) | 4 | register |
+| `public/services.blade.php:83` | Create a resident account | 1 | register — **unchanged** |
+| `layouts/public.blade.php:139,143` | Log in / Register, header | 2 | unchanged |
+| `layouts/public.blade.php:194,195` | Log in / Register, mobile menu | 2 | unchanged |
+
+So two source lines, five rendered links. "Apply Now" appears **four times** and
+it comes from the service-card component's default `cta`, not from the view — which
+is the trap here. Changing one of the four in the view would have looked correct
+in the source and left three of four cards still going to Create Account.
+
+Only the `:href` expression changed, twice. Labels, icons, variants, sizes and
+layout are byte-identical, and the three-valued `auth()->check() ? … : …` is
+untouched, so a signed-in resident still reaches the request form.
+
+**No existing test needed updating.** No public-page test asserted where these two
+controls pointed — the Services page had heading, title and navigation coverage
+and nothing about its links. The suite passed unchanged at 1273, which is not a
+result to be pleased about: it means the behaviour was entirely untested, and a
+future change could have put it back silently. That gap is what
+`ServicesPageRequestLinksTest` closes.
+
+### Two mistakes worth recording
+
+Both were mine, both were caught by the tooling rather than by reading the diff.
+
+**A shell heredoc wrote literal backspace bytes into a test.** `\\b` inside a
+Python string became `0x08` rather than a regex word boundary, so the predicate
+read `/<BS>Apply Now<BS>/i` and matched nothing. The symptom was baffling: an
+identical hand-written filter in the same test returned 4 while the one on line 99
+returned 0. `cat -A` showed `^H`. Every file touched by this task has now been
+scanned for control characters and all nine are clean.
+
+**A suffix match written with `/` fails on Windows.** The favicon test asserted
+"only this one view may declare an icon" by matching the path suffix
+`partials/favicon.blade.php`. `getPathname()` returns backslashes on Windows, so
+the partial was not recognised as the permitted file and the test failed against
+itself. It now compares `basename()` and the parent directory name, which has no
+separator in it at all.
+
+### Verification
+
+**Tests: 1302 pass** (1301 passed + 1 skipped by owner decision), 11307 assertions.
+Net: 1273 before, 29 added (23 favicon, 6 services). Pint clean.
+
+**No build was needed, and that is a checked claim rather than an assumption.**
+Zero new Tailwind class tokens across all six edited views, no `class` attribute
+at all in the new partial, and no JavaScript touched. The committed build in
+`public/build` already matches the source.
+
+**Browser, favicon — 7 areas, all PASS.** `document.querySelector('link[rel~=icon]')`
+on public home, login, register, a resident page, a Kagawad page, a Secretary page
+and an Admin page: **exactly one** `rel~=icon` and **exactly one**
+`apple-touch-icon` on each. Every fetch returned **HTTP 200, `image/png`,
+473126 bytes** — both files, on every page.
+
+**Browser, Services — 5 PASS.** As a guest, clicking "Request a Document" and
+"Apply Now" lands on `/login` (first and last of each, so all four cards).
+The header's two Register buttons and "Create a resident account" still go to
+`/register`. As a logged-in resident both still land on
+`/resident/requests/create`, with no error text, no JS error and no console error.
+
+**Scope audit — no violations.** This task's changes are exactly eleven files:
+
+- five layouts, one added line each: `layouts/public`, `layouts/guest`,
+  `layouts/app`, `auth/login`, `auth/register`
+- the new partial `resources/views/partials/favicon.blade.php`
+- `resources/views/public/services.blade.php` (two lines, `:href` only)
+- `public/favicon.png` and `public/apple-touch-icon.png`
+- `tests/Feature/SiteFaviconTest.php` and `tests/Feature/ServicesPageRequestLinksTest.php`
+
+No resident controller, route, component, view or test. No shared component. No
+`app/Models`, `config/bdrpis.php`, `resources/css/app.css`, `tailwind.config.js`,
+`routes/`, `package.json`, `vite.config.js` or `public/images`. Verified by
+intersecting this task's unstaged and untracked file lists with every forbidden
+path.

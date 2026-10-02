@@ -16,7 +16,7 @@
              with six other pages: at the default size these two stack on a
              phone and push this banner to 344px, past every other page's. --}}
         <div class="flex flex-wrap items-center gap-2">
-            <x-btn :href="auth()->check() ? route('resident.requests.create') : route('register')" variant="primary" size="sm"
+            <x-btn :href="auth()->check() ? route('resident.requests.create') : route('login')" variant="primary" size="sm"
                 icon="document">
                 Request a Document
             </x-btn>
@@ -38,7 +38,7 @@
                     :description="$service['description']"
                     :icon="$service['icon']"
                     :tone="$service['tone']"
-                    :href="auth()->check() ? route('resident.requests.create') : route('register')" />
+                    :href="auth()->check() ? route('resident.requests.create') : route('login')" />
             @endforeach
         </div>
     </x-shell>

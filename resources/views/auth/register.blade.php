@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" style="--photo: url('{{ asset('images/login.jpg') }}')">
 <head>
+@include('partials.favicon')
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Create your account · Barangay Linasin</title>
