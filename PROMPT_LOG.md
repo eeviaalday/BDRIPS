@@ -5144,3 +5144,233 @@ No resident controller, route, component, view or test. No shared component. No
 `routes/`, `package.json`, `vite.config.js` or `public/images`. Verified by
 intersecting this task's unstaged and untracked file lists with every forbidden
 path.
+
+---
+
+## Prompt #028
+
+### The brief
+
+A staff-only resident detail and correction screen for the Secretary and the
+Admin: a record page laid out as five cards, an Edit action on every row of the
+directory, and a correction form that audits itself. The resident and public
+areas were read-only for the whole of it, with one approved exception: the
+validation rules the wizard already had.
+
+### The audit came first, and it changed the brief in two places
+
+The brief asked for a "contact number" field and said the national ID number
+should be editable "unless the audit shows the wizard collects it as plain
+data". The audit found neither premise held.
+
+**There is no contact number.** `users` and `resident_profiles` have no phone,
+mobile or contact column at all, and the wizard's "Contact" step collects the
+**email address and nothing else**. The card exists and says so, because a card
+showing an empty field invites a clerk to go looking for somewhere else to put
+it. Adding a column would have meant a migration plus an edit to
+`app/Models/User.php`, which the scope rules put off limits.
+
+**The wizard does not collect the national ID number.** It collects a
+*photograph* of an ID. `RegisterRequest`'s own comment says the number "is no
+longer captured at all" and that the Secretary reads it off the uploaded document
+instead, so the typed number was deliberately dropped and with it the uniqueness
+check that used to stop one person holding two accounts. By the brief's own rule
+it is therefore not editable, and the field is not on the form. It is **displayed
+masked to the last four**; staff who need it in full open the uploaded document,
+which is logged as `resident.id_viewed`.
+
+**There is no `archived_at`.** Zero hits for `archived_at`, `archived` or any `R2`
+reference in `app/`, `database/`, `resources/views/`, `routes/` or `.ai/rules/`.
+The brief's instruction was to wire the guard only if that column exists and
+otherwise to note it, so it is noted and not faked. A guard for a column that is
+not there would be a guard on nothing.
+
+### The extraction, and the proof it changed nothing
+
+The correction form and the wizard validate the same eight fields for the same
+person, so the rules moved to `ResidentProfileRules::shared()` and both read it.
+The closed lists are read from `config('bdrpis.registration')` rather than copied,
+because copying them is the exact drift the class exists to remove.
+
+`RegisterRequest` keeps its own `messages()` array verbatim and the staff form has
+its own wording. Messages were deliberately **not** shared: "Your date of birth is
+required" and "A date of birth is required" are different sentences and neither is
+right on the other form, and a shared message with a `{possessive}` placeholder
+would be a way of pretending otherwise.
+
+Two checks hold this in place:
+
+- `the_wizard_s_rule_list_is_unchanged` pins the wizard's rule keys, their **order**
+  and three of the rule arrays literally.
+- `the_staff_form_uses_the_wizard_s_own_rules_for_the_shared_fields` compares the
+  two forms' arrays field by field, `Rule` objects compared by serialised state
+  rather than identity, and asserts `household_number` is the wizard's three rules
+  plus **exactly one** more.
+
+Run by hand as well, before those tests existed: `RegisterRequest::rules()` was
+compared against the pre-extraction array and matched on key order and on the
+serialised state of every `Rule` object.
+
+### household_number: the one rule the wizard cannot make
+
+The wizard's `household_number` rule is `required,string,max:50` and no more. It
+cannot be otherwise: at signup the profile row does not exist yet, so uniqueness
+is not a check the wizard is in a position to make. The column is indexed but
+**not** unique.
+
+That matters because `relief_distributions` is unique on
+`(relief_batch_id, household_number)` and stores the household number as a **copy**,
+not a foreign key. Two profiles sharing one number would collide on the next
+batch, `insertOrIgnore` would keep one row and drop the other, and one family
+would receive nothing while the record said they were served. So the correction
+form adds `unique ignoring this record`, and the ignore is what stops a Secretary
+fixing a typo in a *name* from being told their own untouched household number is
+a duplicate.
+
+### The sector notice is true, and both halves of it are tested
+
+`relief_distributions` copies the sector at batch-create time, which is what makes
+the notice the brief asked for accurate:
+
+- **Already-open batches keep the original sector.** The row is a snapshot. A
+  correction must not rewrite it, or a household would be pulled off a
+  distribution already under way while the Kagawad's checklist still listed them.
+- **Batches opened after the change use the new sector.** `seedHouseholds()`
+  queries verified profiles at create time.
+
+Two tests, because the first alone reads as "the correction does nothing": an open
+row keeps its sector after a move, and a batch opened through
+`POST /staff/batches/store` afterwards contains the household in the **new**
+sector.
+
+The household-number warning is stated for the same underlying reason. Relief
+history is filed under the number, so correcting it orphans the rows already
+recorded under the old one, and those rows stay in the database visible to nobody
+from this resident's page.
+
+The notice also names the third consequence, the one that is not about relief:
+`sectors.kagawad_user_id` drives `User::assignedSectorIds()`, so moving a resident
+hands them to a different Kagawad's resident list immediately and takes them off
+the current one's.
+
+### Concurrency needed two tokens, not one
+
+The brief asked for an `updated_at` mismatch check. The form writes five columns
+on `users` and three on `resident_profiles`, so watching the profile alone would
+have left every name and date of birth overwriteable by a form opened before
+someone else's correction. Both `profile_updated_at` and `user_updated_at` are
+submitted, and both are compared.
+
+Two things that would have made this test pass while doing nothing:
+
+- The comparison formats both sides through the same `Y-m-d H:i:s`, because MySQL
+  `DATETIME` holds no sub-second part and a raw string comparison would fail on
+  formatting rather than on disagreement.
+- The tests move the clock with `travelTo()`. Created and corrected inside the same
+  second, which is what a fast test does, the two timestamps are equal, there is
+  nothing to contradict, and the stale form is accepted. Both concurrency tests
+  failed for exactly this reason before the clock moved.
+
+### "No changes to save" is a real branch, not a message
+
+The diff is `getDirty()` after `fill()`, not a comparison of raw input against raw
+storage. A `<select>` posts `"3"` and the column holds the integer `3`; compared as
+strings, every save of an untouched form would report a change, `updated_at` would
+move, and the audit log would fill with entries saying a sector changed from 3 to
+3. `a_value_the_database_normalises_is_not_reported_as_a_change` pins that.
+
+Only the rows that actually moved are saved. Saving both would bump `updated_at` on
+the untouched one, which would then read as a change to anyone holding the form
+open, so the feature would sabotage its own guard.
+
+### Two icon systems, one Edit action
+
+`fa-pen` and `edit` are both correct here, in different components, and swapping
+them draws the wrong glyph with no error anywhere.
+
+`<x-staff.icon-action>` takes a **Font Awesome** name and renders
+`fa-solid fa-<name>`, so the directory row's Edit uses `icon="pen"`. `x-btn`,
+`x-alert` and `<x-staff.empty-state>` take an `<x-icon>` **SVG** name from
+`icon.blade.php`, which **falls back silently to a document glyph** for anything
+undeclared. `pen` is not a declared key and `edit` is, so the record page's Edit
+button uses `icon="edit"`, and the same reason put `help-circle` and `gift` in the
+alerts instead of `circle-info` and `handshake`.
+
+`fa-pen` was checked against the built `staff-icons` CSS rather than assumed: it
+resolves to ligature `U+F304`. `staff-icons-Bz8m1X0P.css` and the icon woff2 came
+out of the build with **identical hashes**, so this task needed no icon CSS at all.
+
+### The audit entry
+
+`resident.updated`, one line added to `AuditLog::actions()`, which is the single
+approved exception to the do-not-edit-`app/Models` rule. `context` carries
+`changed_fields` and a `changes` map of `from`/`to` per field, with the actor and
+the profile as subject.
+
+Fields on `UpdateResidentProfileRequest::redactedFields()` are recorded as
+`['changed' => true]` and never in full: the national ID, the ID photo path, the
+email and the password. **None of the editable fields is sensitive today**, so that
+branch is not reached by any current save. It is there because the cost of adding a
+sensitive column to this form later and finding the log already full of it is not
+recoverable, and the cost of the check is one `in_array`. The test proves the list,
+and separately proves that posting a password and a national ID alongside a real
+correction leaves neither in the serialised context.
+
+### Verification
+
+**Tests: 1349 pass** (1348 passed + 1 skipped by owner decision), 11567 assertions.
+Net: 1302 before, 47 added, being 45 new plus the 2 new routes entering the role
+matrix. Pint clean.
+
+**The build did change, and the change is a removal.** `app-C7umzzs8.css` replaced
+`app-LzQ1koeh.css`. Compared rule by rule: **0 added, 1 removed, 0 changed
+definitions.** The one removal is `.sm\:col-span-3`, which the old record page used
+and the rebuilt one does not. `resources/css/app.css` is itself byte-identical, so
+no resident or public page gains, loses or changes a single utility, and
+`.xl\:col-span-3`, used by `public/about.blade.php`, is still emitted.
+
+**Browser — 60 checks at 375px and 1280px, all PASS.** Secretary session against
+a live server: Edit present on every directory row, View retained, both naming the
+resident in `aria-label` *and* in `.sr-only` text, `fa-pen` resolving, all five
+cards on the record page, PUT to the profile route, both concurrency tokens in the
+form, no protected field on it, both change-consequence notices rendered, the
+incomplete-record repair, the no-op flash, server-side validation, and a household
+correction round trip. No console or page errors at either width.
+
+**A real limitation was found at 375px and it is not mine to fix here.** The
+directory and record pages scroll horizontally at 375px. The cause is
+`min-w-[46rem]` on the table in the shared `x-staff.table`, which forces 736px.
+The evidence that it predates this task: `/staff/verifications`, untouched,
+scrolls to **706px** at the same viewport, and the new edit page — which has no
+table — fits in **375px** exactly. Every staff table page in the area behaves the
+same way. The fix is one class in
+`resources/views/components/staff/table.blade.php`, a **shared component** this
+task's scope rules put off limits, so it is reported rather than taken.
+
+**The dev residents have no date of birth, gender or civil status**, so the
+correction form renders those three empty and the browser's own `required` check
+blocks the submit — the first run hung on `waitForNavigation` because no request
+was ever made. That is the form working, not failing, and it is the clearest
+argument for the feature: this is exactly the record a Secretary needs to repair.
+The verification repairs it in place, and the full round trip passes from there.
+`users.id = 5` is left with `1990-05-14`, `Female`, `Single`; its household number
+was corrected to `HH-1001-W` and reverted to `HH-1001` as part of the test.
+
+**Scope audit, no violations.** Verified with `git diff --exit-code` over
+`resources/views/resident/`, `auth/`, `public/`, `layouts/`, `components/`,
+`errors/`, `resources/js/`, the Resident, Auth, Public and Kagawad controllers, and
+`User`, `ResidentProfile` and `ReliefDistribution`. All clean.
+
+Changed files, and only these:
+
+- `app/Support/ResidentProfileRules.php`, new, the shared rules
+- `app/Http/Requests/UpdateResidentProfileRequest.php`, new, the correction form
+- `app/Http/Requests/Auth/RegisterRequest.php`, reads the shared class; rules, order and messages unchanged
+- `app/Http/Controllers/Staff/ResidentDirectoryController.php`, `edit`, `update`, and relief history on `show`
+- `app/Models/AuditLog.php`, one line, the approved exception
+- `resources/views/staff/residents/edit.blade.php`, new
+- `resources/views/staff/residents/show.blade.php`, rebuilt to five cards
+- `resources/views/staff/residents/index.blade.php`, the Edit action
+- `routes/web.php`, two additive staff routes
+- `ROLES.md`, `PROMPT_LOG.md`
+- `tests/Feature/StaffResidentEditTest.php`, new, and `tests/Feature/RolesMatrixTest.php`

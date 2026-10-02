@@ -52,10 +52,17 @@
                     <td class="text-sm text-slate-600">{{ $profile->sector?->sector_name ?? '—' }}</td>
                     <td><x-staff.status-badge :status="$profile->verification_status" size="sm" /></td>
                     <td class="text-sm text-slate-600">{{ $profile->user?->created_at?->format('j M Y') ?? '—' }}</td>
-                    <td>
+<td>
                         <div class="flex items-center gap-1">
+                        {{-- Two controls, both icon-only. Each carries the resident's
+                             name in its accessible name, so a screen reader announces
+                             "View Juan Dela Cruz" and "Edit Juan Dela Cruz" rather
+                             than two indistinguishable buttons. --}}
                         <x-staff.icon-action icon="eye" label="View {{ $profile->user?->name }}"
                             :href="route('staff.residents.show', $profile)" />
+                        <x-staff.icon-action icon="pen" label="Edit {{ $profile->user?->name }}"
+                            :href="route('staff.residents.edit', $profile)" />
+                        </div>
                     </td>
                 </tr>
             @endforeach

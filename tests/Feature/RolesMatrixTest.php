@@ -92,6 +92,8 @@ class RolesMatrixTest extends TestCase
         'staff.resident-verifications.id-photo' => 'admin,secretary',
         'staff.residents.index' => 'admin,secretary',
         'staff.residents.show' => 'admin,secretary',
+        'staff.residents.edit' => 'admin,secretary',
+        'staff.residents.update' => 'admin,secretary',
         'staff.verifications.approve' => 'admin,secretary',
         'staff.verifications.index' => 'admin,secretary',
         'staff.verifications.reject' => 'admin,secretary',

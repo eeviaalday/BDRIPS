@@ -159,7 +159,7 @@ Verification is not self-asserted — a new Resident lands in
 - The five `verification.*` / `password.confirm` routes require only `auth`, not
   `verified`, because they are what a user needs *in order to become* verified.
 
-### Staff — `role:admin,secretary` (29 routes)
+### Staff — `role:admin,secretary` (31 routes)
 
 | Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
 |---|---|---|---|---|---|---|---|
@@ -171,6 +171,8 @@ Verification is not self-asserted — a new Resident lands in
 | `staff.resident-verifications.id-photo` | GET | `…/id-photo` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.residents.index` | GET | `/staff/residents` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.residents.show` | GET | `/staff/residents/{profile}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.residents.edit` | GET | `/staff/residents/{profile}/edit` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.residents.update` | PUT | `/staff/residents/{profile}` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.index` | GET | `/staff/requests` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.show` | GET | `/staff/requests/{documentRequest}` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.review` | POST | `…/review` | Allowed | Allowed | Denied | Denied | Denied |
@@ -350,6 +352,54 @@ Worth noting because it is the exception, not the rule: the *restriction* is
 enforced twice — here and by the role middleware — while *verified* is enforced
 only here. That is fine, but it means the two are not symmetric.
 
+### What a staff member may correct about a resident, and what they may not
+
+`UpdateResidentProfileRequest` is a **correction** form, not an account screen
+and not an identity screen. The boundary is enforced by which fields the request
+validates, not by which fields the view hides — a control that is absent from the
+markup can still be posted, so absence is not the guarantee.
+
+Editable, and exactly the eight fields the registration wizard collects for the
+same person:
+
+| Field | Stored on |
+|---|---|
+| `name`, `date_of_birth`, `gender`, `civil_status`, `nationality` | `users` |
+| `address`, `sector_id`, `household_number` | `resident_profiles` |
+
+Refused even when posted, because each is a decision rather than a correction and
+each has its own audited screen:
+
+| Field | Why not here |
+|---|---|
+| `email`, `password` | Account credentials; changing an address needs verification to run against it. |
+| `national_or_voter_id` | **Not collected by the wizard at all.** The number is read off the uploaded document at review, so there is no wizard value to stay in step with. Displayed **masked to the last four** on the record page. |
+| `id_photo_path` | The identity evidence. Substituting it is identity capture, and would leave a rejected document's photo and its rejection reason describing two different people. |
+| `verification_status`, `rejection_reason`, `verified_at` | The verification decision. |
+| `role`, `is_verified`, `restricted_until`, `assigned_sector_id` | Account administration, which the Admin area owns. |
+
+Three rules that live with the request rather than in the controller:
+
+| Guard | Effect |
+|---|---|
+| `ResidentProfileRules::uniqueHouseholdNumber()` | `household_number` must be unique across every **other** profile. The wizard cannot make this check — the row does not exist yet when it runs — but `relief_distributions` is unique on `(relief_batch_id, household_number)` and stores the number as a copy, so two profiles sharing one would silently collide on the next batch. |
+| `UpdateResidentProfileRequest::withValidator()` | The submission's `profile_updated_at` and `user_updated_at` must match the rows as they are now. **Both** tables, because the form writes columns on each and watching one would leave every name and date of birth overwriteable. |
+| `ResidentDirectoryController::update()` | A submission that changes nothing writes nothing, logs nothing, and flashes `No changes to save.` |
+
+`ResidentProfileRules::shared()` is read by **both** `RegisterRequest` and
+`UpdateResidentProfileRequest`, so the wizard and the correction form cannot drift
+apart on what a valid value is. The wizard's rule list and key order are pinned by
+`the_wizard_s_rule_list_is_unchanged`, and the two forms' rule arrays are compared
+object-for-object by `the_staff_form_uses_the_wizard_s_own_rules_for_the_shared_fields`.
+
+Every correction is audited as `resident.updated`, with the actor, the subject,
+and the before/after of each changed field in `context`. Fields on
+`UpdateResidentProfileRequest::redactedFields()` — the national ID, the ID photo
+path, the email and the password — are recorded as `['changed' => true]` and never
+in full. No correction has to be unique in the log to be findable: the audit is a
+record of what staff did to a household, and an entry for a save that changed
+nothing would be a record of how many times a button was pressed.
+
 ---
 
 ## What each role sees in the sidebar
@@ -464,6 +514,20 @@ and red for the destructive one. A control that cannot be used is rendered
 disclosure — the row *is* the record, so an Actions column would hold a View button
 that goes nowhere. The Kagawad resident list is read-only by decision 3 and has no
 staff resident page a Kagawad may open.
+
+**The Residents row carries two controls, not one.** View (`fa-eye`) and Edit
+(`fa-pen`), each an `<x-staff.icon-action>` naming the resident in its accessible
+name — "View Juan Dela Cruz" and "Edit Juan Dela Cruz". The rule above is about not
+giving three ways into one record; a View and an Edit are two different
+*decisions* about one record, and Edit has to be reachable from the list rather than
+only from the record page a clerk has to open first.
+
+Note the two icon systems are not interchangeable here. `<x-staff.icon-action>` takes
+a Font Awesome name and renders `fa-solid fa-<name>`, so `pen` is correct. `x-btn`,
+`x-alert` and `<x-staff.empty-state>` take an `<x-icon>` **SVG** name instead and
+fall back silently to a document glyph for anything undeclared — so the same Edit
+button uses `icon="edit"` on the record page. Both spellings are correct where they
+appear; swapping one for the other draws the wrong glyph without any error.
 
 ### Font Awesome, staff only
 

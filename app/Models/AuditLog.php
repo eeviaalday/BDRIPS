@@ -83,6 +83,7 @@ class AuditLog extends Model
             'resident.verified' => 'Resident verified',
             'resident.rejected' => 'Resident rejected',
             'resident.id_viewed' => 'Resident ID viewed',
+            'resident.updated' => 'Resident details updated',
             'request.approved' => 'Request approved',
             'request.submitted' => 'Request submitted',
             'request.under_review' => 'Request taken for review',

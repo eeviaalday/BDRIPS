@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use App\Models\ResidentProfile;
 use App\Models\User;
+use App\Support\ResidentProfileRules;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -34,22 +35,20 @@ class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
-        $other = config('bdrpis.registration.other_nationality');
+        // The eight fields a resident and a household share are read from
+        // ResidentProfileRules rather than restated, because the staff correction
+        // form validates the same columns and a second copy of these rules is a
+        // second chance for the two forms to disagree about what a valid value is.
+        // The three fields below it - email, the uploaded ID, and the password -
+        // are collected once at signup and are deliberately not shared.
+        $shared = ResidentProfileRules::shared();
 
         return [
-            // Step 1 - personal information.
-            'name' => ['required', 'string', 'max:255'],
-            'date_of_birth' => ['required', 'date', 'before:today', 'after_or_equal:'.config('bdrpis.registration.oldest_acceptable_birth_date')],
-            'gender' => ['required', Rule::in(array_keys(config('bdrpis.registration.genders')))],
-            'civil_status' => ['required', Rule::in(array_keys(config('bdrpis.registration.civil_statuses')))],
-            'nationality' => ['required', Rule::in([config('bdrpis.registration.default_nationality'), $other])],
-            // Only collected when the resident picks "Others"; the controller
-            // stores whichever of the two ends up filled.
-            'nationality_other' => ['nullable', 'required_if:nationality,'.$other, 'string', 'max:64'],
-
-            // Step 2 - address.
-            'address' => ['required', 'string', 'max:255'],
-            'sector_id' => ['required', Rule::exists('sectors', 'id')],
+            // Step 1 - personal information, and step 2 - address.
+            ...array_intersect_key($shared, array_flip([
+                'name', 'date_of_birth', 'gender', 'civil_status',
+                'nationality', 'nationality_other', 'address', 'sector_id',
+            ])),
 
             // Step 3 - contact.
             //
@@ -60,8 +59,10 @@ class RegisterRequest extends FormRequest
             // lookup sees the normalised value.
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
 
-            // Step 4 - household.
-            'household_number' => ['required', 'string', 'max:50'],
+            // Step 4 - household. Shared with the staff correction form, which
+            // adds a uniqueness rule on top; a wizard cannot, because the profile
+            // row does not exist yet when this runs.
+            'household_number' => $shared['household_number'],
 
             // Step 5 - identity and security.
             //

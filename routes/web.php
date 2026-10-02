@@ -255,8 +255,17 @@ Route::middleware(['auth', 'verified', 'role:admin,secretary', 'no-store-authent
             ->name('resident-verifications.id-photo');
 
         // Residents directory.
+        //
+        // The two routes below are staff-ONLY in a second sense as well as the
+        // middleware's: they write the resident's own identity and address
+        // columns. Nothing here touches email, password, role, restriction or the
+        // verification status - those belong to the account area and to the
+        // verification flow, and putting them behind this form would let a data
+        // correction look like a decision.
         Route::get('/residents', [StaffResidentDirectoryController::class, 'index'])->name('residents.index');
         Route::get('/residents/{profile}', [StaffResidentDirectoryController::class, 'show'])->name('residents.show');
+        Route::get('/residents/{profile}/edit', [StaffResidentDirectoryController::class, 'edit'])->name('residents.edit');
+        Route::put('/residents/{profile}', [StaffResidentDirectoryController::class, 'update'])->name('residents.update');
 
         // Document requests.
         Route::get('/requests', [StaffDocumentReviewController::class, 'index'])->name('requests.index');
