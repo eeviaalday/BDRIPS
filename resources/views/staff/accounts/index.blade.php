@@ -103,14 +103,27 @@
             </ul>
         </nav>
 
-        <x-staff.filter-bar :action="route('staff.accounts.index')"
-            :has-filters="$search !== '' || $role !== ''"
+<x-staff.filter-bar :action="route('staff.accounts.index')"
+            :has-filters="$search !== '' || $role !== '' || $record !== 'active'"
             :clear-href="route('staff.accounts.index')">
             <x-staff.filter-field name="q" label="Search" :value="$search" placeholder="Name or email" />
             <x-staff.filter-select name="role" label="Role" :options="$roles"
-                :value="$role" all-label="All roles"
-                :map-label="fn (string $value): string => \App\Models\User::roleLabel($value)" />
+                :value="$role" :all-label="'All roles'"
+                :map-label="fn (string $role): string => \App\Models\User::roleLabel($role)" />
+            <x-staff.filter-select name="record" label="Record" :options="$recordOptions" :value="$record" />
         </x-staff.filter-bar>
+
+        {{-- The hiding is stated, not silent, for the same reason as the residents
+             directory: a Captain who cannot find an account has to be able to tell
+             "this account does not exist" from "this account is archived". --}}
+        @if ($archivedCount > 0 && $record === 'active')
+            <p class="text-sm text-gray-600">
+                {{ $archivedCount }} archived {{ \Illuminate\Support\Str::plural('account', $archivedCount) }}
+                {{ $archivedCount === 1 ? 'is' : 'are' }} hidden from this list.
+                <a href="{{ route('staff.accounts.index', ['record' => 'all']) }}"
+                    class="font-semibold text-navy-700 underline underline-offset-2 hover:text-navy-900">Archived records are hidden. Show them</a>
+            </p>
+        @endif
 
         <x-staff.table
             :columns="[
@@ -127,7 +140,7 @@
             empty-action-label="Clear filters"
             :empty-action-href="route('staff.accounts.index')">
             @foreach ($users as $account)
-                <tr @class(['opacity-70' => $account->isRestricted()])>
+                <tr @class(['opacity-70' => $account->isRestricted() || $account->isArchived()])>
                     <th scope="row">
                         {{-- Email for every role, deliberately. It is the one
                              identifier all four roles share; showing a household
@@ -148,7 +161,15 @@
                         @endif
                     </td>
                     <td>
-                        <x-staff.status-badge :status="$account->isRestricted() ? 'restricted' : 'active'" size="sm" />
+                        {{-- Archived is checked BEFORE restricted, and an archived
+                             account that is also restricted is reported as Archived.
+                             The two are separate facts - one is a household that has
+                             left, the other a temporary freeze - and the reason the
+                             archive wins on the badge is that it is the one with no
+                             end date: a Captain reading this row is deciding whether
+                             the account can act, and an archived account cannot at all,
+                             whatever else is true of it. --}}
+                        <x-staff.status-badge :status="$account->isArchived() ? 'archived' : ($account->isRestricted() ? 'restricted' : 'active')" size="sm" />
                     </td>
                     <td>
                         <div class="flex flex-wrap items-center gap-1">

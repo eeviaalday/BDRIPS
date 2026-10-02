@@ -20,6 +20,20 @@ use Illuminate\View\View;
  * OR between them would let the search term match every profile regardless of
  * status, so the two are combined inside one nested where - which is what
  * keeps "pending" and "anything with a name like Ana" from becoming "everything".
+ *
+ * ARCHIVED HOUSEHOLDS ARE NOT IN THIS QUEUE AT ALL, UNDER ANY STATUS
+ *
+ * The queue is a to-do list of registrations waiting on a decision. Archiving a
+ * pending registration IS that decision - it is how a staff member declines a
+ * registration that should not have been filed - so an archived profile has
+ * nothing left to decide and must not sit in the queue claiming otherwise. The
+ * filter is a whereHas on the user, not a status: "archived" is an account state
+ * and adding it to ResidentProfile::verificationStates() would offer a
+ * verification status that no verification flow can ever set.
+ *
+ * The household is still on file. The record behind the queue entry, its requests
+ * and its relief history are all intact and reachable from the residents
+ * directory under the Archived filter; only the decision queue stops listing it.
  */
 class ResidentVerificationController extends Controller
 {
@@ -55,6 +69,7 @@ class ResidentVerificationController extends Controller
 
         $query = ResidentProfile::query()
             ->with(['user', 'sector'])
+            ->whereHas('user', fn ($user) => $user->active())
             ->where(function ($profiles) use ($search): void {
                 if ($search === '') {
                     return;
@@ -84,6 +99,7 @@ class ResidentVerificationController extends Controller
             'states' => $states,
             'pendingCount' => ResidentProfile::query()
                 ->where('verification_status', ResidentProfile::VERIFICATION_PENDING)
+                ->whereHas('user', fn ($user) => $user->active())
                 ->count(),
         ]);
     }

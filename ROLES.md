@@ -159,7 +159,7 @@ Verification is not self-asserted — a new Resident lands in
 - The five `verification.*` / `password.confirm` routes require only `auth`, not
   `verified`, because they are what a user needs *in order to become* verified.
 
-### Staff — `role:admin,secretary` (31 routes)
+### Staff — `role:admin,secretary` (33 routes)
 
 | Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
 |---|---|---|---|---|---|---|---|
@@ -173,6 +173,8 @@ Verification is not self-asserted — a new Resident lands in
 | `staff.residents.show` | GET | `/staff/residents/{profile}` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.residents.edit` | GET | `/staff/residents/{profile}/edit` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.residents.update` | PUT | `/staff/residents/{profile}` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.residents.archive` | POST | `/staff/residents/{profile}/archive` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.residents.restore` | POST | `/staff/residents/{profile}/restore` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.index` | GET | `/staff/requests` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.show` | GET | `/staff/requests/{documentRequest}` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.review` | POST | `…/review` | Allowed | Allowed | Denied | Denied | Denied |
@@ -328,6 +330,54 @@ differently for different rows of the same table.
 | `ReliefBatchController:142` | Closing an already-closed batch — 409. |
 | `ReliefBatchController:163` | Reopening an already-open batch — 409. |
 | `Kagawad/ReliefController:111` | Marking collected on a closed batch — 409. |
+| `ResidentDirectoryController:175` | Opening the edit form for an **archived** household — 409. |
+| `ResidentDirectoryController:329` | Archiving an already-archived household — 409. |
+| `ResidentDirectoryController:401` | Restoring a household that is not archived — 409. |
+| `ResidentDirectoryController:333` | Archiving a household with a **Submitted**, **Under review** or **Ready for pickup** request — redirected back with the requests named and linked. |
+| `ResidentDirectoryController:409` | Restoring onto a household number another profile now holds — redirected back, naming and linking that household. |
+
+### Archiving a resident, and restoring one
+
+A Secretary or the Captain can close a resident's account. It is **not** a delete:
+the profile row, the household number, the document requests, the relief rows and
+the audit history all survive, and `Restore` puts the household back exactly as it
+was. `users` carries `archived_at`, `archived_by`, `archive_reason` and
+`archive_note`; `User::isArchived()` is `archived_at !== null`.
+
+- **Why (any of the four reasons) is required.** `archive_reason` is one of
+  `Moved away`, `Deceased`, `Duplicate record`, `Other` — a closed list, so
+  "Moved away: 34" stays a report. `archive_note` is free text and optional.
+  `ArchiveResidentRequest` enforces both.
+- **What archiving stops.** The account cannot sign in: `LoginRequest::authenticate()`
+  rejects it with `User::ARCHIVED_LOGIN_MESSAGE`, and a session that was already
+  open is ended by `EnsureUserHasRole` on the next request. An archived resident is
+  gone from the verification queue, the staff dashboard's pending figures, the
+  User Accounts default view, the resident directory's default view, and the
+  Kagawad's resident list and counts.
+- **Where the resident is told.** The login page is a standalone document with its
+  own stylesheet and no Vite bundle, and it used to render no `$errors` at all — so
+  every refused sign-in came back as a form that looked exactly as it was left. The
+  archived refusal had nowhere to appear either: the sentence was in the session and
+  nothing put it on screen. It now renders in a `role="alert"` block above the
+  fields, with the email marked `aria-invalid`, in the same red danger treatment as
+  the staff `x-alert`. This fixes the pre-existing silent wrong-password case too,
+  and `session('status')` flashes (password reset, e-mail verification) are still
+  not rendered — that gap is untouched.
+- **What archiving does not touch.** `verification_status` is not changed — a
+  pending registration may be archived, because a registration that should not have
+  been filed is exactly what archiving is for. A **pending** household leaves the
+  verification queue while archived and returns to it on restore. Rows already
+  written on an **open** relief batch stay on that batch, counted as before and
+  labelled `Archived` with no Mark control; only the **next** batch leaves them off.
+- **The household number stays spoken for.** The profile row survives, so nothing
+  reissues the number, and a restore refuses if a second profile has since taken
+  it.
+- **Archived households are not editable.** The Edit control is gone from the list
+  and the record, and `edit`/`update` refuse by URL too. Restore first.
+
+The decision to put the archived-session check in `EnsureUserHasRole` — one place,
+reached by every role-guarded request — rather than adding new global middleware is
+recorded in `EnsureUserHasRole`.
 
 ### Business rules enforced in a FormRequest
 

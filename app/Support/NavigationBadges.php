@@ -8,6 +8,7 @@ use App\Models\ReliefDistribution;
 use App\Models\ResidentProfile;
 use App\Models\Sector;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 /**
@@ -148,8 +149,24 @@ final class NavigationBadges
      */
     private static function forStaff(User $user): array
     {
+        /*
+         * Pending verifications, EXCLUDING archived households.
+         *
+         * The badge is work that is waiting for this person, and an archived
+         * household's registration is not: archiving a pending registration is how
+         * a staff member declines it (see ResidentDirectoryController::archive),
+         * so counting one as outstanding would be a figure that goes up when the
+         * queue is being worked and never comes down. It is a live() call on the
+         * user rather than a check on verification_status, because "archived" is
+         * not a verification state - it lives on the account.
+         *
+         * This is the single definition the sidebar badge AND the staff
+         * dashboard's "Pending verifications" card both read, so the two cannot
+         * disagree about whether an archived household is still someone's job.
+         */
         $pendingVerifications = ResidentProfile::query()
             ->where('verification_status', ResidentProfile::VERIFICATION_PENDING)
+            ->whereHas('user', fn (Builder $user) => $user->active())
             ->count();
 
         $awaitingDecision = DocumentRequest::query()->awaitingDecision()->count();

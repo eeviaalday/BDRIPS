@@ -34,6 +34,27 @@ class AccountController extends Controller
         $search = trim((string) $request->query('q', ''));
         $role = (string) $request->query('role', '');
 
+        /*
+         * Active / Archived / All, defaulting to Active.
+         *
+         * An account list is a list of people who can still sign in, and an
+         * archived account cannot - so it is filtered out by default here for the
+         * same reason it is filtered out of the residents directory, and for the
+         * same stated reason: a working list should not carry the households that
+         * have left.
+         *
+         * The default only hides ARCHIVED accounts, and an unknown value falls
+         * back to Active rather than All, so a hand-edited ?record= cannot widen
+         * the list by accident. Nothing about a non-archived account changes: with
+         * no archived accounts on file, this predicate removes nothing and the
+         * list is byte-identical to what it was before archiving existed.
+         */
+        $record = (string) $request->query('record', 'active');
+
+        if (! in_array($record, ['active', 'archived', 'all'], true)) {
+            $record = 'active';
+        }
+
         $query = User::query()
             ->with('residentProfile')
             // Grouped, so the role filter and the search combine rather than the
@@ -44,6 +65,8 @@ class AccountController extends Controller
                     ->orWhere('email', 'like', "%{$search}%")
             ))
             ->when(in_array($role, User::roles(), true), fn ($users) => $users->where('role', $role))
+            ->when($record === 'active', fn ($users) => $users->active())
+            ->when($record === 'archived', fn ($users) => $users->archived())
             ->latest('id');
 
         return view('staff.accounts.index', [
@@ -51,6 +74,13 @@ class AccountController extends Controller
             'search' => $search,
             'role' => $role,
             'roles' => User::roles(),
+            'record' => $record,
+            'recordOptions' => [
+                'active' => 'Active',
+                'archived' => 'Archived',
+                'all' => 'All',
+            ],
+            'archivedCount' => User::query()->archived()->count(),
             'counts' => $this->countsByRole(),
         ]);
     }

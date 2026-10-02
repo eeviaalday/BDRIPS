@@ -59,13 +59,14 @@
   --photo:linear-gradient(180deg,#5a86c0 0%,#9dbbe0 30%,#4d7358 58%,#1d3a2b 100%);
   --navy:#0c2240; --gold:#f5b82e; --goldink:#3a2900;
   --glass:rgba(255,255,255,.72); --ink:#15294a; --muted:#43536e; --line:rgba(21,41,74,.18); --field:rgba(255,255,255,.75); --blue:#2b5aa8;
+  --danger-bg:rgba(254,242,242,.92); --danger-line:#fecaca; --danger-ink:#7f1d1d; --danger-icon:#b91c1c;
   --ribbon:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 800' preserveAspectRatio='none'><path d='M60 0C100 50 100 150 60 200C20 250 20 350 60 400C100 450 100 550 60 600C20 650 20 750 60 800' fill='none' stroke='black' stroke-width='10'/></svg>") 0 0/120px 100% no-repeat;
   --wave:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 800' preserveAspectRatio='none'><path d='M60 0C100 50 100 150 60 200C20 250 20 350 60 400C100 450 100 550 60 600C20 650 20 750 60 800L120 800L120 0Z'/></svg>");
   --mask:var(--wave) 0 0/120px 100% no-repeat, linear-gradient(#000,#000) 119px 0/calc(100% - 119px) 100% no-repeat;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(14,24,42,.86);--ink:#e8eefb;--muted:#a3b2cc;--line:rgba(232,238,251,.2);--field:rgba(255,255,255,.06);--blue:#8db1f2}}
-:root[data-theme="dark"]{--glass:rgba(14,24,42,.86);--ink:#e8eefb;--muted:#a3b2cc;--line:rgba(232,238,251,.2);--field:rgba(255,255,255,.06);--blue:#8db1f2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(14,24,42,.86);--ink:#e8eefb;--muted:#a3b2cc;--line:rgba(232,238,251,.2);--field:rgba(255,255,255,.06);--blue:#8db1f2;--danger-bg:rgba(127,29,29,.4);--danger-line:rgba(248,113,113,.42);--danger-ink:#fecaca;--danger-icon:#fca5a5}}
+:root[data-theme="dark"]{--glass:rgba(14,24,42,.86);--ink:#e8eefb;--muted:#a3b2cc;--line:rgba(232,238,251,.2);--field:rgba(255,255,255,.06);--blue:#8db1f2;--danger-bg:rgba(127,29,29,.4);--danger-line:rgba(248,113,113,.42);--danger-ink:#fecaca;--danger-icon:#fca5a5}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;min-height:100vh;font-family:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);line-height:1.5;background:var(--photo) center/cover fixed}
@@ -95,6 +96,14 @@ a{color:var(--blue);font-weight:600}
 .form{width:100%;max-width:420px}
 .form h3{margin:0;font-size:30px;letter-spacing:-.01em}
 .sub{margin:4px 0 26px;color:var(--muted)}
+/* Mirrors the danger x-alert (red-50/200/900, rounded-lg border, text-sm) that
+   the staff and Kagawad screens use, restated here because this page carries its
+   own stylesheet and loads no Tailwind. */
+.notice{display:flex;gap:12px;margin:0 0 22px;padding:14px 16px;border:1px solid var(--danger-line);border-radius:12px;background:var(--danger-bg);color:var(--danger-ink);font-size:14px;line-height:1.5}
+.notice svg{flex:none;margin-top:2px;color:var(--danger-icon)}
+.notice p{margin:0;font-weight:700}
+.notice ul{margin:6px 0 0;padding-left:18px}
+.notice li+li{margin-top:4px}
 .field{margin-bottom:18px}
 label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
 .wrap{position:relative}
@@ -154,11 +163,34 @@ label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
       <h3>Sign in</h3>
       <p class="sub">Enter your details to continue.</p>
 
+      {{-- A rejected sign-in is a failure of this whole form, so the reason is
+           stated here instead of leaving the resident to press Log in again. This
+           is also what carries the archived-account refusal to the person it is
+           for: without it, an archived resident typing the right password was
+           bounced back here with nothing on screen. --}}
+      @if ($errors->any())
+        <div class="notice" role="alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <div>
+            @if ($errors->count() > 1)
+              <p>We could not sign you in:</p>
+              <ul>
+                @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            @else
+              <p>{{ $errors->first() }}</p>
+            @endif
+          </div>
+        </div>
+      @endif
+
       <div class="field">
         <label for="email">Email address</label>
         <div class="wrap">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-          <input class="f" id="email" type="email" name="email" value="{{ old('email') }}" placeholder="you@example.com" autocomplete="email" required autofocus>
+          <input class="f" id="email" type="email" name="email" value="{{ old('email') }}" placeholder="you@example.com" autocomplete="email" @if ($errors->has('email')) aria-invalid="true" @endif required autofocus>
         </div>
       </div>
 

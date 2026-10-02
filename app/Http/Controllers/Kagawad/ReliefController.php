@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Kagawad;
 use App\Http\Controllers\Controller;
 use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
+use App\Models\ResidentProfile;
 use App\Models\Sector;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
@@ -96,7 +98,44 @@ class ReliefController extends Controller
             'bySector' => $bySector,
             'total' => $rows->count(),
             'received' => $rows->where('status', ReliefDistribution::STATUS_RECEIVED)->count(),
+            'archivedHouseholds' => $this->archivedHouseholds($rows),
         ]);
+    }
+
+    /**
+     * Which of this checklist's households have since been archived.
+     *
+     * relief_distributions stores the household number as a copy, with no
+     * foreign key to the account, so the only way to tell that a row on an open
+     * batch belongs to a household that has since been closed is to match the
+     * numbers back to the profiles. ONE query for the whole checklist, keyed by
+     * household number, so the view can ask "is this row archived" as an array
+     * lookup: a lookup per row would be a query per household, on the one page a
+     * Kagawad opens on a phone during a distribution.
+     *
+     * Only the numbers actually on this checklist are asked about, so the query
+     * is bounded by the batch rather than by the barangay, and an archived
+     * household that was never on this batch costs nothing.
+     *
+     * The sector is not part of the match. The checklist row is filed under the
+     * household number alone - that is what insertOrIgnore deduplicated on - so
+     * matching on the number as the row does is matching on the row's own key.
+     *
+     * @param  Collection<int, ReliefDistribution>  $rows
+     * @return array<string, true> household numbers that are archived
+     */
+    private function archivedHouseholds($rows): array
+    {
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        return ResidentProfile::query()
+            ->whereIn('household_number', $rows->pluck('household_number')->unique()->all())
+            ->whereHas('user', fn ($user) => $user->archived())
+            ->pluck('household_number')
+            ->flip()
+            ->all();
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -54,6 +55,41 @@ class EnsureUserHasRole
         // role: to those routes later cannot quietly strand a restricted account.
         if ($user->isRestricted() && ! $request->routeIs('account.*', 'password.*', 'logout')) {
             abort(403, 'This account is temporarily restricted. Please contact the barangay office.');
+        }
+
+        /*
+         * An archived account loses its session on its next request.
+         *
+         * This is the live-session half of the archive. The sign-in half lives in
+         * LoginRequest::authenticate(), which is the only place that runs before
+         * an account exists in the session - this middleware never sees a guest,
+         * so without that check a resident archived while signed in would carry
+         * on browsing until they happened to hit a route guarded by role:.
+         *
+         * Signing the account out rather than aborting, and redirecting to login
+         * rather than 403, is deliberate on both counts:
+         *
+         *  - abort() would leave the session cookie standing. The next request
+         *    would fail the same way, but the account would still be "signed in"
+         *    to every page that is not behind this middleware, and nothing would
+         *    have been cleaned up.
+         *  - A 403 tells the reader this page is forbidden. The true answer is
+         *    different and more useful: the account is closed, here is why, and
+         *    here is who can reopen it. That is the message they get.
+         *
+         * Regenerating the session token is part of logging out rather than an
+         * extra precaution. The archived account's session id is no longer a
+         * credential worth keeping valid, and logout() already invalidates it.
+         */
+        if ($user->isArchived()) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors([
+                'email' => User::ARCHIVED_LOGIN_MESSAGE,
+            ]);
         }
 
         return $next($request);

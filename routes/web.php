@@ -267,6 +267,23 @@ Route::middleware(['auth', 'verified', 'role:admin,secretary', 'no-store-authent
         Route::get('/residents/{profile}/edit', [StaffResidentDirectoryController::class, 'edit'])->name('residents.edit');
         Route::put('/residents/{profile}', [StaffResidentDirectoryController::class, 'update'])->name('residents.update');
 
+        // Archiving and restoring.
+        //
+        // POST, not PUT, and not DELETE. Both actions write four columns on an
+        // account, and neither removes anything: there is no hard delete of a
+        // resident anywhere in this application, and a DELETE verb here would
+        // invite the first one.
+        //
+        // POST for both is also the honest shape for restore. Archive and restore
+        // are not two writes of one resource - they are two separate decisions
+        // with their own dialogs, their own audit entries and their own
+        // preconditions, and only one of them applies at a time. The restore route
+        // answers 409 on a household that is not archived, which is the same answer
+        // the archive route gives for one that already is, so neither can be reached
+        // by a replayed form.
+        Route::post('/residents/{profile}/archive', [StaffResidentDirectoryController::class, 'archive'])->name('residents.archive');
+        Route::post('/residents/{profile}/restore', [StaffResidentDirectoryController::class, 'restore'])->name('residents.restore');
+
         // Document requests.
         Route::get('/requests', [StaffDocumentReviewController::class, 'index'])->name('requests.index');
         Route::get('/requests/{documentRequest}', [StaffDocumentReviewController::class, 'show'])->name('requests.show');

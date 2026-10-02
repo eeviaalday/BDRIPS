@@ -5374,3 +5374,156 @@ Changed files, and only these:
 - `routes/web.php`, two additive staff routes
 - `ROLES.md`, `PROMPT_LOG.md`
 - `tests/Feature/StaffResidentEditTest.php`, new, and `tests/Feature/RolesMatrixTest.php`
+
+## Prompt #029
+
+### The brief
+
+A staff-only way to close a resident's account that is not a delete. A Secretary
+or the Captain can archive a household, the account stops working, and everything
+that made it a real household — the profile, the household number, the document
+requests, the relief rows, the audit history — survives and can be brought back.
+
+### What archiving is, precisely
+
+`users` gained `archived_at`, `archived_by`, `archive_reason` and `archive_note`.
+`User::isArchived()` is `archived_at !== null`. It is a state on the account, not a
+deleted row, which is the whole point: the household number stays spoken for, so
+nothing reissues it and a restore can refuse if a second profile has since taken
+it.
+
+`archive_reason` is a closed list of four — `Moved away`, `Deceased`, `Duplicate
+record`, `Other` — so "Moved away: 34" stays a report. `archive_note` is free text
+and optional. Both are enforced by `ArchiveResidentRequest`, and the four values
+come from the model so the dialog, the validation and the badge cannot disagree.
+
+### What it stops, and what it deliberately does not
+
+Sign-in is refused by `LoginRequest::authenticate()` with
+`User::ARCHIVED_LOGIN_MESSAGE`, and a session that was already open dies on the
+next request via `EnsureUserHasRole` — one place, reached by every role-guarded
+request, rather than a new global middleware. Archived households also leave the
+verification queue, the staff dashboard's pending figures, the navigation badges,
+the User Accounts default view, the resident directory's default view, and the
+Kagawad's lists and counts.
+
+Two things it deliberately leaves alone, both tested:
+
+- **`verification_status` is not touched.** A pending registration may be
+  archived, because a registration that should not have been filed is exactly what
+  archiving is for. A pending household leaves the verification queue while
+  archived and returns to it on restore.
+- **Open relief batches keep their rows.** Already-written distributions stay on
+  the batch they were written to, counted as before and labelled `Archived` with no
+  Mark control. Only the *next* batch leaves them off. Deleting the row instead
+  would destroy the record of who actually received relief.
+
+### The two guards that needed care
+
+**An open request blocks the archive; a pending registration does not.** `Submitted`,
+`Under review` and `Ready` all mean somebody is waiting on a decision about this
+household, so closing it mid-decision would be wrong. A pending verification is not
+that: nobody is waiting. The refusal names the blocking request and links to it,
+because a Secretary told "cannot be archived yet" and nothing else has to go
+looking.
+
+**The session payload cannot carry Eloquent models.** The refusal passed an array of
+models, which `assertSessionHas` then round-tripped through serialization and
+compared as unequal to the same models freshly loaded — a test failure that said
+nothing true. The payload is now plain scalar arrays: `url`, `reference_number`,
+`document`, `status` for a blocking request, `url` and `name` for a restore
+collision. The view needed no change beyond reading them.
+
+Archived households are also not editable by URL. The Edit control is gone from the
+list and the record, and `edit`/`update` refuse with 409 as well, so a bookmarked
+or guessed link cannot reach the form.
+
+### The login page had nowhere to put the message
+
+The browser check found the archive feature correct at every step and then found
+that the refusal never reached the person it was for. An archived resident typing
+the correct password was redirected back to `/login` and shown nothing.
+
+`resources/views/auth/login.blade.php` is a standalone document — its own inline
+stylesheet, the only view in the portal that does not go through the Vite bundle —
+and it rendered no `$errors` and no `session('error')` anywhere. The message was in
+the session the whole time; the page simply had nowhere to show it.
+
+This was **not** caused by the archive work, and the codebase already knew:
+`LoginPageAppearanceTest::test_a_failed_sign_in_is_not_shown_to_the_resident` was
+written as an explicit "KNOWN GAP, asserted so it cannot go unnoticed", ending with
+"If an error block is added, this test is the one to invert." A wrong password and
+an unknown address were equally silent — confirmed in the browser for all three
+cases before anything was changed.
+
+Editing a guest view is outside this task's scope, so it was put to the owner and
+approved as an exception. The fix is a `role="alert"` block above the fields with
+the reason, plus `aria-invalid` on the email, in the same red danger treatment as
+the staff `x-alert` (`red-50`/`red-200`/`red-900`, `text-sm`, `rounded-lg`) restated
+in the page's own stylesheet, with dark-mode variants alongside the tokens the page
+already flips. Contrast measured in the browser: **9.16:1** light, **6.93:1** dark.
+
+The known-gap test is inverted, as it asked to be, and its other half is now a
+positive test that a first visit carries no error markup at all. `session('status')`
+flashes — password reset, e-mail verification — are still not rendered. That gap is
+untouched and is not claimed as fixed.
+
+### Verification
+
+**Playwright, 375px and 1280px, 0 problems at both.** The full walkthrough at each
+width: archive is refused for Ana Dela Cruz with the blocking request named and
+linked; Juan Dela Pending archives with reason and note, the dialog's plain-English
+warnings are all present; the archived detail page offers Restore and no Archive;
+`GET /staff/residents/2/edit` returns 409; the archived row is out of the default
+directory and out of the verification queue, dimmed, badged `Archived`, offering
+Restore; the archived resident's sign-in is refused with the exact message in a live
+region with the field marked invalid; restore returns the household to the default
+directory and the verification queue; a live resident still signs in normally.
+
+**Tests.** `ResidentArchiveTest` 58 passed, 397 assertions. Full suite **1,410
+tests, 1,409 passed, 1 skipped, 12,065 assertions**. `vendor/bin/pint --test`
+passes. `npm run build` passes.
+
+One browser finding is reported rather than fixed: the resident directory overflows
+horizontally on a 375px screen (`scrollWidth=775`). It is the shared staff table
+component, off limits here, and it predates this task — the same behaviour was
+recorded in Prompt #028.
+
+**Scope audit, no violations.** `git diff --exit-code` over the resident, register
+and public views, layouts, components, errors, `resources/js`, `resources/css`, the
+Resident/Auth/Public/Kagawad controllers, `ResidentProfile`, `ReliefDistribution`,
+seeders, `public/images`, `public/fonts` and all manifests: clean apart from the
+four files listed below, each approved.
+
+Changed files, and only these:
+
+- `database/migrations/2026_10_02_190209_add_archive_columns_to_users_table.php`, new
+- `app/Models/User.php`, approved exception, archive state, scopes, reasons, message, actor
+- `app/Models/AuditLog.php`, approved exception, English archive/restore labels
+- `app/Http/Requests/Auth/LoginRequest.php`, approved exception, the refusal
+- `app/Http/Middleware/EnsureUserHasRole.php`, approved exception, live session termination
+- `app/Http/Requests/ArchiveResidentRequest.php`, new, reason and note
+- `app/Http/Controllers/Staff/ResidentDirectoryController.php`, filtering, refusals, archive/restore, the 409 guards
+- `app/Http/Controllers/Staff/AccountController.php`, `record` filter and archived presentation
+- `app/Http/Controllers/Staff/ResidentVerificationController.php`, archived out of the queue
+- `app/Http/Controllers/Staff/DashboardController.php`, archived out of the pending figures
+- `app/Http/Controllers/Staff/ReliefBatchController.php`, archived out of new batches
+- `app/Http/Controllers/Kagawad/ReliefController.php`, approved, existing archived checklist rows
+- `app/Support/NavigationBadges.php`, archived out of the counts
+- `app/Support/KagawadSectorResidents.php`, archived out of the Kagawad lists and counts
+- `routes/web.php`, `staff.residents.archive`, `staff.residents.restore`
+- `resources/views/staff/residents/index.blade.php`, filters, dialogs, row actions
+- `resources/views/staff/residents/show.blade.php`, controls, blocker links, metadata, history
+- `resources/views/staff/accounts/index.blade.php`, `record` filter
+- `resources/views/components/staff/status-badge.blade.php`, approved, one additive map key - it cannot alter any existing badge
+- `resources/views/kagawad/relief/show.blade.php`, approved, `Archived` label and the Mark control removed
+- `resources/views/auth/login.blade.php`, approved guest-view exception, the error block
+- `tests/Feature/ResidentArchiveTest.php`, new, 58 tests
+- `tests/Feature/LoginPageAppearanceTest.php`, the known-gap test inverted, plus its positive other half
+- `tests/Feature/RolesMatrixTest.php`, the two new routes
+- `ROLES.md`, `PROMPT_LOG.md`
+- `public/build/manifest.json` and `public/build/assets/app-55MMrL7P.css`, the rebuild
+
+**Dev data restored.** `users.id = 5` back to no date of birth, gender or civil
+status; `resident_profiles.id = 1` timestamp back; the archive migration left
+applied; one seeded audit row; no archived accounts; no leftover browser sessions.

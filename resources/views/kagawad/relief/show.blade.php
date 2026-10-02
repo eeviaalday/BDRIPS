@@ -252,6 +252,24 @@
                                     ? 'Collected by '.($collectedBy !== '' ? $collectedBy : 'the Kagawad')
                                         .($row->claimed_at ? ' · '.$row->claimed_at->format('j M, g:i a') : '')
                                     : 'Not collected yet';
+
+                                /*
+                                 * Archived household ON AN EXISTING CHECKLIST.
+                                 *
+                                 * The row is still here - it is the record that this
+                                 * household was on this batch - and it is still counted in
+                                 * the sector totals above, because removing it would move
+                                 * the number the office is reconciling against. What
+                                 * changes is that it is labelled and the Mark control is
+                                 * gone: a household that has left cannot be served, and a
+                                 * Kagawad standing at a doorway with a phone in one hand
+                                 * should not be offered an irreversible tick for an address
+                                 * that is not there.
+                                 *
+                                 * $archivedHouseholds is one query for the whole checklist,
+                                 * keyed by household number. See ReliefController::archivedHouseholds().
+                                 */
+                                $isArchived = isset($archivedHouseholds[$row->household_number]);
                             @endphp
                             <li class="px-5 py-4" x-cloak
                                 x-init="register(@js((string) $row->id), @js($row->status), @js($row->household_number), @js($collectedBy))"
@@ -273,10 +291,18 @@
                                     happens to be a tablet fix too.
                                 --}}
                                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                    <x-staff.person-cell :name="$row->household_number" :secondary="$collectedLabel"
+                                    <x-staff.person-cell :name="$row->household_number" :secondary="$isArchived ? 'Archived — this household has left' : $collectedLabel"
                                         mono class="min-w-0 flex-1" />
 
-                                    @if ($row->isReceived())
+                                    @if ($isArchived)
+                                        {{-- An archived row has no Mark control in any state.
+                                             Shown as a badge beside the household number whether
+                                             or not the goods were collected, because the row is
+                                             history either way. --}}
+                                        <div class="flex shrink-0 items-center gap-2">
+                                            <x-staff.status-badge status="archived" size="sm" />
+                                        </div>
+                                    @elseif ($row->isReceived())
                                         <div class="flex shrink-0 items-center gap-2">
                                             {{-- "Collected", not "Ready for pickup": a household
                                                  that has already signed for its goods is not

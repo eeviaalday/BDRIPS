@@ -219,6 +219,32 @@ class ReliefBatchController extends Controller
         $query = ResidentProfile::query()
             ->where('verification_status', ResidentProfile::VERIFICATION_VERIFIED);
 
+        /*
+         * ARCHIVED HOUSEHOLDS ARE NOT SEEDED ONTO A NEW BATCH
+         *
+         * A checklist row is an instruction to go to an address and hand over
+         * goods. An archived household has left, and sending a Kagawad to an
+         * address the office has closed wastes the whole trip for that row and
+         * leaves the batch permanently short of collected, because nobody can
+         * ever tick it off.
+         *
+         * THIS AFFECTS NEW ROWS ONLY. Rows already written on an OPEN batch are
+         * left exactly as they are, and that is deliberate rather than an
+         * oversight:
+         *
+         *  - The row is the record that this household was on this batch's list.
+         *    Removing it erases the fact that the batch was offered to them, and
+         *    a batch whose household list shrinks underneath it is a batch whose
+         *    totals move for a reason no document explains.
+         *  - The batch may already be part-served. Deleting a row mid-distribution
+         *    changes the household count a Kagawad is working to, which is the
+         *    number the office reconciles against.
+         *
+         * So an archived household that was on an open batch stays on it, marked
+         * Archived so nobody tries to serve it, and drops off the NEXT batch.
+         */
+        $query->whereHas('user', fn ($user) => $user->active());
+
         // An empty selection means every sector rather than no sectors: the
         // create form offers a multi-select with a "all sectors" default, and a
         // batch nobody chose a sector for should cover the barangay.

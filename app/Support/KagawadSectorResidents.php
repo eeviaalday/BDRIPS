@@ -154,7 +154,10 @@ final class KagawadSectorResidents
 
         $verified = fn (Builder $query): Builder => $query->where('verification_status', ResidentProfile::VERIFICATION_VERIFIED);
 
-        $residents = ResidentProfile::query()->whereIn('sector_id', $sectorIds)->count();
+        $residents = ResidentProfile::query()
+            ->whereIn('sector_id', $sectorIds)
+            ->where(self::notArchived())
+            ->count();
 
         $outstanding = 0;
 
@@ -168,9 +171,16 @@ final class KagawadSectorResidents
              * STATUS_PENDING rather than "not received", so a status nobody expected
              * is not silently counted as outstanding. The checklist only ever holds
              * these two, but a third value should read as neither.
+             *
+             * Archived households are excluded here for the same reason they are
+             * excluded from the list below, and it matters more here: this figure is
+             * a Kagawad's outstanding work, and an archived household cannot be
+             * visited or served. Counting one tells the Kagawad to chase a house
+             * that is not there any more.
              */
             $outstanding = ResidentProfile::query()
                 ->whereIn('sector_id', $sectorIds)
+                ->where(self::notArchived())
                 ->where($verified)
                 ->whereExists(self::checklistQuery($sectorIds, $batch)
                     ->where('relief_distributions.status', ReliefDistribution::STATUS_PENDING)
@@ -182,6 +192,28 @@ final class KagawadSectorResidents
         }
 
         return ['residents' => $residents, 'outstanding' => $outstanding];
+    }
+
+    /**
+     * The predicate that takes archived households out of this Kagawad's view.
+     *
+     * A whereHas on the user rather than a column on the profile, because the state
+     * lives on users (see the archive migration). Written once and used by the list
+     * and both counts so the page and its own numbers cannot disagree about who is
+     * missing - the same one-source argument NavigationBadges makes for the staff
+     * sidebar.
+     *
+     * There is deliberately NO way to show them. The residents directory offers an
+     * Archived filter for staff, but a Kagawad's list is a working list of people to
+     * visit this month; an archived household is not one, and a filter that could
+     * list them is a filter whose only use is showing a Kagawad an address the office
+     * has closed.
+     *
+     * @return \Closure(Builder<ResidentProfile>): Builder<ResidentProfile>
+     */
+    private static function notArchived(): \Closure
+    {
+        return fn (Builder $query): Builder => $query->whereHas('user', fn (Builder $user) => $user->active());
     }
 
     /**
@@ -202,8 +234,10 @@ final class KagawadSectorResidents
         $sectorFilter = $filters['sector_id'];
         $status = $filters['status'];
 
-        // The scope. Applied first, never removed.
-        $query = ResidentProfile::query()->whereIn('sector_id', $sectorIds);
+        // The scope. Applied first, never removed. The archived exclusion rides with it
+        // rather than being applied at the end, so it cannot be skipped by a filter
+        // branch and it is in the SQL of the one query this page costs.
+        $query = ResidentProfile::query()->whereIn('sector_id', $sectorIds)->where(self::notArchived());
 
         // The name lives on users, so the search has to reach through the relation.
         if ($search !== '') {

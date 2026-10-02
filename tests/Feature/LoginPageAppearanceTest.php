@@ -368,17 +368,20 @@ class LoginPageAppearanceTest extends TestCase
         $this->assertStringContainsString('value="staff@bdrpis.test"', $this->content());
     }
 
-    public function test_a_failed_sign_in_is_not_shown_to_the_resident(): void
+    public function test_a_failed_sign_in_is_explained_on_the_page(): void
     {
-        // KNOWN GAP, asserted so it cannot go unnoticed.
+        // The known gap this test used to pin down has been closed. The template
+        // as specified carried no error block, so a resident who signed in with
+        // the wrong password was returned to a form that looked exactly as they
+        // left it: no message, no highlighted field. The failure was recorded and
+        // the typed address kept, but nothing on the page said the sign-in had
+        // not worked. That mattered beyond a wrong password - it also swallowed
+        // the refusal given to a resident whose account has been archived, which
+        // is the one message that account has left to receive.
         //
-        // The template as specified carries no error block, so a resident who
-        // signs in with the wrong password is returned to a form that looks
-        // exactly as they left it: no message, no highlighted field. The failure
-        // is still recorded (the test above proves it) and the typed address is
-        // still kept, but nothing on the page says the sign-in did not work.
-        //
-        // If an error block is added, this test is the one to invert.
+        // The page states the reason in a live region, and marks the field so a
+        // screen reader announces the address as invalid rather than leaving the
+        // resident to hunt for what went wrong.
         User::factory()->secretary()->create(['email' => 'staff@bdrpis.test']);
 
         $this->from(route('login'))->post(route('login'), [
@@ -388,7 +391,19 @@ class LoginPageAppearanceTest extends TestCase
 
         $content = $this->content();
 
-        $this->assertStringNotContainsString('These credentials do not match our records', $content);
+        $this->assertStringContainsString(trans('auth.failed'), $content);
+        $this->assertStringContainsString('role="alert"', $content);
+        $this->assertStringContainsString('aria-invalid="true"', $content);
+    }
+
+    public function test_the_form_carries_no_error_markup_until_a_sign_in_is_refused(): void
+    {
+        // The other half of the pair above: the banner is for a refusal, not
+        // decoration. A first visit must look like an ordinary empty form.
+        $this->get(route('login'))->assertOk();
+
+        $content = $this->content();
+
         $this->assertStringNotContainsString('role="alert"', $content);
         $this->assertStringNotContainsString('aria-invalid', $content);
     }

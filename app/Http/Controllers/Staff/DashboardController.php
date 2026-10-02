@@ -60,8 +60,16 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = Carbon::now('Asia/Manila');
 
+        /*
+         * Pending verifications, excluding archived households - the same rule
+         * NavigationBadges applies, because this list and the "Pending
+         * verifications" card above it are read together and must agree about
+         * whose job it is. Archiving a pending registration decides it, so an
+         * archived one is not pending work.
+         */
         $pending = ResidentProfile::query()
             ->where('verification_status', ResidentProfile::VERIFICATION_PENDING)
+            ->whereHas('user', fn ($user) => $user->active())
             ->oldest('created_at')
             ->oldest('id');
 
@@ -169,6 +177,7 @@ class DashboardController extends Controller
     {
         $oldest = ResidentProfile::query()
             ->where('verification_status', ResidentProfile::VERIFICATION_PENDING)
+            ->whereHas('user', fn ($user) => $user->active())
             ->min('created_at');
 
         if ($oldest === null) {

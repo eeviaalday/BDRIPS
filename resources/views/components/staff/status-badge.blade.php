@@ -65,6 +65,13 @@
         // Accounts
         'restricted' => ['Restricted', 'bg-red-50 text-red-800 border-red-200', 'bg-red-500'],
 
+        // An archived household: closed but intact. Grey on purpose, and NOT the
+        // red of 'restricted' - red means something is wrong with this account
+        // right now, whereas an archive is a completed decision about a household
+        // that has left. Same argument as 'inactive' on a closed batch: a state
+        // that is over should not read as an alarm.
+        'archived' => ['Archived', 'bg-gray-100 text-gray-700 border-gray-300', 'bg-gray-500'],
+
         // A neutral chip for text that is a state rather than a status - the
         // action on an audit entry, for instance, which is always labelled from the
         // model and never picks a colour of its own.
