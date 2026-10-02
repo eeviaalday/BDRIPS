@@ -1,7 +1,8 @@
 @props([
     'status',
-    // Overrides the wording without inventing a state. The System Status page needs
-    // to say "3 pending" rather than "Pending" and is still reporting one state.
+    // Overrides the wording without inventing a state: a caller can say
+    // "3 pending" instead of "Pending" and the badge is still reporting one
+    // state, with the same colour and the same dot.
     'label' => null,
     'size' => 'md',
     // The leading dot. On by default because it is the second, non-colour cue that

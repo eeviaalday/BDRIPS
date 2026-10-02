@@ -224,8 +224,8 @@ class StaffComponentsTest extends TestCase
     }
 
     /**
-     * A label override changes the wording, not the colour - the System Status page
-     * reports "3 pending" and is still reporting one state.
+     * A label override changes the wording, not the colour: "3 pending" is still
+     * one state, with the same colour and the same dot.
      */
     #[Test]
     public function the_badge_accepts_a_label_without_inventing_a_state(): void

@@ -111,7 +111,6 @@ class RolesMatrixTest extends TestCase
         'staff.sectors.update' => 'admin',
         'staff.settings.index' => 'admin',
         'staff.settings.update' => 'admin',
-        'staff.status.index' => 'admin',
     ];
 
     /**

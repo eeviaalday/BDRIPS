@@ -92,7 +92,6 @@ final class RoleNavigation
                 ['route' => 'staff.sectors.index', 'label' => 'Sectors & Kagawad', 'icon' => 'folder', 'group' => 'admin'],
                 ['route' => 'staff.settings.index', 'label' => 'Settings', 'icon' => 'settings', 'group' => 'admin'],
                 ['route' => 'staff.audit.index', 'label' => 'Audit Logs', 'icon' => 'shield-check', 'group' => 'admin'],
-                ['route' => 'staff.status.index', 'label' => 'System Status', 'icon' => 'chart', 'group' => 'admin'],
                 $account,
             ],
 

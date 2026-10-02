@@ -74,7 +74,6 @@ class RoleNavigationTest extends TestCase
                 'staff.sectors.index',
                 'staff.settings.index',
                 'staff.audit.index',
-                'staff.status.index',
                 'account.edit',
             ],
             array_slice($admin, 6),
@@ -112,7 +111,6 @@ class RoleNavigationTest extends TestCase
             'sectors and kagawad' => ['staff.sectors.index', 'Sectors & Kagawad'],
             'settings' => ['staff.settings.index', 'Settings'],
             'audit logs' => ['staff.audit.index', 'Audit Logs'],
-            'system status' => ['staff.status.index', 'System Status'],
         ];
     }
 

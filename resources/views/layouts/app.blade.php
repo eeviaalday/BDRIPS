@@ -22,10 +22,18 @@
                 ->implode('');
         @endphp
 
-        <div class="flex min-h-screen">
-            @include('layouts.navigation')
+{{--
+    The document is the scroller, and the sidebar is `fixed`. The `md:pl-64` is the
+    main column's half of that contract: it clears the fixed aside so the two never
+    overlap, and it is deliberately absent below md, where the aside is hidden and
+    the phone bottom bar does this job instead. The `flex` wrapper is gone with it -
+    with the sidebar out of flow there is only one column left, and keeping a flex
+    row would imply a sibling that is no longer in the document.
+--}}
+<div>
+@include('layouts.navigation')
 
-            <div class="flex-1 flex flex-col min-w-0">
+<div class="flex flex-col min-w-0 md:pl-64">
                 <!-- Topbar -->
                 <header class="bg-white shadow-sm border-b border-gray-200">
                     <div class="flex items-center justify-between gap-4 px-6 py-3">

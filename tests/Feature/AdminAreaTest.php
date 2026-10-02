@@ -38,7 +38,6 @@ class AdminAreaTest extends TestCase
             ['staff.sectors.index'],
             ['staff.settings.index'],
             ['staff.audit.index'],
-            ['staff.status.index'],
         ];
     }
 
@@ -640,42 +639,6 @@ class AdminAreaTest extends TestCase
             $log,
             'The search term matched an entry outside the action filter.'
         );
-    }
-
-    // ---------------------------------------------------------------------
-    // System status
-    // ---------------------------------------------------------------------
-
-    /**
-     * A status page that echoed a credential would be a worse problem than the
-     * one it diagnoses, so the rendered page is checked for the actual values.
-     */
-    #[Test]
-    public function the_status_page_does_not_show_a_credential(): void
-    {
-        config(['database.connections.mysql.password' => 'super-secret-value']);
-
-        $content = $this->actingAs($this->admin())
-            ->get(route('staff.status.index'))
-            ->assertOk()
-            ->getContent();
-
-        $this->assertStringNotContainsString('super-secret-value', $content);
-    }
-
-    #[Test]
-    public function the_status_page_reports_the_database_and_the_row_counts(): void
-    {
-        Setting::factory()->withKey('barangay_name', 'Barangay Linasin')->create();
-        Setting::factory()->withKey('office_phone', '0966')->create();
-
-        $content = $this->actingAs($this->admin())
-            ->get(route('staff.status.index'))
-            ->assertOk()
-            ->getContent();
-
-        $this->assertStringContainsString('Connected', $content);
-        $this->assertStringContainsString(basename(config('database.connections.mysql.database')), $content);
     }
 
     // ---------------------------------------------------------------------

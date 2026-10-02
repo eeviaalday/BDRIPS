@@ -78,7 +78,6 @@ from navigation.
 | Settings | `staff.settings.index` | GET `/staff/settings` | Allowed | Denied | Denied | Denied | Denied |
 | — save | `staff.settings.update` | PUT `/staff/settings` | Allowed | Denied | Denied | Denied | Denied |
 | Audit Logs | `staff.audit.index` | GET `/staff/audit` | Allowed | Denied | Denied | Denied | Denied |
-| System Status | `staff.status.index` | GET `/staff/status` | Allowed | Denied | Denied | Denied | Denied |
 
 ### 1.3 Kagawad area — `role:kagawad`
 
@@ -117,7 +116,6 @@ from navigation.
 | Sectors & Kagawad | **`admin`** | yes | — | — |
 | Settings | **`admin`** | yes | — | — |
 | Audit Logs | **`admin`** | yes | — | — |
-| System Status | **`admin`** | yes | — | — |
 | My Account | `account` | yes | yes | yes |
 
 Resident: no sidebar at all — the public top bar (`RoleNavigation::residentBar()`).
@@ -305,7 +303,6 @@ Layouts: `app` = `x-app-layout` (`layouts/app.blade.php`), staff-only.
 | `staff.sectors.index` | `staff/sectors/index.blade.php` | `Staff\SectorController` | app | `max-w-5xl` | alert, breadcrumb, btn, card, confirm-dialog | yes | no | no |
 | `staff.settings.index` | `staff/settings/index.blade.php` | `Staff\SettingController` | app | `max-w-3xl` | alert, breadcrumb, btn, card | yes | no | no |
 | `staff.audit.index` | `staff/audit/index.blade.php` | `Staff\AuditLogController` | app | `max-w-6xl` | breadcrumb, btn, data-table | yes | via table | `paginate(25)` + `links()` |
-| `staff.status.index` | `staff/status/index.blade.php` | `Staff\SystemStatusController` | app | `max-w-4xl` | breadcrumb, card, status-badge | yes | no | no |
 | `kagawad.dashboard` | `kagawad/dashboard.blade.php` | `Kagawad\DashboardController` | app | `max-w-5xl` | alert, stat-card | no | no | no |
 | `kagawad.relief` | `kagawad/relief/index.blade.php` | `Kagawad\ReliefController` | app | `max-w-5xl` | alert, breadcrumb, card, data-table, status-badge | yes | via table | `paginate(10)` + `links()` |
 | `kagawad.relief.show` | `kagawad/relief/show.blade.php` | `Kagawad\ReliefController` | app | `max-w-5xl` | alert, breadcrumb, btn, card, stat-card, status-badge | yes | no | no |
@@ -425,6 +422,10 @@ scrolls out of view and the user loses navigation. Only the inner `<nav>` scroll
 Confirmed — see M1/M2. Five Admin destinations (User Accounts, Sectors & Kagawad, Settings, Audit
 Logs, System Status) render under a hard-coded `My Account` heading, and the `group => 'admin'`
 metadata that would separate them is discarded in `RoleNavigation::availableSidebarGroupsFor()`.
+
+> **Now four.** System Status has since been removed, so the finding stands with
+> User Accounts, Sectors & Kagawad, Settings and Audit Logs. The cause is unchanged
+> and the fix is still one decision rather than four patches — see §8.5.
 
 ### F6 — "Still being built" notices are stale · **Stale copy** · Medium
 

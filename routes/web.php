@@ -19,7 +19,6 @@ use App\Http\Controllers\Staff\ResidentDirectoryController as StaffResidentDirec
 use App\Http\Controllers\Staff\ResidentVerificationController as StaffResidentVerificationController;
 use App\Http\Controllers\Staff\SectorController as StaffSectorController;
 use App\Http\Controllers\Staff\SettingController as StaffSettingController;
-use App\Http\Controllers\Staff\SystemStatusController as StaffSystemStatusController;
 use App\Http\Controllers\TransparencyController;
 use App\Models\DocumentRequest;
 use Illuminate\Support\Facades\Route;
@@ -322,9 +321,6 @@ Route::middleware(['auth', 'verified', 'role:admin', 'no-store-authenticated'])
         Route::get('/settings', [StaffSettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [StaffSettingController::class, 'update'])->name('settings.update');
         Route::get('/audit', [StaffAuditLogController::class, 'index'])->name('audit.index');
-
-        // System status.
-        Route::get('/status', [StaffSystemStatusController::class, 'index'])->name('status.index');
     });
 
 require __DIR__.'/auth.php';

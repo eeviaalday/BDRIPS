@@ -80,7 +80,7 @@ Permissions are specified in **[ROLES.md](ROLES.md)** — that file is the sourc
 truth, not this one. In short:
 
 - **Admin** — the Barangay Captain. Everything a Secretary can do, plus User
-  Accounts, Sectors & Kagawad, Settings, Audit Logs and System Status.
+  Accounts, Sectors & Kagawad, Settings and Audit Logs.
 - **Secretary** — Resident Verification, Residents, Document Requests, Relief
   Distribution, Announcements. Owns announcements outright, including deleting them.
 - **Kagawad** — their own sectors only: the relief checklist, and a read-only list

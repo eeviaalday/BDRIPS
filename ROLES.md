@@ -19,8 +19,9 @@ implements them or a note on how well it does.
 ### 1. Admin is the Barangay Captain
 
 **Admin IS the Barangay Captain.** An Admin may do everything a Secretary can do,
-plus the Admin-only pages: User Accounts, Sectors & Kagawad, Settings, Audit Logs
-and System Status.
+plus the Admin-only pages: User Accounts, Sectors & Kagawad, Settings and Audit
+Logs. *(System Status was a fifth and has been removed — see
+[Removed](#removed-system-status).)*
 
 The code matches this exactly. The staff routes are declared as
 `role:admin,secretary` for the shared operational pages and `role:admin` for the
@@ -197,7 +198,7 @@ The nine announcement routes are a Secretary's to operate in full, **including
 and unverify residents, which follows from Resident Verification being a
 Secretary page.
 
-### Staff, Admin only — `role:admin` (14 routes)
+### Staff, Admin only — `role:admin` (13 routes)
 
 | Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
 |---|---|---|---|---|---|---|---|
@@ -214,10 +215,9 @@ Secretary page.
 | `staff.settings.index` | GET | `/staff/settings` | Allowed | **Denied** | Denied | Denied | Denied |
 | `staff.settings.update` | PUT | `/staff/settings` | Allowed | **Denied** | Denied | Denied | Denied |
 | `staff.audit.index` | GET | `/staff/audit` | Allowed | **Denied** | Denied | Denied | Denied |
-| `staff.status.index` | GET | `/staff/status` | Allowed | **Denied** | Denied | Denied | Denied |
 
-This is the Captain's boundary, and the five Admin-only screens are exactly the
-five a Secretary cannot open. **Only the Captain can change another person's role,
+This is the Captain's boundary, and the four Admin-only screens are exactly the
+four a Secretary cannot open. **Only the Captain can change another person's role,
 restrict anyone, or touch a sector** — which is decision 1, and it is why a
 Secretary who receives a new Kagawad hands them to the Captain to assign.
 
@@ -357,12 +357,12 @@ only here. That is fine, but it means the two are not symmetric.
 From `App\Support\RoleNavigation::sidebarFor()`. Every role's list ends with
 **My Account**, which is the one entry they all share.
 
-- **Admin** — 11 entries. The six a Secretary sees (Dashboard, Resident
+- **Admin** — 10 entries. The six a Secretary sees (Dashboard, Resident
   Verification, Residents, Document Requests, Relief Distribution, Announcements)
-  plus **five** in the admin group: **User Accounts**, **Sectors & Kagawad**,
-  **Settings**, **Audit Logs**, **System Status**, then My Account. The five
-  admin-group entries are exactly the five `role:admin` screens, so the menu, the
-  middleware and decision 1 all agree.
+  plus **four** in the admin group: **User Accounts**, **Sectors & Kagawad**,
+  **Settings**, **Audit Logs**, then My Account. The four admin-group entries are
+  exactly the four `role:admin` screens, so the menu, the middleware and decision 1
+  all agree.
 - **Secretary** — 7 entries, no admin group: the six above plus My Account. All
   announcement capabilities, including delete, are reachable from here.
 - **Kagawad** — 4 entries, still the shortest list: Dashboard, Relief
@@ -390,7 +390,33 @@ is reachable by every role.
 
 ---
 
-## Intended
+## Removed
+
+### System Status
+
+`staff.status.index` (`GET /staff/status`) has been **removed**, along with
+`Staff\SystemStatusController`, `staff/status/index.blade.php` and
+`App\Support\SystemHealth`. The sidebar entry, the phone-bottom-bar entry and the
+Admin dashboard's System-health card went with it, so the Captain's admin-only
+pages are four: User Accounts, Sectors & Kagawad, Settings, Audit Logs.
+
+There is no longer a route, a controller, a view or a nav item for it, and the
+`role:admin` group is now 13 routes rather than 14. `RolesMatrixTest` no longer
+lists it, and `RoleNavigationTest` pins an Admin at 10 entries.
+
+**Why it went:** the page's most prominent finding was the `APP_DEBUG` flag,
+printed on a screen the Captain did not need to read, and a page whose main job was
+to report on the system was one more thing to keep current. It also echoed a
+warning that belongs in a deployment checklist instead.
+
+> **This is a deployment note, not a page.** With the System Status page gone,
+> **nothing in the running application shows whether `APP_DEBUG` is on.**
+> `APP_DEBUG=true` in production is a real risk — it renders stack traces and
+> environment values to whoever triggers an error — so it must be set to `false`
+> before the first production deploy, and checked there. There is no longer a
+> screen in the product that will tell you.
+
+---
 
 Behaviour that looks like a permission mistake on a first read, and is not. These
 are settled by the [Owner decisions](#owner-decisions) above and are listed so the

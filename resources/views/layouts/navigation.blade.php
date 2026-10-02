@@ -26,35 +26,54 @@
         ->implode('');
 
     /*
-     * "Still to collect" beside Relief Distribution, for a Kagawad only.
+     * The count badges, keyed by route name.
      *
      * Deliberately not in RoleNavigation: that file is the permission model and is
-     * meant to be one list of PHP that a test can read, and a figure that needs a
-     * database query is not a permission. It is drawn here instead, and only for
-     * the one role whose whole job is the number.
+     * meant to be one list of PHP that a test can read without a database, and a
+     * figure that needs a query is not a permission. The counts live in
+     * App\Support\NavigationBadges, which is also where the two dashboards read
+     * theirs, so a badge and the card beside it cannot disagree.
      *
-     * The count is scoped exactly as the checklist is - to this Kagawad's sectors,
-     * never barangay-wide - because a badge is read without being asked for, and a
-     * badge showing 40 would tell a Kagawad the size of a neighbouring purok's
-     * list just by opening the page.
-     *
-     * One indexed COUNT(*), and only when the viewer is a Kagawad: Secretary and
-     * Admin pay nothing for it.
+     * forUser() memoises, so the three places that draw a badge - the sidebar, the
+     * phone bar, and whatever asks next - cost one set of queries per request and
+     * not one each.
      */
-    $pendingRelief = $user->isKagawad()
-        ? App\Models\ReliefDistribution::query()
-            ->forSectors($user->assignedSectorIds())
-            ->where('status', App\Models\ReliefDistribution::STATUS_PENDING)
-            ->count()
-        : null;
-
-    // Which nav entries carry a badge, keyed by route so the link list itself
-    // stays untouched.
-    $badges = $pendingRelief === null || $pendingRelief < 1 ? [] : ['kagawad.relief' => $pendingRelief];
+    $badges = App\Support\NavigationBadges::forUser($user);
 @endphp
 
-<aside class="w-64 bg-navy text-white flex-shrink-0 min-h-screen hidden md:flex flex-col">
-    <div class="px-6 py-5 border-b border-white/10">
+{{--
+    THE SIDEBAR IS FIXED, NOT STICKY.
+
+    F4 in docs/STAFF_UI_AUDIT.md: the aside was `min-h-screen` inside a
+    `flex min-h-screen` wrapper, so it was `position: static` and travelled with the
+    document. On any page taller than the viewport - and most of them are - a reader
+    who scrolled down had lost the navigation entirely, and the only thing left
+    scrolling inside it (`overflow-y-auto` on the nav) was useless once the aside
+    itself had left the screen.
+
+    `fixed inset-y-0` pins it to the viewport for the whole scroll. `h-[100dvh]`
+    is the belt to that braces: dvh is the dynamic viewport unit, so the sidebar
+    matches the visible area on a phone with a collapsing browser chrome rather
+    than the taller lvh and leaving a gap.
+
+    The three children are then the whole design:
+      - the logo block takes its natural height and never moves;
+      - the nav is `flex-1 min-h-0 overflow-y-auto`, so an Admin's ten
+        destinations scroll INSIDE the sidebar and the logo and user block stay put;
+      - the user block takes its natural height and never moves.
+
+    `min-h-0` on the nav is load-bearing, not decoration: a flex child defaults to
+    `min-height: auto`, which refuses to shrink below its content and pushes the
+    user block out of the viewport instead of letting the nav scroll.
+
+    The document is the scroller. The main column takes a matching `md:pl-64` in
+    layouts/app, so the two never overlap and only the content moves.
+
+    Mobile and tablet are untouched: this aside is `hidden md:flex`, and the phone
+    bottom bar further down this file is a separate, in-flow element.
+--}}
+<aside class="fixed inset-y-0 left-0 z-30 flex h-[100dvh] w-64 flex-col bg-navy text-white hidden md:flex">
+    <div class="shrink-0 px-6 py-5 border-b border-white/10">
         <a href="{{ route('home') }}" class="flex items-center gap-3">
             <img src="{{ asset('images/Zone 1_logo.png') }}" alt="Barangay Linasin Seal"
                 class="w-10 h-10 rounded-full ring-2 ring-sky-400/60 object-cover flex-shrink-0" />
@@ -65,20 +84,30 @@
         </a>
     </div>
 
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Portal">
+    {{-- flex-1 + min-h-0 + overflow-y-auto: an Admin's ten destinations scroll
+         inside the sidebar while the logo above and the user block below stay
+         put. See the note on the <aside> for why min-h-0 is not optional. --}}
+    <nav class="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-1" aria-label="Portal">
         @foreach ($groups['main'] as $link)
             <a href="{{ route($link['route']) }}"
                 @if (App\Support\RoleNavigation::isCurrent($link)) aria-current="page" @endif
                 class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition
                     {{ App\Support\RoleNavigation::isCurrent($link) ? 'bg-sky-400 text-navy font-semibold' : 'text-sky-100 hover:bg-white/10 hover:text-white' }}">
                 <x-icon :name="$link['icon']" class="w-5 h-5 flex-shrink-0" />
-                {{ $link['label'] }}
+                <span class="min-w-0 truncate">{{ $link['label'] }}</span>
                 @if (isset($badges[$link['route']]))
-                    {{-- aria-label, because "0" alone read out loud is not a
-                         sentence, and the visible number is already the message. --}}
-                    <span class="ml-auto inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-gold px-1.5 py-0.5 text-2xs font-bold text-navy-900"
-                        aria-label="{{ $badges[$link['route']] }} still to collect">
-                        {{ $badges[$link['route']] }}
+                    {{--
+                        aria-label, because a bare "3" read out loud is not a
+                        sentence, and the visible number is only a cue for a
+                        sighted reader. The label says what the number is of.
+
+                        aria-hidden on the number itself: without it a screen reader
+                        would announce the label and then the digit again.
+                    --}}
+                    <span class="ml-auto inline-flex min-w-[1.5rem] flex-shrink-0 items-center justify-center rounded-full bg-gold px-1.5 py-0.5 text-2xs font-bold tabular-nums text-navy-900"
+                        title="{{ $badges[$link['route']]['label'] }}"
+                        aria-label="{{ $badges[$link['route']]['label'] }}">
+                        <span aria-hidden="true">{{ App\Support\NavigationBadges::display($badges[$link['route']]['count']) }}</span>
                     </span>
                 @endif
             </a>
@@ -92,15 +121,30 @@
                         @if (App\Support\RoleNavigation::isCurrent($link)) aria-current="page" @endif
                         class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition
                             {{ App\Support\RoleNavigation::isCurrent($link) ? 'bg-sky-400 text-navy font-semibold' : 'text-sky-100 hover:bg-white/10 hover:text-white' }}">
+                        {{-- My Account is never a to-do queue, so nothing here is
+                             badged. The Captain's four are: this loop draws both,
+                             because availableSidebarGroupsFor() buckets everything
+                             that is not 'main' into one group - see F5 in the audit,
+                             which is why the Captain's links sit under a heading
+                             that says My Account. The badge is drawn from
+                             $badges by route name, so it appears only where a
+                             figure exists and My Account is simply skipped. --}}
                         <x-icon :name="$link['icon']" class="w-5 h-5 flex-shrink-0" />
-                        {{ $link['label'] }}
+                        <span class="min-w-0 truncate">{{ $link['label'] }}</span>
+                        @if (isset($badges[$link['route']]))
+                            <span class="ml-auto inline-flex min-w-[1.5rem] flex-shrink-0 items-center justify-center rounded-full bg-gold px-1.5 py-0.5 text-2xs font-bold tabular-nums text-navy-900"
+                                title="{{ $badges[$link['route']]['label'] }}"
+                                aria-label="{{ $badges[$link['route']]['label'] }}">
+                                <span aria-hidden="true">{{ App\Support\NavigationBadges::display($badges[$link['route']]['count']) }}</span>
+                            </span>
+                        @endif
                     </a>
                 @endforeach
             </div>
         @endif
     </nav>
 
-    <div class="px-6 py-4 border-t border-white/10 text-sm">
+    <div class="shrink-0 px-6 py-4 border-t border-white/10 text-sm">
         <div class="flex items-center gap-2.5">
             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy-900 flex-shrink-0"
                 aria-hidden="true">{{ $initials }}</span>
@@ -134,6 +178,12 @@
     exists for one role - would mean either a duplicated link list or a conditional
     around the shared shell. Nothing is added to any role's list; the links are the
     ones that role already had.
+
+    THERE IS NO MOBILE DRAWER, and adding one is not on the table. The choice above
+    was a bottom bar rather than a hamburger, so the two navigation surfaces in
+    this file - this bar below md, the sidebar from md up - are the whole of it.
+    Both draw the same badges from the same $badges, so a reader gets the same
+    figures on a phone as on a desktop.
 --}}
 @php
     $mobileLinks = array_merge($groups['main'], $groups['account']);
@@ -152,9 +202,19 @@
                         <x-icon :name="$link['icon']" class="h-5 w-5 flex-shrink-0" />
                         <span class="text-2xs font-semibold leading-tight">{{ $link['label'] }}</span>
                         @if (isset($badges[$link['route']]))
-                            <span class="absolute right-1/2 top-1 translate-x-5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-gold px-1 py-px text-2xs font-bold text-navy-900"
-                                aria-label="{{ $badges[$link['route']] }} still to collect">
-                                {{ $badges[$link['route']] }}
+                            {{--
+                                A pill on the icon rather than under the label: the
+                                label is already two lines on a narrow phone and a
+                                third would push the tap target around.
+
+                                Same aria-label as the desktop badge and for the same
+                                reason, with the number itself aria-hidden so it is
+                                not announced twice.
+                            --}}
+                            <span class="absolute right-1/2 top-1 translate-x-5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-gold px-1 py-px text-2xs font-bold tabular-nums text-navy-900"
+                                title="{{ $badges[$link['route']]['label'] }}"
+                                aria-label="{{ $badges[$link['route']]['label'] }}">
+                                <span aria-hidden="true">{{ App\Support\NavigationBadges::display($badges[$link['route']]['count']) }}</span>
                             </span>
                         @endif
                     </a>

@@ -10,7 +10,7 @@ use App\Models\ReliefDistribution;
 use App\Models\ResidentProfile;
 use App\Models\Sector;
 use App\Models\User;
-use App\Support\SystemHealth;
+use App\Support\NavigationBadges;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -48,15 +48,13 @@ use Illuminate\View\View;
  *    user.residentProfile and sector, and a list of five would otherwise be
  *    fifteen queries.
  *
- * The Admin strip is built only when the viewer is an Admin, and the strip's
- * three cards are exactly the three Admin-only read routes the sidebar already
- * exposes: /staff/status, /staff/audit and /staff/accounts. Nothing on it
- * performs an action a Secretary could not, because a Secretary never sees it.
+ * The Admin strip is built only when the viewer is an Admin, and every card on
+ * it links to an Admin-only read route the sidebar already exposes:
+ * /staff/audit, /staff/accounts, /staff/sectors and /staff/settings. Nothing on
+ * it performs an action a Secretary could not, because a Secretary never sees it.
  */
 class DashboardController extends Controller
 {
-    public function __construct(private readonly SystemHealth $health) {}
-
     public function __invoke(Request $request): View
     {
         $user = $request->user();
@@ -92,8 +90,10 @@ class DashboardController extends Controller
             'today' => $today->format('l, j F Y'),
 
             // Stat row
-            'pendingVerifications' => (clone $pending)->count(),
-            'awaitingDecision' => (clone $awaiting)->count(),
+            // One source for the sidebar badge and this card, so the two cannot
+            // drift apart the way two copies of a count eventually do.
+            'pendingVerifications' => NavigationBadges::forUser($user)['staff.verifications.index']['count'] ?? 0,
+            'awaitingDecision' => NavigationBadges::forUser($user)['staff.requests.index']['count'] ?? 0,
             'readyForPickup' => (clone $ready)->count(),
             'activeBatches' => ReliefBatch::query()->active()->count(),
             'oldestPendingDays' => $this->oldestPendingDays($today),
@@ -120,7 +120,6 @@ class DashboardController extends Controller
 
             // Admin-only strip
             'isAdmin' => $user->role === User::ROLE_ADMIN,
-            'health' => $user->role === User::ROLE_ADMIN ? $this->health->summary() : null,
             // No eager-load: audit_logs keeps user_name on the row precisely so
             // the activity list can be read without a join back to users.
             'recentAudit' => $user->role === User::ROLE_ADMIN

@@ -45,7 +45,6 @@ class AdminOnlyPagesTest extends TestCase
             'sectors and kagawad' => ['staff.sectors.index'],
             'settings' => ['staff.settings.index'],
             'audit logs' => ['staff.audit.index'],
-            'system status' => ['staff.status.index'],
         ];
     }
 
@@ -121,11 +120,14 @@ class AdminOnlyPagesTest extends TestCase
             fn ($route) => str_starts_with($route->uri(), 'staff/')
                 && in_array($route->getName(), [
                     'staff.accounts.index', 'staff.sectors.index', 'staff.settings.index',
-                    'staff.audit.index', 'staff.status.index',
+                    'staff.audit.index',
                 ], true)
         );
 
-        $this->assertCount(5, $routes, 'One of the five admin pages has no route.');
+        // Four, not five: the fifth was the System Status page, which has been
+        // removed. Asserted as a count so a route silently disappearing is a
+        // failure here rather than a quiet reduction in coverage.
+        $this->assertCount(4, $routes, 'One of the four admin pages has no route.');
 
         foreach ($routes as $route) {
             $middleware = $route->gatherMiddleware();
@@ -586,31 +588,6 @@ class AdminOnlyPagesTest extends TestCase
         }
     }
 
-    #[Test]
-    public function the_last_checked_time_is_rendered_to_the_second(): void
-    {
-        $response = $this->actingAs($this->admin())->get(route('staff.status.index'));
-
-        $response->assertOk();
-
-        // The format, not equality of times: two requests a few hundred ms apart
-        // can legitimately share a second, and the point of seconds is that a
-        // reader can tell one reading from the next - not that the test can win a
-        // race against the clock.
-        $this->assertMatchesRegularExpression(
-            '/Last checked\s*<span[^>]*>\s*\d{1,2} [A-Z][a-z]{2} \d{4}, \d{1,2}:\d{2}:\d{2} [ap]m\s*<\/span>/',
-            $response->getContent(),
-            'The Last checked line does not carry seconds.'
-        );
-
-        // Manila, so the line is unambiguous rather than a server-local guess.
-        $this->assertSame(
-            'Asia/Manila',
-            (string) $response->viewData('checkedAt')?->timezone?->getName(),
-            'Last checked is not on the Asia/Manila clock.'
-        );
-    }
-
     // ---------------------------------------------------------------- audit
 
     #[Test]
@@ -695,73 +672,10 @@ class AdminOnlyPagesTest extends TestCase
         $this->assertStringNotContainsString('_method" value="DELETE"', $html);
     }
 
-    // -------------------------------------------------------------- status
-
-    #[Test]
-    public function the_status_page_leads_with_a_verdict(): void
-    {
-        $html = $this->actingAs($this->admin())->get(route('staff.status.index'))->getContent();
-
-        $this->assertMatchesRegularExpression('/All checks passing|\d+ items? to review/', $html);
-        $this->assertStringContainsString('Last checked', $html);
-        $this->assertStringContainsString('Re-check', $html);
-    }
-
-    #[Test]
-    public function four_checks_sit_in_the_two_column_grid_and_configuration_keys_below_it(): void
-    {
-        // Renamed from "a grid of five named cards", which asserted heading
-        // presence and therefore described a layout the page does not have:
-        // Configuration keys is deliberately a full-width card under the grid, not
-        // a fifth cell in it. The assertion below is by DOM membership rather than
-        // by heading text, so it fails if a check ever leaves the grid - which the
-        // old version could not have detected, since all five headings were on the
-        // page either way.
-        $xpath = $this->dom($this->actingAs($this->admin())->get(route('staff.status.index'))->getContent());
-
-        $grid = $xpath->query('//div[contains(@class,"md:grid-cols-2")][section]')->item(0);
-        $this->assertInstanceOf(DOMElement::class, $grid, 'The two-column check grid is gone.');
-
-        foreach (['Database', 'Private storage', 'Migrations', 'Environment'] as $name) {
-            $anchor = $xpath->query('.//h2[normalize-space(text())="'.$name.'"]', $grid)->item(0);
-            $this->assertInstanceOf(
-                DOMElement::class,
-                $anchor,
-                "The [{$name}] check is not inside the two-column grid."
-            );
-        }
-
-        // Four in the grid, and no fifth.
-        $this->assertSame(4, $xpath->query('.//section', $grid)->length, 'The grid holds a different number of checks.');
-
-        // And Configuration keys is outside the grid, as a full-width card.
-        $keys = $xpath->query('//h2[normalize-space(text())="Configuration keys"]')->item(0);
-        $this->assertInstanceOf(DOMElement::class, $keys, 'The Configuration keys card is gone.');
-        $this->assertSame(0, $xpath->query('ancestor::div[contains(@class,"md:grid-cols-2")][section]', $keys)->length, 'Configuration keys is inside the check grid, which it was not meant to be.');
-    }
-
-    #[Test]
-    public function the_status_page_shows_no_configuration_value(): void
-    {
-        // A syntactically valid key, so nothing tries to decrypt with it and the
-        // failure is about the page rather than about the encrypter.
-        config()->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
-        config()->set('database.connections.mysql.password', 'hunter2-never-print-me');
-
-        $html = $this->actingAs($this->admin())->get(route('staff.status.index'))->getContent();
-
-        $this->assertStringNotContainsString(str_repeat('k', 32), $html);
-        $this->assertStringNotContainsString('hunter2-never-print-me', $html);
-
-        // The keys themselves are listed, set or not set.
-        $this->assertStringContainsString('APP_KEY', $html);
-        $this->assertStringContainsString('DB_PASSWORD', $html);
-    }
-
     // -------------------------------------------------- F: the admin strip
 
     #[Test]
-    public function the_admin_strip_links_to_all_five_admin_pages(): void
+    public function the_admin_strip_links_to_all_four_admin_pages(): void
     {
         $this->sectors(2);
         AuditLog::factory()->count(2)->create();
@@ -771,16 +685,20 @@ class AdminOnlyPagesTest extends TestCase
         $xpath = $this->dom($html);
 
         /*
-         * All five, and the name now says so.
+         * All four, and the name says so.
          *
          * This test was called the_admin_strip_links_to_the_five_admin_pages while
          * asserting three, so Sectors & Kagawad and Settings were reachable only by
          * typing a URL or from the sidebar, and the suite was green over the gap.
+         * It then said five while the strip had five cards, one of which linked to
+         * the System Status page. That page has been removed, so the fifth card and
+         * this assertion both went with it - the name is corrected rather than left
+         * claiming a count the page no longer has.
+         *
          * The routes are asserted by name, and the strip's own anchors are counted,
-         * so a sixth card or a dropped link both fail rather than passing quietly.
+         * so a fifth card or a dropped link both fail rather than passing quietly.
          */
         foreach ([
-            'staff.status.index',
             'staff.audit.index',
             'staff.accounts.index',
             'staff.sectors.index',
@@ -790,7 +708,7 @@ class AdminOnlyPagesTest extends TestCase
         }
 
         $strip = $xpath->query('//section[@aria-labelledby="admin-strip"]//a');
-        $this->assertSame(5, $strip->length, 'The admin strip does not have one card per admin page.');
+        $this->assertSame(4, $strip->length, 'The admin strip does not have one card per admin page.');
 
         // The strip reports; it never posts. Every link is a GET destination.
         foreach ($strip as $link) {
@@ -807,7 +725,11 @@ class AdminOnlyPagesTest extends TestCase
             ->getContent();
 
         $this->assertStringNotContainsString('For admins', $html);
-        $this->assertStringNotContainsString(route('staff.status.index'), $html);
+
+        // And no Admin-only destination leaks through the dashboard. /staff/audit is
+        // the one the strip used to link besides the removed status page, so it is
+        // the one worth naming.
+        $this->assertStringNotContainsString(route('staff.audit.index'), $html);
     }
 
     // ------------------------------------------------ Alpine attribute traps

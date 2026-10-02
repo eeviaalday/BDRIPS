@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ReliefBatch;
 use App\Models\ReliefDistribution;
 use App\Support\KagawadSectorResidents;
+use App\Support\NavigationBadges;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -101,7 +102,11 @@ class DashboardController extends Controller
             'sectorIds' => $sectorIds,
             'sectors' => $user->reliefKagawadSectors,
             'activeBatches' => ReliefBatch::query()->active()->count(),
-            'pendingCount' => (clone $distributions)->where('status', ReliefDistribution::STATUS_PENDING)->count(),
+            // The same figure the sidebar badge shows, from the same source, so the
+            // card and the badge cannot disagree. See NavigationBadges::forKagawad -
+            // it is also scoped to ACTIVE batches, which this inline count was not:
+            // a pending row on a closed batch is history, not outstanding work.
+            'pendingCount' => NavigationBadges::forUser($user)['kagawad.relief']['count'] ?? 0,
             'receivedCount' => (clone $distributions)->where('status', ReliefDistribution::STATUS_RECEIVED)->count(),
             'activeDistributions' => $activeDistributions,
             'sectorResidentCounts' => $sectorResidentCounts,

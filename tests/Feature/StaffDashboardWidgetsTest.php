@@ -328,11 +328,11 @@ class StaffDashboardWidgetsTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('For admins');
-        $response->assertDontSee('System health');
         $response->assertDontSee('Recent activity');
         $response->assertDontSee(route('staff.audit.index'), escape: false);
         $response->assertDontSee(route('staff.accounts.index'), escape: false);
-        $response->assertDontSee(route('staff.status.index'), escape: false);
+        $response->assertDontSee(route('staff.sectors.index'), escape: false);
+        $response->assertDontSee(route('staff.settings.index'), escape: false);
     }
 
     #[Test]
@@ -345,12 +345,33 @@ class StaffDashboardWidgetsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('For admins');
-        $response->assertSee('System health');
         $response->assertSee('Recent activity');
         $response->assertSee('Accounts');
-        $response->assertSee(route('staff.status.index'), escape: false);
         $response->assertSee(route('staff.audit.index'), escape: false);
         $response->assertSee(route('staff.accounts.index'), escape: false);
+        $response->assertSee(route('staff.sectors.index'), escape: false);
+        $response->assertSee(route('staff.settings.index'), escape: false);
+
+        // The strip is four cards. The fifth used to be System health, linking to
+        // the removed System Status page.
+        //
+        // Counted inside the strip's own markup, NOT the whole document: every one
+        // of these routes also appears in the sidebar and the phone bottom bar, so
+        // counting the page as a whole gives 12 for four cards - a number that
+        // would have "passed" any count of 4x the truth.
+        $html = $response->getContent();
+
+        $this->assertSame(
+            1,
+            preg_match('#<section[^>]*aria-labelledby="admin-strip".*?</section>#s', $html, $strip),
+            'The admin strip section is gone.'
+        );
+
+        $this->assertSame(
+            4,
+            preg_match_all('#<a [^>]*href="#', $strip[0]),
+            'The admin strip should have exactly four cards.'
+        );
     }
 
     #[Test]
@@ -365,21 +386,6 @@ class StaffDashboardWidgetsTest extends TestCase
         $response->assertSee('Relief right now');
         $response->assertSee('Quick actions');
         $response->assertSee('For admins');
-    }
-
-    #[Test]
-    public function the_health_verdict_reports_a_problem_when_a_check_fails(): void
-    {
-        // The storage check is the one that can be made to fail without touching
-        // the database: point the local disk at a path that cannot be written.
-        config()->set('filesystems.disks.local', ['driver' => 'local', 'root' => '/proc/nonexistent-bdrpis']);
-
-        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
-
-        $response = $this->actingAs($admin)->get(route('staff.dashboard'));
-
-        $response->assertOk();
-        $response->assertSee('item to review', escape: false);
     }
 
     #[Test]

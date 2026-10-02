@@ -45,7 +45,6 @@ class StaffLayoutDocumentTitleTest extends TestCase
             'sectors' => ['staff.sectors.index', 'Sectors & Kagawad', 'admin'],
             'settings' => ['staff.settings.index', 'Settings', 'admin'],
             'audit' => ['staff.audit.index', 'Audit Logs', 'admin'],
-            'status' => ['staff.status.index', 'System Status', 'admin'],
             'kagawad dashboard' => ['kagawad.dashboard', 'Dashboard', 'kagawad'],
             'kagawad relief' => ['kagawad.relief', 'Relief Distribution', 'kagawad'],
             'kagawad residents' => ['kagawad.residents.index', 'My Sector Residents', 'kagawad'],

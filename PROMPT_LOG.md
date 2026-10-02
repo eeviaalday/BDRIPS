@@ -4549,3 +4549,152 @@ resident/public diff guards print nothing. **Browser: 400/400, 0 console errors.
   one has to be made in the other in the same commit, or the suite fails.
 - **I did not fix the four deferred findings.** They were not asked for, and three
   of them change markup the owner may want to shape differently.
+
+## Prompt #024
+
+**Date:** 2026-10-02
+**Time:** 16:40
+**Category:** Feature / Fix / Docs
+**Affected Module:** Staff shell, System Status removal, sidebar badges
+**Status:** Completed
+
+### Task 1 — the sidebar stays put
+
+F4 from the audit, deferred twice, now fixed. The `<aside>` was `min-h-screen`
+inside a `flex min-h-screen` wrapper, so it was `position: static` and travelled
+with the document: on any page taller than the viewport a reader who scrolled down
+had lost the navigation entirely.
+
+It is now `fixed inset-y-0 left-0 z-30 h-[100dvh]`, with the logo block and the
+user block as `shrink-0` children and the nav as `flex-1 min-h-0 overflow-y-auto`,
+so an Admin's ten destinations scroll *inside* the sidebar. `min-h-0` is the part
+that is easy to leave out: a flex child defaults to `min-height: auto`, which
+refuses to shrink and pushes the user block off screen instead of scrolling the
+nav. The main column took a matching `md:pl-64` and the `flex` wrapper is gone —
+with the sidebar out of flow there is only one column, and a flex row would imply a
+sibling that is no longer in the document. Mobile is untouched: the aside is
+`hidden md:flex` and the phone bar is a separate in-flow element.
+
+Browser-verified as Admin and as Kagawad on the four longest pages
+(`/staff/batches/create`, `/staff/announcements/create`, `/account`, `/staff/sectors`)
+at 1280x720 and 1920x1080: after scrolling to the bottom the aside reports
+`top=0` and `bottom=innerHeight` at every size, the logo and user block stay put, and
+every nav item has a box — no empty dark column. At 1280x500 the nav scrolls
+internally (`clientHeight=350`, `scrollHeight=578`, `scrollTop` 0 to 228) while the
+user block stays at `top=431` and the aside at `top=0`. 99/99 checks, no console
+errors.
+
+### Task 2 — System Status removed completely
+
+Gone: the route, `Staff\SystemStatusController`, `staff/status/index.blade.php`,
+the sidebar entry, the phone-bar entry, and the Admin dashboard's System-health
+card. `App\Support\SystemHealth` went with them — it existed only for that page and
+the dashboard card, and once both were gone nothing referenced it.
+
+`SystemHealth::summary()` ran four checks, one of which read `APP_DEBUG` and
+rendered it on a page the Captain did not need to read.
+
+> ### APP_DEBUG must be false before production
+>
+> **With this page removed, nothing in the running application reports whether
+> `APP_DEBUG` is on.** It used to be the first thing on `/staff/status`, with a
+> severity icon. `APP_DEBUG=true` in production renders stack traces and
+> environment values to whoever triggers an error, so it must be set to `false` in
+> the production environment and checked there. There is no longer a screen in the
+> product that will tell you, which is a deployment check rather than a UI feature
+> and belongs in the deploy checklist.
+
+Proof it is gone, by grep over `app/ resources/ routes/ tests/ database/ config/`:
+
+| Term | Result |
+|---|---|
+| `SystemHealth` | no matches |
+| `SystemStatusController` | no matches |
+| `staff.status` / `staff/status` | no matches outside `x-staff.status-badge`, which is the badge component and unrelated |
+| `System Status` | four matches, all comments explaining the removal, plus the ROLES.md removal note |
+| the files | all three absent from disk; `/staff/status` matches no route |
+
+The Admin dashboard strip is now four cards and the grid is `xl:grid-cols-4`.
+`ROLES.md` gained a **Removed** section, the `role:admin` group is 13 routes, the
+Admin sidebar is 10 entries, and the README no longer claims a page that does not
+exist.
+
+**Exactly 14 test cases were removed**, measured with `phpunit --list-tests`
+against the previous revision of each file rather than inferred: AdminOnlyPagesTest
+-5, StaffLayoutDocumentTitleTest -3, AdminAreaTest -2, RoleNavigationTest -2,
+StaffDashboardWidgetsTest -1, RolesMatrixTest -1. Seven of those were whole test
+methods that existed only to test the status page; the rest were data-provider
+cases for `staff.status.index`.
+
+### Task 3 — count badges
+
+`App\Support\NavigationBadges` computes every figure in one place, and the two
+dashboards read their card numbers from it too, so a badge and the card beside it
+cannot drift. Three aggregate queries for an Admin, two for a Secretary, one for a
+Kagawad — a constant, not a per-row count.
+
+| Destination | Badge |
+|---|---|
+| Resident Verification | profiles pending verification |
+| Document Requests | requests awaiting a decision |
+| Sectors & Kagawad (Admin) | sectors with no Kagawad |
+| Relief Distribution (Kagawad) | own-sector households still to collect, across **active** batches only |
+| everything else | none |
+
+Zero is hidden rather than shown, the display caps at `99+`, and each badge carries
+an `aria-label` sentence ("3 pending verifications") with the number itself
+`aria-hidden` so a screen reader is not told it twice.
+
+**A Kagawad's count is scoped through `forSectors()`, always.** Verified in the
+browser against a fixture with 2 outstanding in the Kagawad's own sector and 5 in
+another: the badge reads **2**, and the other sector's name and totals appear
+nowhere in the page source. An unassigned Kagawad gets no badge at all rather than
+a zero.
+
+Three things worth recording.
+
+- **The admin-group links render in the second nav loop.** `availableSidebarGroupsFor()`
+  folds everything that is not `main` into one bucket (F5/M1/M2), so the Captain's
+  four links — including Sectors & Kagawad — are drawn by the loop I had assumed
+  was My Account. The first version badged only the `main` loop and the Sectors
+  badge silently did not appear for an Admin.
+- **The memo was leaking across requests.** The first version keyed the memo by
+  user id alone, which survives across requests inside one PHP process. That is
+  invisible under FPM and it made `KagawadSectorResidentsTest`'s query-count test
+  read a *second* request as two queries cheaper than the first. The memo is now
+  scoped to the `Request` instance, so it is once-per-request for real.
+- **"Across active batches" is a behaviour change to the Kagawad dashboard card.**
+  "Still to collect" used to count pending rows on closed batches too, i.e.
+  outstanding work on a handout that officially ended. The card and the badge now
+  both come from the shared source and both exclude closed batches.
+
+`bdrpis_testing` carries 17 sector rows committed outside any test, so
+`RefreshDatabase` does not start from an empty schema. The badge tests empty the
+counted tables themselves rather than depending on a clean database; two of them
+read figures that were wrong for that reason before being fixed.
+
+### There is no mobile drawer
+
+The brief asked for badges "in the mobile drawer". There is no drawer: the phone
+navigation was built as "a bottom bar rather than a hamburger" and says so in its
+own comment. The two surfaces in `layouts/navigation.blade.php` — the bar below
+`md`, the sidebar from `md` up — are the whole of it, and both draw the same
+badges from the same array. No drawer was invented to satisfy the wording.
+
+### Verification
+
+**Tests: 1175 pass** (1174 passed + 1 skipped by owner decision), 7603 assertions.
+Net: 1176 before, 14 removed, 13 badge tests added. Pint clean. Build committed —
+the CSS hash moved from `app-BGfC7CYp` to `app-B5fCFYS1` because the fixed layout
+introduced `h-[100dvh]`, `min-h-0` and `md:pl-64`. Both resident/public diff
+guards print nothing. **Browser: 99/99 for the sidebar, 61/61 for the badges, no
+console errors in either.**
+
+### Notes / Follow-up
+
+- **F5 is now more visible, not less.** The Captain's four links sit under a
+  heading that says "My Account", and one of them carries the only Captain badge.
+  It was always wrong; there is now a number on it.
+- **The dev database was re-seeded.** The badge fixtures replaced the demo sectors,
+  residents, requests and batches, so `migrate:fresh --seed` was run to put it
+  back. The documented demo accounts are intact.

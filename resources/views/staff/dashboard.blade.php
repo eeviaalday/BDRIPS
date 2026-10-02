@@ -13,7 +13,8 @@
 
     The Admin strip is the only part of this page a Secretary does not get, and
     the only links on it point at the three Admin-only read routes
-    (/staff/status, /staff/audit, /staff/accounts). It reports; it never acts.
+    (/staff/audit, /staff/accounts, /staff/sectors, /staff/settings). It reports;
+    it never acts.
     Everything above it is identical for both roles, because the queues a
     Secretary and an Admin clear are the same queues.
 --}}
@@ -270,22 +271,23 @@
         {{--
             ADMIN ONLY.
 
-            Every route linked here sits behind role:admin, so this strip shows an
-            Admin five places they can already reach and it performs nothing. A
-            Secretary never sees it, which is what keeps the Admin-only pages from
-            leaking through a dashboard card.
+Every route linked here sits behind role:admin, so this strip shows an
+Admin four places they can already reach and it performs nothing. A
+Secretary never sees it, which is what keeps the Admin-only pages from
+leaking through a dashboard card.
 
-            All FIVE, deliberately. This strip started as three cards and a test
-            named the_admin_strip_links_to_the_five_admin_pages while asserting
-            three - so Sectors & Kagawad and Settings were reachable only by
-            typing a URL or via the sidebar, and the test passed while the gap was
-            there. The grid below is five across on xl and three from lg, so a
-            fifth card wraps rather than squeezing the four beside it.
+All FOUR, deliberately. This strip started as three cards and a test
+named the_admin_strip_links_to_the_five_admin_pages while asserting
+three - so Sectors & Kagawad and Settings were reachable only by
+typing a URL or via the sidebar, and the test passed while the gap was
+there.
 
-            The health verdict comes from SystemHealth, the same object the System
-            Status page renders, so the two can never disagree about whether the
-            system is well.
-        --}}
+The fifth card was System health, linking to the System Status page. That
+page has been removed: it read the APP_DEBUG flag out loud on a screen
+the Captain does not need, and a page whose main job was to report on
+itself was one more thing to keep current. The grid is four across on xl
+and two from md, which fits four cards without a fifth wrapping.
+--}}
         @if ($isAdmin)
             <section aria-labelledby="admin-strip"
                 class="space-y-4 rounded-xl border border-navy-200 bg-navy-50/60 p-5">
@@ -294,26 +296,7 @@
                     <h2 id="admin-strip" class="text-sm font-bold text-navy-900">For admins</h2>
                 </div>
 
-                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                    {{-- Health. --}}
-                    <a href="{{ route('staff.status.index') }}"
-                        class="rounded-lg border border-navy-100 bg-white p-4 transition hover:border-navy-200 hover:shadow-card">
-                        <div class="flex items-center gap-2">
-                            @php
-                                // Green or amber from the check itself, never chosen
-                                // here, so the dashboard cannot disagree with the
-                                // status page about which is which.
-                                $ok = $health['ok'];
-                            @endphp
-                            <span class="h-2 w-2 shrink-0 rounded-full {{ $ok ? 'bg-green-500' : 'bg-amber-500' }}"></span>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-navy-500">System health</p>
-                        </div>
-                        <p class="mt-2 text-sm font-bold {{ $ok ? 'text-green-700' : 'text-amber-700' }}">
-                            {{ $health['label'] }}
-                        </p>
-                        <p class="mt-1 text-xs leading-relaxed text-navy-500">{{ $health['detail'] }}</p>
-                    </a>
-
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {{-- Audit tail. --}}
                     <a href="{{ route('staff.audit.index') }}"
                         class="rounded-lg border border-navy-100 bg-white p-4 transition hover:border-navy-200 hover:shadow-card">

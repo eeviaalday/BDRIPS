@@ -506,9 +506,9 @@ class KagawadFieldAreaTest extends TestCase
 
         $this->assertStringContainsString('still to collect', $html);
         // Mine is 2, theirs is 4, barangay-wide is 6. The badge must read 2.
-        $this->assertMatchesRegularExpression('/aria-label="2 still to collect"/', $html);
-        $this->assertStringNotContainsString('4 still to collect', $html);
-        $this->assertStringNotContainsString('6 still to collect', $html);
+        $this->assertMatchesRegularExpression('/aria-label="2 households still to collect"/', $html);
+        $this->assertStringNotContainsString('4 households still to collect', $html);
+        $this->assertStringNotContainsString('6 households still to collect', $html);
     }
 
     #[Test]
@@ -527,12 +527,21 @@ class KagawadFieldAreaTest extends TestCase
     }
 
     #[Test]
-    public function a_secretary_pays_nothing_for_the_badge(): void
+    public function a_secretary_is_not_offered_the_kagawad_relief_badge(): void
     {
         $secretary = User::factory()->secretary()->create();
 
+        // A pending household in a real sector, so the figure EXISTS and the badge is
+        // still absent. Without the data this would pass on an empty queue and prove
+        // nothing about the role.
+        $sector = Sector::factory()->create();
+        $batch = ReliefBatch::factory()->create();
+        ReliefDistribution::factory()->forBatch($batch)->forSector($sector)->create();
+
         $html = $this->actingAs($secretary)->get(route('staff.dashboard'))->getContent();
 
+        // Relief Distribution is not a Secretary to-do, and in any case it is not in
+        // their list at all - the label must not appear anywhere in the document.
         $this->assertStringNotContainsString('still to collect', $html);
     }
 
