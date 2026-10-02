@@ -308,12 +308,18 @@
                                                      reveals the confirm. As a submit button it posted
                                                      the form on the first tap, which made the confirm
                                                      unreachable and turned an irreversible record
-                                                     into a single unconfirmed click. --}}
-                                                <x-btn type="button" variant="navy" size="lg" icon="check"
+                                                     into a single unconfirmed click.
+
+                                                     size="lg" is 44x44, not the 36 the staff
+                                                     tables use. This is the one control in the
+                                                     application that is used on a phone, one
+                                                     handed, by someone standing at a doorway —
+                                                     and it is the only irreversible one there. --}}
+                                                <x-staff.icon-action icon="check" size="lg" type="button"
+                                                    label="Mark {{ $row->household_number }} collected"
                                                     x-on:click="confirming = true"
-                                                    x-show="! confirming" class="min-h-[44px] w-full lg:w-auto">
-                                                    Mark collected
-                                                </x-btn>
+                                                    x-show="! confirming"
+                                                    class="w-full lg:w-auto" />
 
                                                 <span x-show="confirming" x-cloak class="flex items-center gap-2">
                                                     <x-btn type="submit" variant="primary" size="lg" class="min-h-[44px]">

@@ -24,15 +24,34 @@ use Illuminate\View\View;
 class ResidentVerificationController extends Controller
 {
     /**
-     * The queue, oldest submission first.
+     * Every profile, with the ones waiting on this Secretary first.
      *
      * Search covers the three things a Secretary would be given: a name, a
-     * household number, and a sector.
+     * household number, and a national ID.
+     *
+     * DEFAULT IS "All", NOT "Pending review".
+     *
+     * The default used to be VERIFICATION_PENDING, which meant the page opened on
+     * a queue rather than a list: a profile this Secretary had already verified,
+     * or rejected last week, was not on the page at all, and nothing said so. A
+     * filter that hides records by default is indistinguishable from a page that
+     * has lost them. So `?status=` with nothing after it means every status, and
+     * the select carries an "All" option to say so.
+     *
+     * Ordering replaces what the default used to do. The old query was
+     * oldest-first, which was right for a queue where everything was pending and
+     * the Secretary was working down it. With every status on the page at once,
+     * oldest-first buries the work: the profiles that need a decision are under
+     * rows that are already closed. So the pending ones come first, oldest first
+     * among themselves so the queue keeps its order, then everything else newest
+     * first.
      */
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
-        $status = (string) $request->query('status', ResidentProfile::VERIFICATION_PENDING);
+        $status = (string) $request->query('status', '');
+
+        $states = ResidentProfile::verificationStates();
 
         $query = ResidentProfile::query()
             ->with(['user', 'sector'])
@@ -48,16 +67,21 @@ class ResidentVerificationController extends Controller
                 });
             })
             ->when(
-                in_array($status, array_keys(ResidentProfile::verificationStates()), true),
+                in_array($status, array_keys($states), true),
                 fn ($profiles) => $profiles->where('verification_status', $status)
             )
-            ->oldest('created_at');
+            ->orderByRaw(
+                'case when verification_status = ? then 0 else 1 end',
+                [ResidentProfile::VERIFICATION_PENDING]
+            )
+            ->oldest('created_at')
+            ->latest('id');
 
         return view('staff.verifications.index', [
             'profiles' => $query->paginate(15)->withQueryString(),
             'search' => $search,
             'status' => $status,
-            'states' => ResidentProfile::verificationStates(),
+            'states' => $states,
             'pendingCount' => ResidentProfile::query()
                 ->where('verification_status', ResidentProfile::VERIFICATION_PENDING)
                 ->count(),

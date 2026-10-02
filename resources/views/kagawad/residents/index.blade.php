@@ -75,9 +75,13 @@
                     icon="clock" />
             </x-staff.stat-row>
 
-            <x-staff.filter-bar :action="route('kagawad.residents.index')"
-                :has-filters="$search !== '' || $sectorId !== null || $status !== ''"
-                :clear-href="route('kagawad.residents.index')">
+        <x-staff.filter-bar :action="route('kagawad.residents.index')"
+            {{-- $batch is in has-filters, unlike before. A Kagawad who picks a past
+                 batch from the list is narrowing the page and was given no way back:
+                 the Clear link did not appear, and the batch is not a value the
+                 reader can see changed without scrolling back to the select. --}}
+            :has-filters="$search !== '' || $sectorId !== null || $status !== '' || $batch !== null"
+            :clear-href="route('kagawad.residents.index')">
                 <x-staff.filter-field name="q" label="Search" :value="$search"
                     placeholder="Name or household number" />
 

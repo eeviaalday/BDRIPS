@@ -101,17 +101,40 @@ class StaffComponentsTest extends TestCase
     }
 
     #[Test]
-    public function the_table_applies_a_column_alignment_to_the_header(): void
+    public function the_table_left_aligns_every_header_whatever_a_column_asks_for(): void
     {
+        /*
+         * The `align` column key is gone, and this is the test that replaces the one
+         * which used to pin it.
+         *
+         * It passed an 'align' => 'right' column and asserted text-right on the
+         * <th>, so it looked like the component had a working alignment prop. It
+         * did - and the shared x-data-table it was built beside does not, because
+         * that one reads a "class" key. So the same key was honoured in one
+         * component and silently ignored in the other, which is how a numeric column
+         * came out right-aligned on some tables and not on others while both looked
+         * correct in isolation.
+         *
+         * Rather than assert the key is ignored, this passes it and requires the
+         * header to be left anyway. A right-aligned column is now something a view
+         * cannot ask for at all, so the mistake cannot come back quietly.
+         */
         $html = $this->renderSomething('staff.table', [
             'columns' => [['label' => 'Households', 'align' => 'right']],
-        ], '<tr><td class="text-right">3</td></tr>');
+        ], '<tr><td class="tabular-nums">3</td></tr>');
 
         $headers = $this->nodes($html, '//thead//th');
 
         $this->assertNotEmpty($headers, 'No header rendered.');
 
-        $this->assertStringContainsString('text-right', $headers[0]->getAttribute('class'));
+        foreach ($headers as $header) {
+            $this->assertStringContainsString('text-left', $header->getAttribute('class'));
+            $this->assertStringNotContainsString(
+                'text-right',
+                $header->getAttribute('class'),
+                'A header is right-aligned, so a column can still opt out of left.'
+            );
+        }
     }
 
     #[Test]
@@ -278,29 +301,53 @@ class StaffComponentsTest extends TestCase
     }
 
     #[Test]
-    public function the_person_cell_renders_a_real_link_when_given_a_destination(): void
+    public function the_person_cell_is_plain_text_and_never_a_link(): void
     {
-        $html = $this->renderSomething('staff.person-cell', ['name' => 'Ana Bautista', 'href' => '/staff/residents/1']);
-
-        $this->assertStringContainsString('<a href="/staff/residents/1"', $html);
-    }
-
-    #[Test]
-    public function the_person_cell_has_no_link_without_a_destination(): void
-    {
+        /*
+         * The name is no longer a link, and the props that made it one are gone.
+         *
+         * The cell used to take an `href` and a `chevron`, and a <tr> around it was
+         * clickable as well. That gave one record three ways in and no single one of
+         * them named the record: the <tr> was not focusable, the chevron was
+         * aria-hidden, and the link's text was the same string as the cell it sat in.
+         *
+         * A row is now opened by one control in the Actions column whose accessible
+         * name says which record it opens. So this asserts the absence: there is no
+         * way to make a person cell a link any more.
+         */
         $html = $this->renderSomething('staff.person-cell', ['name' => 'Ana Bautista']);
 
-        $this->assertSame(0, $this->xpath($html)->query('//a')->length, 'It invented a link.');
+        $this->assertStringContainsString('Ana Bautista', $html);
+        $this->assertStringNotContainsString('<a href', $html, 'A person cell must not render a link.');
+
+        // And the props are gone, so a caller passing them gets them ignored rather
+        // than silently reintroducing a second way into the row.
+        $withHref = $this->renderSomething('staff.person-cell', ['name' => 'Ana', 'href' => '/x']);
+
+        // A stale caller passing href: it is no longer a declared prop, so it lands
+        // on the wrapper span as an inert attribute. A span with an href is not a
+        // link, does not focus, and does not navigate - which is the point. The
+        // assertion is on the absence of an anchor rather than on the absence of
+        // the string, because a span carrying href is ugly but harmless, and
+        // pretending otherwise would be asserting on a string rather than on
+        // behaviour.
+        $this->assertStringNotContainsString('<a ', $withHref, 'A person cell must not render an anchor.');
+        $this->assertStringNotContainsString('ml-auto', $withHref, 'The chevron is gone.');
     }
 
     #[Test]
-    public function the_person_cell_renders_a_chevron_only_when_asked(): void
+    public function the_person_cell_still_renders_initials_and_the_second_line(): void
     {
-        $without = $this->renderSomething('staff.person-cell', ['name' => 'Ana', 'href' => '/x']);
-        $with = $this->renderSomething('staff.person-cell', ['name' => 'Ana', 'href' => '/x', 'chevron' => true]);
+        // The part that did not change, kept so the simplification above cannot
+        // quietly take the initials or the secondary line with it.
+        $html = $this->renderSomething('staff.person-cell', [
+            'name' => 'Ana Bautista', 'secondary' => 'ana@example.test', 'mono' => true,
+        ]);
 
-        $this->assertStringNotContainsString('ml-auto', $without);
-        $this->assertStringContainsString('ml-auto', $with);
+        $this->assertStringContainsString('aria-hidden="true"', $html, 'The initials must stay decorative.');
+        $this->assertStringContainsString('AB', $html);
+        $this->assertStringContainsString('ana@example.test', $html);
+        $this->assertStringContainsString('font-mono', $html);
     }
 
     // ---------------------------------------------------------------------

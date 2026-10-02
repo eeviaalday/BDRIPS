@@ -118,7 +118,7 @@
                 ['label' => 'Role'],
                 ['label' => 'Verification'],
                 ['label' => 'Status'],
-                ['label' => 'Actions', 'align' => 'right'],
+                ['label' => 'Actions'],
             ]"
             caption="User accounts"
             empty-title="No accounts match these filters"
@@ -127,16 +127,14 @@
             empty-action-label="Clear filters"
             :empty-action-href="route('staff.accounts.index')">
             @foreach ($users as $account)
-                <tr @class(['opacity-70' => $account->isRestricted()])
-                    x-on:click="openRow($event, @js(route('staff.accounts.show', $account)))">
+                <tr @class(['opacity-70' => $account->isRestricted()])>
                     <th scope="row">
                         {{-- Email for every role, deliberately. It is the one
                              identifier all four roles share; showing a household
                              number for residents instead would hide the address a
                              staff member most often needs to match against a
                              paper list. The household number is on the detail page. --}}
-                        <x-staff.person-cell :name="$account->name" :secondary="$account->email"
-                            :href="route('staff.accounts.show', $account)" chevron />
+                        <x-staff.person-cell :name="$account->name" :secondary="$account->email" />
                     </th>
                     <td class="text-sm text-slate-600">{{ \App\Models\User::roleLabel($account->role) }}</td>
                     <td>
@@ -153,11 +151,15 @@
                         <x-staff.status-badge :status="$account->isRestricted() ? 'restricted' : 'active'" size="sm" />
                     </td>
                     <td>
-                        <div class="flex flex-wrap items-center justify-end gap-1.5">
+                        <div class="flex flex-wrap items-center gap-1">
+                            <x-staff.icon-action icon="eye" label="View {{ $account->name }}"
+                                :href="route('staff.accounts.show', $account)" />
+
                             @if ($account->isRestricted())
                                 <form method="POST" action="{{ route('staff.accounts.unrestrict', $account) }}">
                                     @csrf
-                                    <x-btn type="submit" variant="outline" size="sm" icon="check">Lift restriction</x-btn>
+                                    <x-staff.icon-action icon="check" type="submit"
+                                        label="Lift restriction on {{ $account->name }}" />
                                 </form>
                             @endif
                         </div>

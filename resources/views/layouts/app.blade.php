@@ -5,7 +5,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ $title ?? 'BDRPIS' }} - BDRPIS</title>
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        {{--
+            The staff shell, and the only page in the application that asks for the
+            Font Awesome stylesheet.
+
+            staff-icons.css is listed second so the icons layer comes after app.css
+            and can override a Tailwind utility if the two ever disagree about a
+            glyph's size. It is a separate Vite entry rather than an @import inside
+            app.css precisely so that it can be listed here and nowhere else:
+            layouts/public.blade.php and layouts/guest.blade.php keep their original
+            two-entry call and never load a webfont.
+        --}}
+        @vite(['resources/css/app.css', 'resources/css/staff-icons.css', 'resources/js/app.js'])
     </head>
     <body class="bg-gray-50 text-gray-800 font-sans antialiased">
         @php

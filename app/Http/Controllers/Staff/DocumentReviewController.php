@@ -22,12 +22,35 @@ use Illuminate\View\View;
 class DocumentReviewController extends Controller
 {
     /**
-     * The queue: requests still waiting on a decision, oldest first.
+     * Every request, with the ones waiting on a decision first.
+     *
+     * DEFAULT IS "Everything", NOT "Awaiting a decision".
+     *
+     * The default used to be 'queue', which meant the page opened on a worklist
+     * rather than a list: anything already approved, collected or rejected was
+     * simply absent, and nothing on the page said that. A filter that hides
+     * records by default cannot be told apart from a page that has lost them, so
+     * the empty parameter now means every status and the select says "Everything".
+     *
+     * Two other things were wrong here and are fixed with it.
+     *
+     * The old 'all' SENTINEL is gone. There was both an `all => Everything` option
+     * and a default of 'queue', so "show everything" was reachable two different
+     * ways and a bookmark of one did not mean the other. The empty parameter is
+     * now the only way to say everything.
+     *
+     * And the sort was self-contradicting: `awaitingDecision()` appends its own
+     * oldest('created_at'), which then sat ahead of the outer latest() in the
+     * ORDER BY, so the default view sorted oldest-first and every other filter
+     * sorted newest-first. Ordering is now stated once, in one place.
      */
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
-        $status = (string) $request->query('status', 'queue');
+        $status = (string) $request->query('status', '');
+
+        // The two statuses that make up the queue, for the ordering and the count.
+        $awaiting = [DocumentRequest::STATUS_SUBMITTED, DocumentRequest::STATUS_UNDER_REVIEW];
 
         $query = DocumentRequest::query()
             ->with(['user', 'documentType'])
@@ -39,20 +62,23 @@ class DocumentReviewController extends Controller
                             ->where('household_number', 'like', "%{$search}%"));
                 });
             })
-            ->when(
-                $status === 'queue',
-                fn ($requests) => $requests->awaitingDecision(),
-                fn ($requests) => $status === 'all'
-                    ? $requests
-                    : $requests->where('status', $status)
+            ->when($status === 'queue', fn ($requests) => $requests->whereIn('status', $awaiting))
+            ->when($status !== '' && $status !== 'queue', fn ($requests) => $requests->where('status', $status))
+            // Awaiting a decision first, then newest first. `awaitingDecision()` is
+            // deliberately NOT used for the ordering: it carries its own
+            // oldest('created_at'), which is what produced two contradictory sorts.
+            ->orderByRaw(
+                'case when status in (?, ?) then 0 else 1 end',
+                $awaiting
             )
-            ->latest();
+            ->latest('created_at')
+            ->latest('id');
 
         return view('staff.requests.index', [
             'requests' => $query->paginate(15)->withQueryString(),
             'search' => $search,
             'status' => $status,
-            'awaitingCount' => DocumentRequest::query()->awaitingDecision()->count(),
+            'awaitingCount' => DocumentRequest::query()->whereIn('status', $awaiting)->count(),
             'readyCount' => DocumentRequest::query()
                 ->where('status', DocumentRequest::STATUS_READY)
                 ->count(),

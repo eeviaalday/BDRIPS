@@ -74,7 +74,10 @@ class ResidentController extends Controller
         $batch = $this->resolveBatch($batches, $request->integer('batch_id') ?: null);
 
         $filters = [
-            'q' => (string) $request->query('q', ''),
+            // trim(), because KagawadSectorResidents trims before testing, so an
+            // untrimmed 'q' of "  " would pass the view's "filters are active" test
+            // and offer a Clear link, while the query applied no search at all.
+            'q' => trim((string) $request->query('q', '')),
             'sector_id' => $this->resolveSectorFilter($sectorIds, $request),
             'status' => $this->resolveStatus($request),
         ];

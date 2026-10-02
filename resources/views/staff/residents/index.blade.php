@@ -33,6 +33,7 @@
                 ['label' => 'Sector'],
                 ['label' => 'Verification'],
                 ['label' => 'Registered'],
+                ['label' => 'Actions'],
             ]"
             caption="Resident directory"
             :empty-title="$search !== '' || $sectorId !== null ? 'No residents match these filters' : 'No residents yet'"
@@ -43,15 +44,19 @@
             :empty-action-label="$search !== '' || $sectorId !== null ? 'Clear filters' : null"
             :empty-action-href="$search !== '' || $sectorId !== null ? route('staff.residents.index') : null">
             @foreach ($profiles as $profile)
-                <tr x-on:click="openRow($event, @js(route('staff.residents.show', $profile)))">
+                <tr>
                     <th scope="row">
-                        <x-staff.person-cell :name="$profile->user?->name" :secondary="$profile->user?->email"
-                            :href="route('staff.residents.show', $profile)" chevron />
+                        <x-staff.person-cell :name="$profile->user?->name" :secondary="$profile->user?->email" />
                     </th>
                     <td class="font-mono text-xs text-navy-800">{{ $profile->household_number }}</td>
                     <td class="text-sm text-slate-600">{{ $profile->sector?->sector_name ?? '—' }}</td>
                     <td><x-staff.status-badge :status="$profile->verification_status" size="sm" /></td>
                     <td class="text-sm text-slate-600">{{ $profile->user?->created_at?->format('j M Y') ?? '—' }}</td>
+                    <td>
+                        <div class="flex items-center gap-1">
+                        <x-staff.icon-action icon="eye" label="View {{ $profile->user?->name }}"
+                            :href="route('staff.residents.show', $profile)" />
+                    </td>
                 </tr>
             @endforeach
         </x-staff.table>

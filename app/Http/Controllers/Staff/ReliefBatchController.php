@@ -26,20 +26,52 @@ use Illuminate\View\View;
  */
 class ReliefBatchController extends Controller
 {
+    /**
+     * Every batch, newest first, with an optional state filter.
+     *
+     * DEFAULT IS "Everything", AND IT NOW HAS A CONTROL.
+     *
+     * The default was already everything, but the page had no select for it, so
+     * ?status=active narrowed the list invisibly and there was no way back. The
+     * parameter is normalised to '' for "everything" so the empty parameter is the
+     * one meaning no filter, the same as every other list in the staff area; an
+     * old ?status=all bookmark still resolves to everything.
+     *
+     * Open batches first, then newest. A closed batch is finished, so it should
+     * not sit above a batch people are still handing out.
+     */
     public function index(Request $request): View
     {
-        $status = (string) $request->query('status', 'all');
+        $status = (string) $request->query('status', '');
+
+        if ($status === 'all') {
+            $status = '';
+        }
+
+        $search = trim((string) $request->query('q', ''));
 
         $query = ReliefBatch::query()
             ->withCount('distributions')
+            ->with('createdBy')
+            // Inside a group, so that a search term and a state filter are ANDed
+            // rather than the OR leaking out and matching every batch in the other
+            // state - the same trap the announcements list documents.
+            ->when($search !== '', fn ($batches) => $batches->where(
+                fn ($inner) => $inner
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+            ))
             ->when(
                 in_array($status, ['active', 'closed'], true),
                 fn ($batches) => $batches->where('status', $status)
             )
-            ->latest();
+            ->orderByRaw('case when status = ? then 0 else 1 end', [ReliefBatch::STATUS_ACTIVE])
+            ->latest('created_at')
+            ->latest('id');
 
         return view('staff.batches.index', [
             'batches' => $query->paginate(15)->withQueryString(),
+            'search' => $search,
             'status' => $status,
             'activeCount' => ReliefBatch::query()->active()->count(),
         ]);

@@ -28,7 +28,14 @@ class AnnouncementController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
-        $state = (string) $request->query('state', 'all');
+        // '' is "everything". The 'all' sentinel is gone: an `all` value and the
+        // absence of a value are now the same thing, so ?state=all from an old
+        // bookmark still works and a new one does not have to know about it.
+        $state = (string) $request->query('state', '');
+
+        if ($state === 'all') {
+            $state = '';
+        }
 
         $query = Announcement::query()
             ->with('createdBy')

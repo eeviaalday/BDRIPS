@@ -391,12 +391,35 @@ class AdminOnlyPagesTest extends TestCase
 
         $html = $this->actingAs($this->admin())->get(route('staff.sectors.index'))->getContent();
 
-        // The existing rule and the existing wording.
+        // The existing rule and the existing wording, still in the markup.
         $this->assertStringContainsString('Cannot delete while it has households or relief entries', $html);
-        // A <span> styled as disabled, with the reason in the markup rather than
-        // only in a title attribute a keyboard never reaches.
-        $this->assertStringContainsString('cursor-not-allowed', $html);
-        $this->assertStringContainsString('aria-describedby', $html);
+
+        // The control is now <x-staff.icon-action>, which is a focusable <span>
+        // carrying aria-disabled rather than a disabled <button>. That difference
+        // is the point: a disabled <button> cannot be focused at all, so a reason
+        // held only in a title attribute on one is a reason no keyboard user ever
+        // reaches. This is the guard that the reason is reachable.
+        $xpath = $this->dom($html);
+
+        $disabled = $xpath->query('//*[@aria-disabled="true"]');
+        $this->assertGreaterThan(0, $disabled->length, 'No control marked aria-disabled on the sectors page.');
+
+        $titles = [];
+        foreach ($disabled as $node) {
+            $this->assertInstanceOf(DOMElement::class, $node);
+            $titles[] = $node->getAttribute('title');
+        }
+
+        $this->assertNotEmpty(
+            array_filter($titles, fn (string $title): bool => str_contains($title, 'Cannot delete')),
+            'A disabled action did not carry its reason in the title.'
+        );
+
+        $this->assertGreaterThan(
+            0,
+            $xpath->query('//span[contains(@class,"cursor-not-allowed")]')->length,
+            'A disabled action is not visibly disabled.'
+        );
     }
 
     #[Test]

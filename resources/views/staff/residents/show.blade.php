@@ -38,19 +38,29 @@
         <x-card tone="white" padding="p-6">
             <h2 class="mb-4 text-base font-bold text-navy-900">Document requests</h2>
 
-            <x-staff.table :columns="[['label' => 'Reference'], ['label' => 'Document'], ['label' => 'Status']]"
+            <x-staff.table :columns="[
+                ['label' => 'Reference'],
+                ['label' => 'Document'],
+                ['label' => 'Status'],
+                ['label' => 'Actions'],
+            ]"
                     caption="Document requests by this resident"
                     empty-title="No requests"
                     empty-description="This resident has not asked for a document."
                     empty-icon="document">
                     @foreach ($requests as $documentRequest)
-                        <tr x-on:click="openRow($event, @js(route('staff.requests.show', $documentRequest)))">
+                        <tr>
                             <th scope="row">
-                                <x-staff.person-cell :name="$documentRequest->reference_number" mono
-                                    :href="route('staff.requests.show', $documentRequest)" chevron />
+                                <x-staff.person-cell :name="$documentRequest->reference_number" mono />
                             </th>
                             <td class="text-sm text-navy-800">{{ $documentRequest->documentType?->label ?? 'Retired document' }}</td>
                             <td><x-staff.status-badge :status="$documentRequest->status" size="sm" /></td>
+                            <td>
+                                <div class="flex items-center gap-1">
+                                <x-staff.icon-action icon="eye"
+                                    label="Review request {{ $documentRequest->reference_number }}"
+                                    :href="route('staff.requests.show', $documentRequest)" />
+                            </td>
                         </tr>
                     @endforeach
                 </x-staff.table>

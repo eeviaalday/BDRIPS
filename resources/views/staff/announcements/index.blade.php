@@ -21,15 +21,15 @@
         </header>
 
         <x-staff.filter-bar :action="route('staff.announcements.index')"
-            :has-filters="$search !== '' || $state !== 'all'"
+            :has-filters="$search !== '' || $state !== ''"
             :clear-href="route('staff.announcements.index')">
             <x-staff.filter-field name="q" label="Search" :value="$search" placeholder="Title or body" />
-            <x-staff.filter-select name="state" label="Show" :value="$state" :options="[
-                'all' => 'Everything',
-                'published' => 'Published now',
-                'scheduled' => 'Scheduled',
-                'drafts' => 'Drafts',
-            ]" />
+            <x-staff.filter-select name="state" label="Show" all-label="Everything"
+                :value="$state" :options="[
+                    'published' => 'Published now',
+                    'scheduled' => 'Scheduled',
+                    'drafts' => 'Drafts',
+                ]" />
         </x-staff.filter-bar>
 
         @if (session('success'))
@@ -41,22 +41,25 @@
                 ['label' => 'Announcement'],
                 ['label' => 'State'],
                 ['label' => 'Author'],
-                ['label' => 'Actions', 'align' => 'right'],
+                ['label' => 'Actions'],
             ]"
             caption="Announcements"
-            :empty-title="$search !== '' || $state !== 'all' ? 'No announcements match these filters' : 'Nothing here yet'"
-            :empty-description="$search !== '' || $state !== 'all'
+            :empty-title="$search !== '' || $state !== '' ? 'No announcements match these filters' : 'Nothing here yet'"
+            :empty-description="$search !== '' || $state !== ''
                 ? 'Try a different search, or clear the filters to see everything.'
                 : 'Write the first notice for the public page.'"
             empty-icon="megaphone"
-            :empty-action-label="$search !== '' || $state !== 'all' ? 'Clear filters' : null"
-            :empty-action-href="$search !== '' || $state !== 'all' ? route('staff.announcements.index') : null">
+            :empty-action-label="$search !== '' || $state !== '' ? 'Clear filters' : null"
+            :empty-action-href="$search !== '' || $state !== '' ? route('staff.announcements.index') : null">
             @foreach ($announcements as $announcement)
                 <tr>
+                    {{-- The title is plain text. Edit is the third control in the
+                         Actions column, where every action in the row is, so a reader
+                         scanning for what can be done to a notice finds it in one
+                         place instead of in the first cell. --}}
                     <th scope="row">
                         <x-staff.person-cell :name="$announcement->title"
-                            :secondary="trim(($announcement->isPinned() ? 'Pinned' : 'Not pinned').($announcement->location ? ' · '.$announcement->location : ''))"
-                            :href="route('staff.announcements.edit', $announcement)" />
+                            :secondary="trim(($announcement->isPinned() ? 'Pinned' : 'Not pinned').($announcement->location ? ' · '.$announcement->location : ''))" />
                     </th>
                     <td>
                         <x-staff.status-badge
@@ -70,12 +73,17 @@
                     </td>
                     <td class="text-sm text-slate-600">{{ $announcement->createdBy?->name ?? '—' }}</td>
                     <td>
-                        <div class="flex flex-wrap items-center justify-end gap-1.5">
+                        {{-- justify-start, not justify-end: the Actions column is
+                             left-aligned with every other cell in the staff area. --}}
+                        <div class="flex flex-wrap items-center gap-1">
+                            <x-staff.icon-action icon="pen" label="Edit {{ $announcement->title }}"
+                                :href="route('staff.announcements.edit', $announcement)" />
+
                             <form method="POST" action="{{ route('staff.announcements.publish', $announcement) }}">
                                 @csrf
-                                <x-btn type="submit" variant="outline" size="sm">
-                                    {{ $announcement->isPublished() ? 'Unpublish' : 'Publish' }}
-                                </x-btn>
+                                <x-staff.icon-action icon="{{ $announcement->isPublished() ? 'eye-slash' : 'eye' }}"
+                                    label="{{ $announcement->isPublished() ? 'Unpublish' : 'Publish' }} {{ $announcement->title }}"
+                                    type="submit" />
                             </form>
 
                             {{-- Pin and Unpin are the same control in two states, so
@@ -101,13 +109,12 @@
                             @if ($announcement->isPinned())
                                 <form method="POST" action="{{ route('staff.announcements.unpin', $announcement) }}">
                                     @csrf
-                                    <x-btn type="submit" variant="outline" size="sm">Unpin</x-btn>
+                                    <x-staff.icon-action icon="thumbtack" label="Unpin {{ $announcement->title }}"
+                                        type="submit" />
                                 </form>
                             @else
-                                <x-btn :href="route('staff.announcements.edit', ['announcement' => $announcement]).'#pin-and-publish'"
-                                    variant="outline" size="sm">
-                                    Pin
-                                </x-btn>
+                                <x-staff.icon-action icon="thumbtack" label="Pin {{ $announcement->title }}"
+                                    :href="route('staff.announcements.edit', ['announcement' => $announcement]).'#pin-and-publish'" />
                             @endif
 
                             <x-staff.confirm-dialog :name="'delete-'.$announcement->id"
@@ -115,10 +122,10 @@
                                 message="It disappears from the public page immediately. The record of who deleted it is kept in the audit log."
                                 confirm-label="Delete" tone="danger" method="DELETE"
                                 :form="route('staff.announcements.destroy', $announcement)" />
-                            <x-btn type="button" variant="danger" size="sm"
-                                x-on:click="$dispatch('open-modal', 'delete-{{ $announcement->id }}')">
-                                Delete
-                            </x-btn>
+                            <x-staff.icon-action icon="trash" variant="danger"
+                                label="Delete {{ $announcement->title }}" type="button"
+                                x-data
+                                x-on:click="$dispatch('open-modal', 'delete-{{ $announcement->id }}')" />
                         </div>
                     </td>
                 </tr>

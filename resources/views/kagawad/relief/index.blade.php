@@ -65,9 +65,20 @@
                             $remaining = max(0, $total - $received);
                             $percent = $total > 0 ? (int) round($received / $total * 100) : 0;
                         @endphp
+                        {{--
+                            A <li>, not an <a>. The whole card used to be one link,
+                            which meant the card's own text was the link's accessible
+                            name — a paragraph of figures read out as a link name — and
+                            that adding any control to the footer would have meant
+                            nesting a link inside a link.
+
+                            The card is now a container and the footer carries the same
+                            Open-checklist icon action the table row does, so a phone
+                            and a laptop offer the same single control with the same
+                            name.
+                        --}}
                         <li>
-                            <a href="{{ route('kagawad.relief.show', $batch) }}"
-                                class="block rounded-xl border border-navy-100 bg-white p-4 shadow-card transition duration-200 active:scale-[0.99]">
+                            <div class="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
                                 <div class="flex items-start justify-between gap-3">
                                     <p class="text-base font-bold text-navy-900">{{ $batch->title }}</p>
                                     <x-staff.status-badge :status="$batch->isActive() ? 'active' : 'closed'"
@@ -115,7 +126,13 @@
                                         </dd>
                                     </div>
                                 </dl>
-                            </a>
+
+                                <div class="mt-3 flex items-center border-t border-navy-50 pt-3">
+                                    <x-staff.icon-action icon="clipboard-list" size="lg"
+                                        label="Open the {{ $batch->title }} checklist"
+                                        :href="route('kagawad.relief.show', $batch)" />
+                                </div>
+                            </div>
                         </li>
                     @endforeach
                 </ul>
@@ -124,11 +141,12 @@
                 <x-staff.table class="hidden md:block" :columns="[
                         ['label' => 'Batch'],
                         ['label' => 'Date'],
-                        ['label' => 'Households', 'align' => 'right'],
-                        ['label' => 'Collected', 'align' => 'right'],
-                        ['label' => 'Remaining', 'align' => 'right'],
+                        ['label' => 'Households'],
+                        ['label' => 'Collected'],
+                        ['label' => 'Remaining'],
                         ['label' => 'Progress'],
                         ['label' => 'Status'],
+                        ['label' => 'Actions'],
                     ]"
                     caption="Relief batches" empty-title="No batches yet"
                     empty-description="When the Secretary opens a batch that covers your sector, it appears here."
@@ -140,17 +158,16 @@
                             $remaining = max(0, $total - $received);
                             $percent = $total > 0 ? (int) round($received / $total * 100) : 0;
                         @endphp
-                        <tr x-on:click="openRow($event, @js(route('kagawad.relief.show', $batch)))">
+                        <tr>
                             <th scope="row">
-                                <x-staff.person-cell :name="$batch->title"
-                                    :href="route('kagawad.relief.show', $batch)" chevron />
+                                <x-staff.person-cell :name="$batch->title" />
                             </th>
                             <td class="text-sm text-slate-600">
                                 {{ $batch->distribution_date?->format('j M Y') ?? '—' }}
                             </td>
-                            <td class="text-right tabular-nums text-slate-600">{{ $total }}</td>
-                            <td class="text-right tabular-nums text-slate-600">{{ $received }}</td>
-                            <td class="text-right tabular-nums font-semibold text-navy-800">{{ $remaining }}</td>
+                            <td class="tabular-nums text-slate-600">{{ $total }}</td>
+                            <td class="tabular-nums text-slate-600">{{ $received }}</td>
+                            <td class="tabular-nums font-semibold text-navy-800">{{ $remaining }}</td>
                             <td class="min-w-[9rem]">
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 w-full max-w-[7rem] overflow-hidden rounded-full bg-navy-100"
@@ -166,6 +183,11 @@
                             </td>
                             <td>
                                 <x-staff.status-badge :status="$batch->isActive() ? 'active' : 'closed'" size="sm" />
+                            </td>
+                            <td>
+                                <x-staff.icon-action icon="clipboard-list"
+                                    label="Open the {{ $batch->title }} checklist"
+                                    :href="route('kagawad.relief.show', $batch)" />
                             </td>
                         </tr>
                     @endforeach

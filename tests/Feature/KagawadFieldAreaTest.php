@@ -382,9 +382,36 @@ class KagawadFieldAreaTest extends TestCase
 
         $html = $this->actingAs($kagawad)->get(route('kagawad.relief.show', $batch))->getContent();
 
-        // 44px is the smallest comfortable target for a thumb; size="lg" alone is
-        // only about 52px by the arithmetic, which is not a guarantee.
-        $this->assertMatchesRegularExpression('/<button[^>]*min-h-\[44px\][^>]*>\s*<svg.*?Mark collected/s', $html);
+        // 44px is the smallest comfortable target for a thumb. The control is now
+
+        // <x-staff.icon-action size="lg">, which spells the box out as h-11 w-11 —
+
+        // 44px exactly — rather than asking for a minimum height and hoping.
+
+        $xpath = $this->dom($html);
+
+        $mark = $xpath->query('//button[contains(@class,"h-11") and contains(@class,"w-11")]')->item(0);
+
+        $this->assertInstanceOf(DOMElement::class, $mark, 'No 44x44 control on the checklist.');
+
+        // The glyph is a font-awesome <i>, so it carries no text of its own — the class
+        // is what identifies it. Asserting on textContent would pass on the sr-only
+        // label alone and never check the icon at all.
+        $glyph = $xpath->query('.//i[contains(@class,"fa-check")]', $mark)->length;
+        $this->assertSame(1, $glyph, 'The mark control does not draw the check glyph.');
+        $icon = $xpath->query('.//i', $mark)->item(0);
+        $this->assertInstanceOf(DOMElement::class, $icon);
+        $this->assertSame('true', $icon->getAttribute('aria-hidden'), 'The glyph must be aria-hidden; the control carries the name.');
+
+        $this->assertStringContainsString(
+
+            'Mark H-1 collected',
+
+            (string) $mark->getAttribute('aria-label'),
+
+            'The 44px control is not named as the mark action.'
+
+        );
     }
 
     #[Test]
@@ -397,7 +424,7 @@ class KagawadFieldAreaTest extends TestCase
 
         // Mark, then Confirm, in the same row. The confirm is inline rather than a
         // modal because a modal per household is forty dialogs per distribution.
-        $this->assertStringContainsString('Mark collected', $html);
+        $this->assertStringContainsString('Mark H-1 collected', $html);
         $this->assertStringContainsString('Confirm', $html);
         $this->assertStringContainsString('x-on:click="confirming = false"', $html);
     }
@@ -416,7 +443,11 @@ class KagawadFieldAreaTest extends TestCase
         $confirm = null;
         foreach ($xpath->query('//button') as $button) {
             $this->assertInstanceOf(DOMElement::class, $button);
-            if (str_contains($button->textContent, 'Mark collected')) {
+            // Matched on the accessible name rather than the visible text: the mark
+            // control is an icon with an sr-only name, so there is no visible label
+            // left to match on, and a test reading textContent would silently stop
+            // finding the button instead of failing.
+            if (str_contains((string) $button->getAttribute('aria-label'), 'collected')) {
                 $mark = $button;
             }
             if (trim($button->textContent) === 'Confirm') {
@@ -424,7 +455,7 @@ class KagawadFieldAreaTest extends TestCase
             }
         }
 
-        $this->assertNotNull($mark, 'No Mark collected button.');
+        $this->assertNotNull($mark, 'No mark-collected button.');
         $this->assertNotNull($confirm, 'No Confirm button.');
 
         // The trap: as type="submit" the first tap posted the form, the confirm was
@@ -645,7 +676,18 @@ class KagawadFieldAreaTest extends TestCase
 
         // One of the two renderings is display:none at every width, so a phone
         // never gets the 46rem table it would have to scroll sideways.
-        $cardList = $xpath->query('//ul[contains(@class,"md:hidden")]/li/a')->length;
+        $cardList = $xpath->query('//ul[contains(@class,"md:hidden")]/li')->length;
+
+        // The card is an <li>, not an <a>. The whole card used to be one link, which
+        // made the card's entire text the link's accessible name and left nowhere to
+        // put a control. It is now a container with the same Open-checklist icon
+        // action the table row uses, which is what this counts.
+        $cardActions = $xpath->query('//ul[contains(@class,"md:hidden")]/li//a[@aria-label]')->length;
+        $this->assertGreaterThan(
+            0,
+            $cardActions,
+            'A phone card has no action, so a Kagawad on a phone cannot open a checklist.'
+        );
         $table = $xpath->query('//table')->item(0);
 
         $this->assertGreaterThan(0, $cardList, 'No stacked-card rendering for phones.');
@@ -687,7 +729,7 @@ class KagawadFieldAreaTest extends TestCase
             $headers[] = trim($th->textContent);
         }
 
-        $this->assertSame(['Batch', 'Date', 'Households', 'Collected', 'Remaining', 'Progress', 'Status'], $headers);
+        $this->assertSame(['Batch', 'Date', 'Households', 'Collected', 'Remaining', 'Progress', 'Status', 'Actions'], $headers);
 
         // 1 of 2 is 50%.
         $this->assertStringContainsString('50%', $html);

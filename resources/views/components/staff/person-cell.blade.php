@@ -1,13 +1,9 @@
 @props([
     'name' => null,
     'secondary' => null,
-    // Makes the name a real link, which is what makes the row keyboard reachable
-    // and gives a screen reader the row's destination.
-    'href' => null,
+    // For the document-request table, whose first column is a reference number
+    // rather than a person.
     'mono' => false,
-    // Trailing arrow. Sits inside the link so it is part of the same target, and
-    // is aria-hidden because the link's own text already says where it goes.
-    'chevron' => false,
     'class' => '',
 ])
 
@@ -24,8 +20,18 @@
      * broken image on every row. The initials are aria-hidden because the name
      * beside them is already read out; "AB" read before "Ana Bautista" is noise.
      *
-     * "mono" is for the document-request table, whose first column is a reference
-     * number rather than a person.
+     * NO href, NO chevron. Both used to be here, and both are gone.
+     *
+     * The name used to be the row's link, with a chevron beside it, inside a <tr>
+     * that was also clickable. That gave a table three ways into the same record
+     * and none of them was the row's own name to a screen reader: the <tr> was not
+     * focusable, the chevron was aria-hidden, and the link's text was the same
+     * string as the cell it sat in.
+     *
+     * A row is now reached through one control, in the Actions column, whose
+     * accessible name says which record it opens ("View Ana Bautista"). Keeping
+     * href and chevron available here would leave a second way to do it that no
+     * caller uses and that nothing tests.
      */
     $display = $name ?: 'Unknown';
     $initials = collect(explode(' ', trim((string) $display)))
@@ -43,28 +49,10 @@
     </span>
 
     <span class="min-w-0 flex-1">
-        @if ($href)
-            {{-- The chevron lives inside the link rather than beside it, so it is
-                 the same target and cannot be clicked without navigating. --}}
-            <a href="{{ $href }}" @class(['flex min-w-0 items-center gap-2', 'hover:underline' => ! $chevron])>
-                <span class="min-w-0">
-                    <span @class(['block truncate text-sm font-semibold text-navy-900', 'font-mono text-xs' => $mono])>{{ $display }}</span>
+        <span @class(['block truncate text-sm font-semibold text-navy-900', 'font-mono text-xs' => $mono])>{{ $display }}</span>
 
-                    @if ($secondary)
-                        <span class="block truncate text-xs font-normal text-slate-500">{{ $secondary }}</span>
-                    @endif
-                </span>
-
-                @if ($chevron)
-                    <x-icon name="arrow-right" class="ml-auto h-4 w-4 shrink-0 text-navy-300" />
-                @endif
-            </a>
-        @else
-            <span class="block truncate text-sm font-semibold text-navy-900">{{ $display }}</span>
-
-            @if ($secondary)
-                <span class="block truncate text-xs font-normal text-slate-500">{{ $secondary }}</span>
-            @endif
+        @if ($secondary)
+            <span class="block truncate text-xs font-normal text-slate-500">{{ $secondary }}</span>
         @endif
     </span>
 </span>

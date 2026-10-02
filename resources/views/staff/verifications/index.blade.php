@@ -22,11 +22,15 @@
         </header>
 
         <x-staff.filter-bar :action="route('staff.verifications.index')"
-            :has-filters="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING"
+            :has-filters="$search !== '' || $status !== ''"
             :clear-href="route('staff.verifications.index')">
             <x-staff.filter-field name="q" label="Search" :value="$search"
                 placeholder="Name, household number, or national ID" />
-            <x-staff.filter-select name="status" label="Status" :options="$states" :value="$status" />
+            {{-- The empty parameter is "All". Without an all-label the select would
+                 open on its first option, "Pending review", while the list showed
+                 every status - the one disagreement this page must not have. --}}
+            <x-staff.filter-select name="status" label="Status" all-label="All"
+                :options="$states" :value="$status" />
         </x-staff.filter-bar>
 
         <x-staff.table
@@ -36,27 +40,40 @@
                 ['label' => 'Sector'],
                 ['label' => 'Submitted'],
                 ['label' => 'Status'],
+                ['label' => 'Actions'],
             ]"
             caption="Resident verification queue"
-            :empty-title="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING
+            :empty-title="$search !== '' || $status !== ''
                 ? 'No profiles match these filters'
                 : 'Nothing waiting'"
-            :empty-description="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING
+            :empty-description="$search !== '' || $status !== ''
                 ? 'Try a different search, or clear the filters to see everyone.'
                 : 'Every registration has been looked at.'"
             empty-icon="id-badge"
-            :empty-action-label="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING ? 'Clear filters' : null"
-            :empty-action-href="$search !== '' || $status !== \App\Models\ResidentProfile::VERIFICATION_PENDING ? route('staff.verifications.index') : null">
+            :empty-action-label="$search !== '' || $status !== '' ? 'Clear filters' : null"
+            :empty-action-href="$search !== '' || $status !== '' ? route('staff.verifications.index') : null">
             @foreach ($profiles as $profile)
-                <tr x-on:click="openRow($event, @js(route('staff.verifications.show', $profile)))">
+                {{--
+                    The row is not clickable and the name is not a link. The way into
+                    a profile is the Actions control, which is a real link with a real
+                    accessible name, so a keyboard user tabbing the table lands on it
+                    and a screen reader announces what it does. A clickable <tr> is
+                    neither: it cannot be tabbed to, it is not a link, and middle-click
+                    and "open in new tab" do nothing on it.
+                --}}
+                <tr>
                     <th scope="row">
-                        <x-staff.person-cell :name="$profile->user?->name" :secondary="$profile->user?->email"
-                            :href="route('staff.verifications.show', $profile)" chevron />
+                        <x-staff.person-cell :name="$profile->user?->name" :secondary="$profile->user?->email" />
                     </th>
                     <td class="font-mono text-xs text-navy-800">{{ $profile->household_number }}</td>
                     <td class="text-sm text-slate-600">{{ $profile->sector?->sector_name ?? '—' }}</td>
                     <td class="text-sm text-slate-600">{{ $profile->created_at?->format('j M Y') }}</td>
                     <td><x-staff.status-badge :status="$profile->verification_status" size="sm" /></td>
+                    <td>
+                        <div class="flex items-center gap-1">
+                        <x-staff.icon-action icon="eye" label="Review verification for {{ $profile->user?->name }}"
+                            :href="route('staff.verifications.show', $profile)" />
+                    </td>
                 </tr>
             @endforeach
         </x-staff.table>

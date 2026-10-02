@@ -4838,3 +4838,158 @@ position.
 F10 (Settings is one ungrouped form) and F11 (the "Verified" column renders for
 roles where it means nothing) are untouched. Both are real but both are redesigns
 rather than defects, and neither was in this brief. M3 remains unreachable today.
+
+---
+
+## Prompt #026
+
+### The brief
+
+Four things, staff area only, on the same scope rules: every filter defaults to
+All; Font Awesome self-hosted; a staff-only icon-action component; and an Actions
+column in place of clickable rows. Finish with tests, a build, the diff guards and
+this log.
+
+### Two of the four had been measured before and called clean
+
+Worth putting first, because it is the most useful thing in this task.
+
+**Table alignment** was reported fixed, twice, and was not. The earlier measurement
+read `text-align` on `th` and `td` — which genuinely was `left` everywhere — so it
+kept reading as fixed. The cells that were off were never `text-align`. Three
+separate causes: `align => 'right'` on a column definition, `class="text-right"` on
+numeric cells, and `justify-end` on the Actions cells.
+
+The first is the one worth remembering. `align` was a real prop of `x-staff.table`
+and a **dead** one on the shared `x-data-table`, which reads `$column['class']`. The
+same key was honoured in one component and silently ignored in the other, so a
+numeric column came out right-aligned on some tables and not on others while both
+looked correct in isolation. There was even a test pinning the dead behaviour:
+`the_table_applies_a_column_alignment_to_the_header` passed `align => 'right'` and
+asserted `text-right` on the `<th>`, which read as proof the prop worked. Removed,
+with a replacement that passes the key and requires the header to be left anyway.
+
+**The Role filter showing "Resident"** was not a controller bug and not a
+`RoleNavigation` bug. It was a shadowed loop variable:
+
+```php
+foreach ($options as $key => $item) {
+    $value = is_int($key) ? (string) $item : (string) $key;   // $value is the PROP
+```
+
+`$value` is the current filter. The loop reused the name, so afterwards it held the
+**last option's value** and every `@selected($value === $optionValue)` was testing
+the last option against itself. `User::roles()` ends with `resident`, so the control
+always showed Resident while the list held every role. Exactly the reported symptom,
+from one variable.
+
+The same line hid a second, larger defect. `is_int($key)` cannot tell a list of
+slugs from a map keyed by a database id, because PHP normalises `"5"` to `int 5` on
+the way in. Four call sites pass `->pluck('name','id')`, so for four filters the id
+was thrown away and the option rendered `<option value="Purok 5">Purok 5</option>`.
+`$request->integer()` turned that into `0`, which the controller read as no filter:
+**the Sector filter on Residents, the Account filter on Audit Logs, and both the
+Sector and Batch filters on the Kagawad resident list could not narrow the list from
+the interface at all.** Neither was in the brief. The shape is now decided by
+`array_is_list()`.
+
+### Filters
+
+Verification defaulted to `pending` and Document Requests to `queue`. Both narrowed
+to a real subset, and in both the empty state and the counts still worked — which is
+why this reads as correct rather than broken. Everything is on the empty parameter
+now, with an explicit All / Everything option.
+
+Two things went with it. Document Requests had **two** spellings of "everything" — an
+`all` sentinel value and the absent filter — so a bookmark of one did not mean the
+other. And the sort contradicted itself: `awaitingDecision()` appends its own
+`oldest('created_at')`, which then sat ahead of the outer `latest()`, so the default
+view sorted oldest-first and every other filter newest-first.
+
+`staff.batches.index` also had a `?status=` parameter with **no control at all** — it
+narrowed invisibly with no way back. Not in the brief either; it has a filter now.
+
+The Kagawad batch selector still defaults to the latest active batch, for the reason
+already on record: relief status belongs to a batch.
+
+### Font Awesome, scoped as narrowly as a dependency can be
+
+`@fortawesome/fontawesome-free` as its own Vite entry, `resources/css/staff-icons.css`,
+importing only `fontawesome.css` and `solid.css` — one weight is one font file, and
+the regular weight would be a second for no gain. Listed in `layouts/app.blade.php`
+and nowhere else.
+
+An `@import` at the top of `app.css` would have worked visually and put ~100KB of
+font on every public page. As a separate entry, `app.css` came out **byte-identical**
+(md5 `26aec7a0a9a7483988b8bc65b0631fa2`) before any other work touched it. It has
+since gained five rules and lost one, all of them staff-only and all from the new
+icon component — the only removal is `active:scale-[0.99]`, which went when the
+whole-card link on the Kagawad phone layout became a container.
+
+### The Actions column
+
+Rows were three ways into one record and none of them named it: a clickable `<tr>`
+that was not focusable and not a link, a chevron that was `aria-hidden`, and a link
+whose text was the same string as the cell it sat in. `openRow` is deleted rather
+than left unused — it had to bail out of any click landing on an interactive element,
+and a guard that must be right on every future row is a guard that will be wrong on
+one.
+
+`person-cell` lost its `href` and `chevron` props entirely. No caller used them any
+more, and keeping them would have left a second way into a row that nothing tests.
+
+### Three bugs the browser caught that the tests did not
+
+All three were found by pointing Playwright at the pages, and all three would have
+shipped on a green suite.
+
+1. **`$dispatch('open-modal', 'delete-'.$announcement->id)`** — I dropped the Blade
+   braces, so `$announcement->id` reached the browser as literal text and the page
+   threw `Unexpected token '>'`. A `pageerror` with no failing test.
+2. **`@if` inside a component tag.** `:disabled-reason="... @if ($relief > 0) ... @endif"`
+   reached the aria-label literally: *"…4 households@if ($relief > 0) and 4 relief
+   entries@endif to move."* Blade directives are **not compiled inside an
+   `<x-...>` attribute value** — only `{{ }}` is. Built in a `@php` block instead.
+3. **The stray `</div>`** from the previous task was a real unbalanced tag, and I had
+   dismissed the tag-balance warning as a comment false positive. It was my tooling
+   being right and me being wrong.
+
+A fourth was mine and worth recording because the test I wrote to catch it did not:
+I verified the alignment test by re-introducing `text-right`, and it passed. The
+injection had been a no-op — I had replaced a class string that no longer existed,
+and my confirming `grep` had matched my own explanatory comment. The test was fine;
+the experiment was not. Re-injected against the real class list, it fails as it
+should.
+
+### Verification
+
+**Tests: 1273 pass** (1272 passed + 1 skipped by owner decision), 11189 assertions.
+Net: 1219 before, 19 filter cases and 54 table/action cases added, 14 tests updated
+because they asserted on controls that no longer exist. Pint clean. Build committed.
+
+**Browser, 26/26** — 13 staff/Kagawad screens at 1280 and 768, each checked for the
+Actions header, an aria-label and a destination on every action, no row click, no
+link in the first cell, and **zero** non-left-aligned cells. Font renders as
+`"Font Awesome 7 Free"`; `fa-solid-900-IAB4Droh.woff2` returns 200 from this origin.
+
+**Public and resident pages load no icon font.** Eight public/guest pages and four
+resident pages: no `staff-icons` link, no `fa-` glyph, no `fa-solid` request, only
+`app.css` and Figtree. All three diff guards print nothing.
+
+The Kagawad mark control measures 44px tall, is `type="button"`, and after one tap the
+URL is unchanged and the inline Confirm appears — the irreversible record still
+cannot be written by a single unconfirmed click.
+
+### Still open (unchanged, deliberately)
+
+F10 (Settings is one ungrouped form) and F11 (the "Verified" column renders for roles
+where it means nothing) are untouched: real, but redesigns rather than defects, and
+neither was in this brief. M3 remains unreachable today.
+
+### One thing deliberately not kept
+
+A `StaffBrowserFixture` seeder was written so the browser had a row in every table
+to measure, and it refused to run outside `bdrpis_testing`. It is deleted. It is not
+worth leaving a class in `database/seeders/` that writes eight fake users into a
+database, where someone will eventually run `db:seed --class` against the real one.
+Re-create it on demand rather than ship it.

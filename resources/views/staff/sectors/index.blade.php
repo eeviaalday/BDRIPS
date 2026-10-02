@@ -17,7 +17,7 @@
     the view called it once per row, which is how this page came to cost 71
     queries with 17 sectors. The rule and its wording are unchanged - the server
     still refuses, with the same message, and the button is only a courtesy.
---}}
+                                --}}
 <x-app-layout :user="auth()->user()" title="Sectors & Kagawad">
     <div class="mx-auto w-full max-w-6xl space-y-6">
         <x-breadcrumb :items="[['label' => 'Staff', 'route' => 'staff.dashboard'], ['label' => 'Sectors & Kagawad']]" />
@@ -82,9 +82,9 @@
 
         <x-staff.table :columns="[
                 ['label' => 'Sector'],
-                ['label' => 'Households', 'align' => 'right'],
+                ['label' => 'Households'],
                 ['label' => 'Kagawad'],
-                ['label' => 'Actions', 'align' => 'right'],
+                ['label' => 'Actions'],
             ]"
             grouped
             caption="Sectors"
@@ -100,8 +100,21 @@
                     // number of queries however many sectors there are.
                     $households = (int) $sector->residents_count;
                     $relief = (int) $sector->distributions_count;
-                    $deletable = $households === 0 && $relief === 0;
-                    $manageId = 'manage-sector-'.$sector->id;
+                        $deletable = $households === 0 && $relief === 0;
+                        $manageId = 'manage-sector-'.$sector->id;
+
+                        // Built here, not inside the icon-action tag below, because a
+                        // Blade directive in a component attribute value is NOT
+                        // compiled: `@if` reached the page as literal text, so the
+                        // accessible name read "4 households@if ($relief > 0) and 4
+                        // relief entries@endif to move." Only {{ }} is expanded inside
+                        // an <x-...> tag.
+                        $deleteReason = 'Cannot delete while it has households or relief entries: '
+                            .$households.' household'.($households === 1 ? '' : 's')
+                            .($relief > 0
+                                ? ' and '.$relief.' relief entr'.($relief === 1 ? 'y' : 'ies')
+                                : '')
+                            .' to move.';
                 @endphp
 
                 {{--
@@ -114,7 +127,7 @@
                     invisible until a browser is pointed at it. Putting the scope on
                     the <tbody> is both valid HTML and the only place that legally
                     contains both rows.
-                --}}
+                                --}}
                 <tbody x-data="{ managing: false }">
                 <tr class="align-top">
                     <th scope="row">
@@ -125,7 +138,7 @@
                             @endif
                         </div>
                     </th>
-                    <td class="text-right tabular-nums text-slate-600">
+                    <td class="tabular-nums text-slate-600">
                         {{ $households }}
                         @if ($relief > 0)
                             <span class="block text-2xs text-slate-400" title="Relief entries on this sector">
@@ -144,16 +157,49 @@
                         @endif
                     </td>
                     <td>
-                        <div class="flex justify-end">
-                            <button type="button"
+                        {{--
+                            Manage and Delete, both as icon actions.
+
+                            Manage drives the existing disclosure through the <tbody>'s
+                            own Alpine scope, so no new scope is created here: the
+                            expression resolves against `managing`, which is the state
+                            the row below is showing. x-bind:aria-label and
+                            x-bind:aria-expanded are bound rather than written once,
+                            because the control means two different things depending on
+                            that state, and a control whose name does not change with its
+                            behaviour is one a screen reader describes wrongly half the
+                            time.
+                        --}}
+                        <div class="flex items-center gap-1">
+                            <x-staff.icon-action icon="pen-to-square" type="button"
+                                label="Manage {{ $sector->sector_name }}"
                                 x-on:click="managing = ! managing"
                                 x-bind:aria-expanded="managing"
-                                aria-controls="{{ $manageId }}"
-                                class="inline-flex min-h-[36px] items-center justify-center gap-2 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-800 transition hover:bg-navy-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-400">
-                                <span x-text="managing ? 'Close' : 'Manage'"></span>
-                                <x-icon name="edit" class="h-3.5 w-3.5" x-show="! managing" />
-                                <x-icon name="x-circle" class="h-3.5 w-3.5" x-show="managing" />
-                            </button>
+                                x-bind:aria-label="managing ? 'Close the {{ $sector->sector_name }} panel' : 'Manage {{ $sector->sector_name }}'"
+                                aria-controls="{{ $manageId }}" />
+
+                            @if ($deletable)
+                                <x-staff.confirm-dialog name="delete-sector-{{ $sector->id }}"
+                                    title="Delete this sector?"
+                                    message="Nothing is filed under it, so nothing will be left pointing at a sector that is not there."
+                                    confirm-label="Delete" tone="danger" method="DELETE"
+                                    :form="route('staff.sectors.destroy', $sector)" />
+                                <x-staff.icon-action icon="trash" variant="danger" type="button"
+                                    label="Delete {{ $sector->sector_name }}"
+                                    x-data
+                                    x-on:click="$dispatch('open-modal', 'delete-sector-{{ $sector->id }}')" />
+                            @else
+                                {{--
+                                     Disabled, and the reason spelled out rather than
+                                    -- left in a tooltip. A title attribute is not
+                                    -- reachable by keyboard and is not announced by a
+                                    -- screen reader, and the counts are what the Captain
+                                    -- needs: the same sentence the disclosure carried.
+                                --}}
+                                <x-staff.icon-action icon="trash" variant="danger"
+                                    label="Delete {{ $sector->sector_name }}" disabled
+                                    :disabled-reason="$deleteReason" />
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -221,47 +267,7 @@
                                 </form>
                             </div>
 
-                            {{-- Delete, with the rule stated. --}}
-                            <div class="border-t border-navy-100 pt-4">
-                                <h3 class="text-xs font-semibold uppercase tracking-wide text-navy-600">Delete</h3>
-
-                                @if ($deletable)
-                                    <p class="mt-1 text-xs text-slate-500">
-                                        Nothing is filed under this sector, so nothing will be left pointing at a
-                                        sector that is not there.
-                                    </p>
-                                    <x-btn type="button" variant="danger" size="sm" icon="x-circle"
-                                        x-on:click="$dispatch('open-modal', 'delete-sector-{{ $sector->id }}')">
-                                        Delete sector
-                                    </x-btn>
-
-                                    <x-staff.confirm-dialog name="delete-sector-{{ $sector->id }}"
-                                        title="Delete this sector?"
-                                        message="Nothing is filed under it, so nothing will be left pointing at a sector that is not there."
-                                        confirm-label="Delete" tone="danger" method="DELETE"
-                                        :form="route('staff.sectors.destroy', $sector)" />
-                                @else
-                                    {{-- Disabled, and the reason is on the button rather
-                                         than in a tooltip that only exists for a mouse:
-                                         a title attribute is not reachable by keyboard
-                                         and not announced by a screen reader. --}}
-                                    <span class="inline-flex min-h-[36px] cursor-not-allowed items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-3 py-1.5 text-xs font-semibold text-slate-400"
-                                        title="Cannot delete while it has households or relief entries"
-                                        aria-describedby="cannot-delete-{{ $sector->id }}">
-                                        <x-icon name="lock" class="h-3.5 w-3.5" />
-                                        Cannot delete
-                                    </span>
-                                    <p id="cannot-delete-{{ $sector->id }}" class="mt-1 text-xs text-slate-500">
-                                        Cannot delete while it has households or relief entries.
-                                        @if ($households > 0)
-                                            {{ $households }} household{{ $households === 1 ? '' : 's' }} to move.
-                                        @endif
-                                        @if ($relief > 0)
-                                            {{ $relief }} relief entr{{ $relief === 1 ? 'y' : 'ies' }} to move.
-                                        @endif
-                                    </p>
-                                @endif
-                            </div>
+                            
                         </div>
                     </td>
                 </tr>

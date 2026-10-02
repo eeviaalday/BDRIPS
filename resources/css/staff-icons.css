@@ -1,0 +1,31 @@
+/*
+ * Font Awesome, for the staff area only.
+ *
+ * OWNER-APPROVED. This file and the npm package it imports are the one new
+ * dependency in this project, and it is scoped as narrowly as a dependency can be:
+ *
+ *   - it is its own Vite input, not an addition to resources/css/app.css, so the
+ *     stylesheet every resident and public page loads is byte-for-byte unchanged;
+ *   - it is referenced from layouts/app.blade.php only, which is the staff,
+ *     Kagawad and Admin shell. A public or resident page never asks for it, so it
+ *     is never downloaded on a public page.
+ *
+ * The last point is the reason for the separate file rather than an @import at the
+ * top of app.css. One import line there would work visually and would put roughly
+ * 100KB of font on every public page, including the ones a resident on a slow
+ * connection is most likely to be reading.
+ *
+ * fontawesome.css declares the shared machinery — the .fa / .fas classes, the
+ * ::before pseudo-element, the font-family and the ligature rendering.
+ * solid.css is the solid weight, which is the only one used: one weight is one
+ * font file, and the regular weight would be a second file for no gain.
+ *
+ * NOT brands, NOT regular, NOT sharp, NOT the duotone or classic families. Only
+ * what the staff tables actually draw.
+ *
+ * No CDN. The woff2 is resolved by Vite from ../webfonts/ and emitted into
+ * public/build, so the glyphs are served from this origin and nothing about this
+ * page depends on a third party being reachable.
+ */
+@import '@fortawesome/fontawesome-free/css/fontawesome.css';
+@import '@fortawesome/fontawesome-free/css/solid.css';

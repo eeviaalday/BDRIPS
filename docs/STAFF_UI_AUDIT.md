@@ -582,9 +582,9 @@ the route table against that document, which also closes M4 below.
 | F7 | "Captain" / `Sectors & Kagawad` named to a Kagawad | Stale copy | **Resolved — reversed** | The Captain is the Admin (`ROLES.md` decision 1), so the copy now names them. It still carries no link, because `/staff/sectors` is `role:admin` and a Kagawad would get 403. `KagawadFieldAreaTest` now asserts the Captain is named *and* that no admin-only URL is linked. |
 | F8 | Container widths inconsistent across four tiers | Inconsistency | **Partly resolved** | Tables are uniformly `max-w-6xl` and forms `max-w-3xl`; the staff dashboard moved to `6xl` to match the queue beside it. The remaining `5xl` screens (`batches/show`, `status/index`, the two dashboards) hold wide tables, and narrowing them trades a cosmetic inconsistency for an overflow risk. Measured clean at 375–1920 as they stand. |
 | F9 | Sectors page is 17 full inline forms | Inconsistency | **Resolved** | Each row is collapsed behind a per-row **Manage** control. |
-| F10 | Settings is one ungrouped form | Inconsistency | **Deferred** | Still 1 form, 0 fieldsets, 0 legends. Grouping is a real improvement but a redesign, and it changes nothing about correctness. |
+| F10 | Settings is one ungrouped form | Inconsistency | **Deferred** | Still 1 form, 0 fieldsets, 0 legends. Grouping is a real improvement but a redesign, and it changes nothing about correctness. Untouched by this task. |
 | F11 | "Verified" column on staff accounts | Inconsistency | **Deferred** | The column still renders `is_verified` for every account, including roles where it means nothing. |
-| F12 | Table cell alignment | Not reproduced | **No action** | Every staff table is left-aligned; there is no hand-written `<table>` anywhere in `staff/**` or `kagawad/**`. |
+| F12 | Table cell alignment | **Reproduced** | **Resolved** | **"Not reproduced" was wrong, and the reason it looked right is the point.** The measurement above only read `text-align` on `th` and `td`, and that genuinely was `left` everywhere — which is why it kept reading as fixed. The cells that were off were never `text-align`. Three separate causes, all now gone: `align => 'right'` on a column definition, which put `text-right` on the `<th>`; `class="text-right"` on numeric cells; and `justify-end` on the Actions cells, which made the column read right-aligned without a single text-align declaration. The first is the interesting one — `align` was a real prop here and a **dead** one on the shared `x-data-table`, which reads `$column['class']`, so the same key was honoured in one component and ignored in the other. The prop is removed rather than fixed. Measured 2026-10-02 at **1280 and 768 across 13 staff/Kagawad screens: 0 cells not left-aligned, `justify-content: center` surviving only on fixed-size icon boxes, where it centres a glyph.** |
 | F13 | Selects and date inputs truncate | Not reproduced | **No action** | Re-measured during the responsive pass; no control overflows at any of the six widths. |
 
 ### 8.2 Mismatches raised in §3
@@ -627,3 +627,113 @@ not fixed.** Fixing any of them needs that constraint lifted.
 | Decision | Consequence |
 |---|---|
 | A Kagawad holds **exactly one** sector. `sectors.kagawad_user_id` stays `UNIQUE`; the schema is not changed. | The plural in `ROLES.md` decision 3 reads as "one or more", never "several". The sector filter on the Kagawad resident list is unreachable **by design** — it renders only for more than one sector. The logic stays and is tested against the support class; the end-to-end test is `markTestSkipped` naming this reason. |
+
+
+---
+
+## 9. Filters, icon actions and alignment (2026-10-02)
+
+Four defects were reported against the staff area. All four are fixed, and three of
+them had been previously measured and called clean.
+
+### F14 — Two lists hid records by default · **Bug** · **Resolved**
+
+`staff.verifications.index` defaulted `?status` to `pending` and
+`staff.requests.index` defaulted to `queue`. Both narrowed to a real subset, and in
+both cases the empty state and the counts still worked — which is exactly why this
+reads as correct rather than broken. A profile already verified, and a request
+already collected, were simply not on the page, and nothing said so.
+
+A filter that hides records by default cannot be told apart from a page that has
+lost them. Every staff list now defaults to the empty parameter, meaning every
+status, and the select carries an explicit **All** / **Everything** option so the
+page and the control agree.
+
+Two things were wrong underneath and went with it:
+
+- **Document Requests had two spellings of "everything"** — an `all` sentinel value
+  *and* the absence of a filter — so a bookmark of one did not mean the other. The
+  sentinel is gone.
+- **The sort contradicted itself.** `awaitingDecision()` appends its own
+  `oldest('created_at')`, which then sat ahead of the outer `latest()` in the
+  `ORDER BY`. The default view sorted oldest-first and every other filter
+  newest-first. Ordering is now stated once.
+
+`staff.batches.index` also had a `?status=` parameter with **no control at all**:
+it narrowed the list invisibly and there was no way back. It has a Show filter now.
+
+### F15 — The Role filter disagreed with the list · **Bug** · **Resolved**
+
+Reported as: the Role select showed "Resident" while the list held several roles.
+
+Neither the controller nor the option list was wrong. `RoleNavigation` was not
+involved. The cause was one line in `components/staff/filter-select.blade.php`:
+
+```php
+foreach ($options as $key => $item) {
+    $value = is_int($key) ? (string) $item : (string) $key;   // <-- $value is the PROP
+```
+
+`$value` is the component's **prop** — the current filter. The loop reused the name,
+so after the loop `$value` held the **last option's value**, and every
+`@selected($value === $optionValue)` below was really testing the last option
+against itself. `User::roles()` ends with `resident`, so the control always displayed
+**Resident** while `$role` was `''` and the list held every role. Exactly the
+reported symptom, from a shadowed variable.
+
+The same line had a second defect behind it. `is_int($key)` cannot tell a list of
+slugs from a map keyed by a database id, because PHP normalises the string key
+`"5"` to `int 5` on the way in. Four call sites pass `->pluck('name','id')`, so for
+the Sector filter on Residents, the Account filter on Audit Logs, and both the
+Sector and Batch filters on the Kagawad resident list, the id was thrown away and
+the option rendered as:
+
+```html
+<option value="Purok 5">Purok 5</option>
+```
+
+Submitting that sent `sector_id=Purok 5`, `$request->integer()` made it `0`, and the
+controller read `0` as "no filter at all". **Those four filters could not narrow the
+list from the interface at all**, and arriving at `?sector_id=5` narrowed the table
+while the select still read "All sectors". The shape is now decided by
+`array_is_list()`.
+
+### F16 — Rows were three ways into one record and none of them named it · **Accessibility** · **Resolved**
+
+Every staff row was clickable (`openRow()` on the table wrapper, `x-on:click` on
+every `<tr>`), the primary cell's name was a link, and a chevron sat beside it.
+
+None of the three named the record. A `<tr>` is not focusable and is not a link, so
+middle-click and "open in new tab" did nothing on it; the chevron was
+`aria-hidden`; and the link's text was the same string as the cell it sat in.
+
+A row is now reached through one **Actions** column of `<x-staff.icon-action>`, each
+with an accessible name that says which record it acts on. `openRow` is deleted
+rather than left unused — it had to bail out of any click landing on an interactive
+element, and a guard that must be right on every future row is a guard that will be
+wrong on one.
+
+The Kagawad phone card was a whole-card `<a>`, which made the card's entire text the
+link's accessible name and left nowhere to put a control; it is a container now, with
+the same icon action in a footer.
+
+### F17 — A disabled control whose reason nobody could reach · **Accessibility** · **Resolved**
+
+The Sectors page's disabled Delete was a `<span>` with the reason in a `title`
+attribute. A `title` is not reachable by keyboard and is not announced by a screen
+reader, so the one thing a disabled control exists to say was the one thing nobody
+could hear. It is now `aria-disabled` on a focusable element, with the reason in the
+accessible name, in sr-only text and in the tooltip — and it names the counts, which
+is what the Captain needs.
+
+### What was measured, and what was not
+
+F12 above is the one to read carefully: it was marked *Not reproduced* on the strength
+of a measurement that was correct and **incomplete**. `text-align` on `th` and `td`
+was left everywhere, so nothing looked wrong in the numbers, and the cells that were
+genuinely off were visible in a screenshot and invisible to the check that was run.
+
+`StaffTableActionsTest` now walks the rendered DOM of all nine tables and fails if any
+cell, or any wrapper the cell owns directly, carries a centring or right-alignment
+utility — with `justify-center` explicitly allowed deeper down, because that is how a
+glyph is centred in a 36x36 box and forbidding it would break the icon.

@@ -27,17 +27,20 @@
         </x-staff.stat-row>
 
         <x-staff.filter-bar :action="route('staff.requests.index')"
-            :has-filters="$search !== '' || $status !== 'queue'"
+            :has-filters="$search !== '' || $status !== ''"
             :clear-href="route('staff.requests.index')">
             <x-staff.filter-field name="q" label="Search" :value="$search"
                 placeholder="Reference number, name, or household" />
-            <x-staff.filter-select name="status" label="Show" :value="$status" :options="[
-                'queue' => 'Awaiting a decision',
-                'ready_for_pickup' => 'Ready for pickup',
-                'claimed' => 'Collected',
-                'rejected' => 'Rejected',
-                'all' => 'Everything',
-            ]" />
+            {{-- "Everything" is the empty parameter, not an `all` value. It used to be
+                 an option of its own AND the absence of a default, so "everything"
+                 had two spellings and a bookmark of one did not mean the other. --}}
+            <x-staff.filter-select name="status" label="Show" all-label="Everything"
+                :value="$status" :options="[
+                    'queue' => 'Awaiting a decision',
+                    'ready_for_pickup' => 'Ready for pickup',
+                    'claimed' => 'Collected',
+                    'rejected' => 'Rejected',
+                ]" />
         </x-staff.filter-bar>
 
         <x-staff.table
@@ -47,20 +50,24 @@
                 ['label' => 'Document'],
                 ['label' => 'Submitted'],
                 ['label' => 'Status'],
+                ['label' => 'Actions'],
             ]"
             caption="Document requests"
-            :empty-title="$search !== '' || $status !== 'queue' ? 'No requests match these filters' : 'Nothing here'"
-            :empty-description="$search !== '' || $status !== 'queue'
+            :empty-title="$search !== '' || $status !== '' ? 'No requests match these filters' : 'Nothing here'"
+            :empty-description="$search !== '' || $status !== ''
                 ? 'Try a different search, or clear the filters to see everything.'
                 : 'No request has been submitted yet.'"
             empty-icon="document"
-            :empty-action-label="$search !== '' || $status !== 'queue' ? 'Clear filters' : null"
-            :empty-action-href="$search !== '' || $status !== 'queue' ? route('staff.requests.index') : null">
+            :empty-action-label="$search !== '' || $status !== '' ? 'Clear filters' : null"
+            :empty-action-href="$search !== '' || $status !== '' ? route('staff.requests.index') : null">
             @foreach ($requests as $documentRequest)
-                <tr x-on:click="openRow($event, @js(route('staff.requests.show', $documentRequest)))">
+                {{-- The reference number is plain text, not a link. A row of
+                     reference numbers that are all links reads as a wall of links and
+                     gives a screen reader nothing to distinguish them by; the Actions
+                     control is the way in and it says what it does. --}}
+                <tr>
                     <th scope="row">
-                        <x-staff.person-cell :name="$documentRequest->reference_number" mono
-                            :href="route('staff.requests.show', $documentRequest)" chevron />
+                        <x-staff.person-cell :name="$documentRequest->reference_number" mono />
                     </th>
                     <td class="text-sm text-navy-800">
                         {{ $documentRequest->user?->name }}
@@ -69,6 +76,11 @@
                     <td class="text-sm text-slate-600">{{ $documentRequest->documentType?->label ?? 'Retired document' }}</td>
                     <td class="text-sm text-slate-600">{{ $documentRequest->created_at?->format('j M Y') }}</td>
                     <td><x-staff.status-badge :status="$documentRequest->status" size="sm" /></td>
+                    <td>
+                        <div class="flex items-center gap-1">
+                        <x-staff.icon-action icon="eye" label="Review request {{ $documentRequest->reference_number }}"
+                            :href="route('staff.requests.show', $documentRequest)" />
+                    </td>
                 </tr>
             @endforeach
         </x-staff.table>

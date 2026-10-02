@@ -403,6 +403,90 @@ than assumed, in two layers because either alone leaves the same bug reachable:
 
 ---
 
+## Filters, and how a record is opened
+
+### Every list shows everything until a filter is chosen
+
+A staff page with no query string is not "a page with the default filter applied" —
+it is a page showing every record there is. Two lists broke that and have been
+fixed:
+
+| Page | Filter | Was | Now |
+|---|---|---|---|
+| Resident Verification | Status | `pending` — the queue only | **All** (empty parameter) |
+| Document Requests | Show | `queue` — submitted + under review only | **Everything** (empty parameter) |
+| Relief Batches | Show | *(no control at all)* | **Everything**, and the control now exists |
+| Announcements | Show | `all` sentinel | **Everything** (empty parameter; `?state=all` still resolves) |
+| Residents | Sector | All sectors | All sectors *(unchanged; see below)* |
+| User Accounts | Role | All roles | All roles *(unchanged; see below)* |
+| Audit Logs | Action / Account / From / To | Every action / Anyone | *(unchanged)* |
+| Sectors & Kagawad | Unassigned chip | Off | *(unchanged)* |
+| Kagawad My Sector Residents | Relief status | All | All *(unchanged)* |
+| Kagawad My Sector Residents | Batch | latest **active** batch | **kept** — see below |
+
+The pattern: **the empty parameter means no filter, everywhere.** Document Requests
+previously had both an `all` value *and* an absent filter, so "everything" had two
+spellings and a bookmark of one did not mean the other.
+
+**Ordering where a list used to default to the actionable filter.** Verification and
+Document Requests now put the records needing a decision first, then newest. Relief
+Distribution lists open batches before closed ones. Nothing is hidden.
+
+**The Kagawad batch selector keeps defaulting to one batch.** Relief status belongs to
+a batch — a household's "collected" is a claim about a particular handout — so
+"all batches" is not a meaningful state for that column. The selector still opens on
+the latest **active** batch, for the reason already recorded under
+[Two judgement calls recorded](#two-judgement-calls-recorded).
+
+**Four filters could not filter at all.** The Sector filter on Residents, the Account
+filter on Audit Logs, and both the Sector and Batch filters on the Kagawad resident
+list were built from `->pluck('name','id')`, and the select component decided that an
+integer array key meant "this is a list of values". So the id was discarded and the
+option rendered as `<option value="Purok 5">Purok 5</option>`; submitting it produced
+`0`, which the controller read as no filter. They submit ids now, and
+`StaffFiltersDefaultToAllTest` drives them by the value the rendered `<select>` sends.
+
+### A row is opened from one control, and it says which record
+
+Every staff, Kagawad and Admin table ends with an **Actions** column. Whole-row
+clicking, the chevrons and the links on names and reference numbers are gone: they
+gave three ways into one record and none of them named it — a `<tr>` is not focusable
+and is not a link, the chevron was `aria-hidden`, and the link's text was the same
+string as the cell it sat in.
+
+Each action is an `<x-staff.icon-action>`: a Font Awesome glyph, `aria-hidden`, with
+the accessible name naming the record it acts on, a tooltip, a 36x36 hit area (44x44
+on the Kagawad checklist, which is used one-handed on a phone), a visible focus ring,
+and red for the destructive one. A control that cannot be used is rendered
+`aria-disabled` with its reason in text, not only in a tooltip.
+
+**No Actions column on two tables, deliberately.** Audit Logs keeps its Context
+disclosure — the row *is* the record, so an Actions column would hold a View button
+that goes nowhere. The Kagawad resident list is read-only by decision 3 and has no
+staff resident page a Kagawad may open.
+
+### Font Awesome, staff only
+
+`@fortawesome/fontawesome-free` is self-hosted through Vite as its own entry,
+`resources/css/staff-icons.css`, which imports only `fontawesome.css` and
+`solid.css`. It is listed in `layouts/app.blade.php` and **nowhere else**, so a
+public or resident page never requests it. Verified: eight public and guest pages
+and four resident pages load no `staff-icons` stylesheet and no icon font, and fetch
+only `app.css`.
+
+### Table alignment
+
+Every cell is left-aligned, figures included, and the Actions column is left-aligned
+too. This was reported fixed twice and was not. The earlier check read `text-align`
+on `th` and `td` — which really was `left` — and missed that three other things were
+centring the tables: an `align => 'right'` key on a column definition, `text-right`
+on numeric cells, and `justify-end` on the Actions cells. That first key was a real
+prop of `x-staff.table` and a **dead** one on the shared `x-data-table`, which reads
+`$column['class']` instead — so the same key was honoured in one component and
+silently ignored in the other. It is removed rather than fixed.
+
+---
+
 ## Removed
 
 ### System Status

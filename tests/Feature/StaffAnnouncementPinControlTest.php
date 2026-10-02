@@ -471,7 +471,7 @@ class StaffAnnouncementPinControlTest extends TestCase
     private function buttonLabelled(Announcement $announcement, string $label, ?User $as = null): ?DOMElement
     {
         foreach ($this->inRow($announcement, '//button', $as) as $button) {
-            if ($this->visibleText($button) === $label) {
+            if ($this->namesControl($button, $label)) {
                 return $button;
             }
         }
@@ -482,12 +482,38 @@ class StaffAnnouncementPinControlTest extends TestCase
     private function linkLabelled(Announcement $announcement, string $label, ?User $as = null): ?DOMElement
     {
         foreach ($this->inRow($announcement, '//a', $as) as $link) {
-            if ($this->visibleText($link) === $label) {
+            if ($this->namesControl($link, $label)) {
                 return $link;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Does this control answer to that name?
+     *
+     * Matched on the ACCESSIBLE NAME, not the visible text, and that is the whole
+     * point of this change rather than a convenience. Pin, Unpin, Publish, Unpublish
+     * and Delete are now icon actions, so their visible text is a glyph and nothing
+     * else: the name lives in aria-label and in sr-only text. A helper that read
+     * textContent would have found no labelled control on the page and every one of
+     * these tests would have failed for the wrong reason — or, if the helper had
+     * fallen back to "contains", would have passed against the wrong button.
+     *
+     * The name a screen reader gets is the full one, "Unpin Draft one", so a bare
+     * "Unpin" is matched as a whole-word prefix. That keeps "Pin" from matching
+     * "Unpin", which is the confusion these tests exist to prevent.
+     */
+    private function namesControl(DOMElement $control, string $label): bool
+    {
+        $name = trim($control->getAttribute('aria-label'));
+
+        if ($name === '') {
+            $name = $this->visibleText($control);
+        }
+
+        return $name === $label || str_starts_with($name, $label.' ');
     }
 
     private function enclosingForm(DOMElement $control): ?DOMElement

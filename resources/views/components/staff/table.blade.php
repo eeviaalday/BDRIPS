@@ -1,7 +1,15 @@
 @props([
-    // Ordered column definitions. Each is ['label' => string, 'align' => 'left'|'right'|'center'].
-    // "align" is applied to the header AND is what a caller should put on the matching
-    // cell, so a numeric column can be right-aligned as a pair.
+    // Ordered column definitions. Each is ['label' => string].
+    //
+    // There used to be a second key, 'align', documented as 'left'|'right'|'center'.
+    // It is gone, and that is the fix rather than a simplification. The shared
+    // x-data-table this component was built beside reads the "class" key of a column
+    // and not the "align" one, so the same right-alignment was honoured here and
+    // silently ignored there — which is how a numeric column came out right-aligned
+    // on this component and not on the other. One key, one meaning, and no key that
+    // only half works.
+    //
+    // Every cell in the staff area is left-aligned, figures included.
     'columns' => [],
     'caption' => null,
     // Shown instead of the table when the slot is empty.
@@ -142,7 +150,7 @@
         That mistake was made once already in this file and is the reason the
         first version of this paragraph is in a comment rather than in x-data.
     --}}
-    <div x-data="{ openRow(event, url) { if (! url) return; if (event.target.closest('a, button, form, input, select, textarea, label, summary, [role=dialog]')) return; window.location.href = url } }"
+    <div
         tabindex="0"
         role="region"
         aria-label="{{ $caption ?? 'Table' }}"
@@ -155,8 +163,7 @@
             <thead class="border-b border-navy-100 bg-navy-50/60">
                 <tr>
                     @foreach ($columns as $column)
-                        <th scope="col"
-                            class="{{ $headerCell }} {{ ($column['align'] ?? 'left') === 'left' ? 'text-left' : 'text-'.$column['align'] }}">
+                        <th scope="col" class="{{ $headerCell }} text-left">
                             {{ $column['label'] }}
                         </th>
                     @endforeach

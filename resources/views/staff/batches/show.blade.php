@@ -69,9 +69,9 @@
                 :columns="[
                     ['label' => 'Sector'],
                     ['label' => 'Kagawad'],
-                    ['label' => 'Households', 'align' => 'right'],
-                    ['label' => 'Collected', 'align' => 'right'],
-                    ['label' => 'Remaining', 'align' => 'right'],
+                    ['label' => 'Households'],
+                    ['label' => 'Collected'],
+                    ['label' => 'Remaining'],
                 ]"
                 caption="Progress by sector" empty-title="No households on this list"
                 empty-description="Open the batch with at least one sector selected to add households."
@@ -80,9 +80,9 @@
                     <tr>
                         <th scope="row">{{ $row['sector']->sector_name }}</th>
                         <td class="text-sm text-slate-600">{{ $row['sector']->kagawad?->name ?? 'Unassigned' }}</td>
-                        <td class="text-right tabular-nums text-slate-600">{{ $row['total'] }}</td>
-                        <td class="text-right tabular-nums text-slate-600">{{ $row['received'] }}</td>
-                        <td class="text-right tabular-nums font-semibold text-navy-800">{{ $row['total'] - $row['received'] }}</td>
+                        <td class="tabular-nums text-slate-600">{{ $row['total'] }}</td>
+                        <td class="tabular-nums text-slate-600">{{ $row['received'] }}</td>
+                        <td class="tabular-nums font-semibold text-navy-800">{{ $row['total'] - $row['received'] }}</td>
                     </tr>
                 @endforeach
             </x-staff.table>
