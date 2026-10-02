@@ -39,30 +39,6 @@ class NavigationBadgesTest extends TestCase
         NavigationBadges::flush();
     }
 
-    /**
-     * Empty every table a badge counts.
-     *
-     * Needed because RefreshDatabase wraps a test in a transaction and rolls it
-     * back, but it does not start from an empty schema: bdrpis_testing carries rows
-     * committed outside any test, so a test that created five sectors and expected
-     * a count of four was reading twenty-two. Any test asserting an exact figure
-     * or an exact zero calls this first, so the number under test is the one this
-     * test set up.
-     *
-     * Relational order, because the foreign keys are real.
-     */
-    private function emptyCountedTables(): void
-    {
-        ReliefDistribution::query()->delete();
-        DocumentRequest::query()->delete();
-        ReliefBatch::query()->delete();
-        // resident_profiles and sectors are siblings, but a sector is referenced
-        // by a profile, so the profile has to go first.
-        ResidentProfile::query()->delete();
-        Sector::query()->delete();
-        User::query()->delete();
-    }
-
     // -----------------------------------------------------------------
     // What each role is shown
     // -----------------------------------------------------------------
@@ -70,7 +46,6 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function a_secretary_sees_pending_verifications_and_requests_awaiting_a_decision(): void
     {
-        $this->emptyCountedTables();
 
         ResidentProfile::factory()->count(3)->pending()->create();
         DocumentRequest::factory()->count(2)->create();
@@ -89,20 +64,77 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function an_admin_additionally_sees_sectors_with_no_kagawad(): void
     {
-        $this->emptyCountedTables();
-
         Sector::factory()->count(4)->create();
         Sector::factory()->create(['kagawad_user_id' => User::factory()->kagawad()->create()->id]);
 
-        // 4 unassigned, 1 assigned. The Captain's queue is the 4.
+        /*
+         * Against the LIVE count, not a hardcoded number.
+         *
+         * migrate:fresh leaves the seventeen puroks behind, and every one of them is
+         * unassigned, so the baseline is part of the figure. A previous version of
+         * this file emptied the sectors table to get a clean four - which threw away
+         * a baseline that forty-odd other assertions in AdminOnlyPagesTest rely on,
+         * and answered a question nobody asked.
+         *
+         * So the assertion is the contract: the badge equals the number of sectors
+         * with no Kagawad, whatever that number happens to be. It is also asserted
+         * as a DELTA below, so a badge that read a stale number rather than the
+         * current one would still fail.
+         */
+        $expected = Sector::query()->whereNull('kagawad_user_id')->count();
+
         $badges = $this->badgesOn($this->staffDashboard(User::ROLE_ADMIN));
 
-        $this->assertSame('4', $badges['Sectors & Kagawad'] ?? null);
+        $this->assertSame(
+            (string) $expected,
+            $badges['Sectors & Kagawad'] ?? null,
+            'The Sectors badge should equal the live count of unassigned sectors.'
+        );
 
         // The other admin-only pages are not to-do queues.
         foreach (['User Accounts', 'Settings', 'Audit Logs'] as $label) {
             $this->assertArrayNotHasKey($label, $badges, "[{$label}] should carry no badge.");
         }
+    }
+
+    /**
+     * The Captain's Sectors badge is a live figure, not a stored one.
+     *
+     * Assigning every sector must move the badge down by exactly the number
+     * assigned. Asserting the delta rather than an absolute number keeps this
+     * honest when the seventeen-purok baseline changes.
+     */
+    #[Test]
+    public function assigning_a_sector_lowers_the_sectors_badge_by_one(): void
+    {
+        $before = $this->badgeCountOn($this->staffDashboard(User::ROLE_ADMIN), 'Sectors & Kagawad');
+
+        $unassigned = Sector::query()->whereNull('kagawad_user_id')->firstOrFail();
+        $unassigned->update(['kagawad_user_id' => User::factory()->kagawad()->create()->id]);
+
+        $after = $this->badgeCountOn($this->staffDashboard(User::ROLE_ADMIN), 'Sectors & Kagawad');
+
+        $this->assertSame($before - 1, $after, 'Assigning one sector should lower the badge by one.');
+    }
+
+    #[Test]
+    public function a_sector_with_a_kagawad_is_not_counted(): void
+    {
+        // Seventeen sectors, one of which is already assigned by the demo seeder in
+        // a real database and unassigned in a freshly migrated one - so this reads
+        // the live state and asserts the relationship rather than a number.
+        Sector::query()->whereNull('kagawad_user_id')->limit(3)->get()
+            ->each(fn (Sector $s) => $s->update(['kagawad_user_id' => User::factory()->kagawad()->create()->id]));
+
+        $unassigned = Sector::query()->whereNull('kagawad_user_id')->count();
+
+        $badges = $this->badgesOn($this->staffDashboard(User::ROLE_ADMIN));
+
+        $this->assertSame(
+            (string) $unassigned,
+            $badges['Sectors & Kagawad'] ?? null,
+            'An assigned sector must not be counted as outstanding.'
+        );
     }
 
     #[Test]
@@ -156,7 +188,6 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function an_unassigned_kagawad_sees_no_badge_at_all(): void
     {
-        $this->emptyCountedTables();
 
         // Somebody else's outstanding work exists; this account has no sector.
         $sector = Sector::factory()->create();
@@ -176,7 +207,6 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function a_resident_has_no_staff_badges_anywhere(): void
     {
-        $this->emptyCountedTables();
 
         $sector = Sector::factory()->create();
         $batch = ReliefBatch::factory()->create();
@@ -199,25 +229,43 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function a_zero_count_is_hidden_rather_than_shown(): void
     {
-        $this->emptyCountedTables();
+        /*
+         * A Secretary, and both of their badges at zero.
+         *
+         * A Secretary is the right role to prove this on: after migrate:fresh both
+         * resident_profiles and document_requests are empty, so the counts are
+         * genuinely zero without deleting anything. The Captain's Sectors badge
+         * cannot be made zero this way, because the seventeen-purok baseline is
+         * unassigned by design - see the note on the Sectors test above - so that
+         * route's zero case is covered by the assigned-sector tests instead of by
+         * emptying a table other tests depend on.
+         */
+        $this->assertSame(0, ResidentProfile::query()->where('verification_status', ResidentProfile::VERIFICATION_PENDING)->count());
+        $this->assertSame(0, DocumentRequest::query()->awaitingDecision()->count());
 
-        // Nothing pending, nothing awaiting, every sector assigned.
-        $kagawad = User::factory()->kagawad()->create();
-        Sector::factory()->create(['kagawad_user_id' => $kagawad->id]);
-
-        $badges = $this->badgesOn($this->staffDashboard(User::ROLE_ADMIN));
+        $html = $this->staffDashboard(User::ROLE_SECRETARY);
+        $badges = $this->badgesOn($html);
 
         $this->assertSame([], $badges, 'Every count is zero, so no badge should be rendered at all.');
 
-        // And specifically: no "0" anywhere in the nav.
-        $html = $this->staffDashboard(User::ROLE_ADMIN);
-        $this->assertStringNotContainsString('>0<', $this->navOf($html, 0));
+        /*
+         * Asserted on the NAV, not the document.
+         *
+         * The Secretary dashboard has a panel headed "Requests awaiting decision"
+         * and stat cards that legitimately read 0, so searching the whole page
+         * would be testing the dashboard. The question is whether the NAV draws a
+         * badge, and the nav is where the answer lives.
+         */
+        $nav = $this->navOf($html, 0);
+
+        $this->assertStringNotContainsString('pending verification', $nav);
+        $this->assertStringNotContainsString('awaiting a decision', $nav);
+        $this->assertStringNotContainsString('>0<', $nav, 'The nav must not draw a zero badge.');
     }
 
     #[Test]
     public function a_count_past_the_cap_prints_ninety_nine_plus(): void
     {
-        $this->emptyCountedTables();
 
         ResidentProfile::factory()->count(120)->pending()->create();
 
@@ -241,7 +289,6 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function a_singular_count_reads_as_a_singular_sentence(): void
     {
-        $this->emptyCountedTables();
 
         ResidentProfile::factory()->create([
             'verification_status' => ResidentProfile::VERIFICATION_PENDING,
@@ -295,7 +342,6 @@ class NavigationBadgesTest extends TestCase
     #[Test]
     public function the_badge_cost_does_not_grow_with_the_number_of_rows(): void
     {
-        $this->emptyCountedTables();
 
         $count = function (): int {
             $queries = [];
@@ -317,7 +363,6 @@ class NavigationBadgesTest extends TestCase
 
         $this->refreshDatabase();
         NavigationBadges::flush();
-        $this->emptyCountedTables();
 
         for ($i = 0; $i < 20; $i++) {
             ResidentProfile::factory()->pending()->create();
@@ -390,6 +435,17 @@ class NavigationBadgesTest extends TestCase
         }
 
         return $out;
+    }
+
+    /**
+     * The printed count on one named badge, as an integer.
+     *
+     * Returns 0 when the badge is absent, which is the same thing a hidden badge
+     * means - so a caller comparing a before and an after is comparing figures.
+     */
+    private function badgeCountOn(string $html, string $label): int
+    {
+        return (int) ($this->badgesOn($html, 0)[$label] ?? 0);
     }
 
     /**

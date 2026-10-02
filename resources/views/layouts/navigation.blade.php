@@ -86,62 +86,84 @@
 
     {{-- flex-1 + min-h-0 + overflow-y-auto: an Admin's ten destinations scroll
          inside the sidebar while the logo above and the user block below stay
-         put. See the note on the <aside> for why min-h-0 is not optional. --}}
+         put. See the note on the <aside> for why min-h-0 is not optional.
+
+         ONE LOOP PER GROUP, AND A HEADING ONLY WHEN THERE IS MORE THAN ONE.
+
+         M1/M2 in docs/STAFF_UI_AUDIT.md: availableSidebarGroupsFor() folded
+         everything that was not 'main' into a single bucket, discarding the
+         `group => 'admin'` that RoleNavigation declares on the Captain's four
+         destinations, and this file then drew one hard-coded heading for it. The
+         result was User Accounts, Sectors & Kagawad, Settings and Audit Logs
+         sitting under a heading that said "My Account".
+
+         Both halves are fixed. The buckets are separate, and a heading is drawn
+         per bucket - but only when the page has more than one bucket, so a
+         Secretary or a Kagawad (whose lists declare no 'admin' group) keeps the
+         shape it always had: their destinations with no heading of their own,
+         then My Account. Labelling a lone group "Workspace" would add a heading
+         that distinguishes nothing.
+
+         The link markup is written once, in a partial, because the badge and the
+         current-page treatment have to be identical in all three places and three
+         copies is how one of them ends up missing its badge. --}}
     <nav class="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-1" aria-label="Portal">
-        @foreach ($groups['main'] as $link)
-            <a href="{{ route($link['route']) }}"
-                @if (App\Support\RoleNavigation::isCurrent($link)) aria-current="page" @endif
-                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition
-                    {{ App\Support\RoleNavigation::isCurrent($link) ? 'bg-sky-400 text-navy font-semibold' : 'text-sky-100 hover:bg-white/10 hover:text-white' }}">
-                <x-icon :name="$link['icon']" class="w-5 h-5 flex-shrink-0" />
-                <span class="min-w-0 truncate">{{ $link['label'] }}</span>
-                @if (isset($badges[$link['route']]))
-                    {{--
-                        aria-label, because a bare "3" read out loud is not a
-                        sentence, and the visible number is only a cue for a
-                        sighted reader. The label says what the number is of.
+        @php
+            /*
+             * The heading each group is drawn under, and which of them this role
+             * actually has something to put there.
+             *
+             * ARRAY_FILTER_USE_BOTH, because the test is on the GROUP while the
+             * element being filtered is the heading: array_intersect_key would
+             * return the heading strings and hand them to the callback as if they
+             * were the link arrays.
+             */
+            $headingFor = ['main' => 'Workspace', 'admin' => 'Administration', 'account' => 'My Account'];
 
-                        aria-hidden on the number itself: without it a screen reader
-                        would announce the label and then the digit again.
-                    --}}
-                    <span class="ml-auto inline-flex min-w-[1.5rem] flex-shrink-0 items-center justify-center rounded-full bg-gold px-1.5 py-0.5 text-2xs font-bold tabular-nums text-navy-900"
-                        title="{{ $badges[$link['route']]['label'] }}"
-                        aria-label="{{ $badges[$link['route']]['label'] }}">
-                        <span aria-hidden="true">{{ App\Support\NavigationBadges::display($badges[$link['route']]['count']) }}</span>
-                    </span>
+            $buckets = array_filter(
+                $headingFor,
+                fn (string $heading, string $bucket): bool => ($groups[$bucket] ?? []) !== [],
+                ARRAY_FILTER_USE_BOTH,
+            );
+
+            /*
+             * Which groups get a heading, and which do not.
+             *
+             * An Admin's sidebar is genuinely divided - Workspace, Administration,
+             * My Account - so all three are labelled, Workspace included. The test
+             * for that is the admin bucket, not the number of buckets: a Secretary
+             * and a Kagawad have two buckets too (main plus My Account), so counting
+             * them would label their single run of workspace links "Workspace" - a
+             * heading that distinguishes nothing, and a change to the grouping they
+             * were supposed to keep.
+             *
+             * So for those two roles the workspace links stay unlabelled, as they
+             * always were, and My Account keeps the heading it has always had.
+             */
+            $showHeadings = ($groups['admin'] ?? []) !== [];
+        @endphp
+
+        @foreach ($buckets as $bucket => $heading)
+            {{--
+                The group wrapper is always emitted, and only its border and its
+                heading are conditional. Splitting the <div> itself across a @if on
+                $loop->first / $loop->last would put an open tag in one branch and a
+                close tag in another - the shape that produced the "managing is not
+                defined" bug on the sectors page, where a <tbody> was closed outside
+                the row that opened it.
+            --}}
+            <div @class([
+                'mt-4 border-t border-white/10 pt-4' => ! $loop->first,
+            ])>
+                @if ($showHeadings || $bucket !== 'main')
+                    <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sky-300/70">{{ $heading }}</p>
                 @endif
-            </a>
-        @endforeach
 
-        @if ($groups['account'] !== [])
-            <div class="pt-4 mt-4 border-t border-white/10">
-                <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sky-300/70">My Account</p>
-                @foreach ($groups['account'] as $link)
-                    <a href="{{ route($link['route']) }}"
-                        @if (App\Support\RoleNavigation::isCurrent($link)) aria-current="page" @endif
-                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition
-                            {{ App\Support\RoleNavigation::isCurrent($link) ? 'bg-sky-400 text-navy font-semibold' : 'text-sky-100 hover:bg-white/10 hover:text-white' }}">
-                        {{-- My Account is never a to-do queue, so nothing here is
-                             badged. The Captain's four are: this loop draws both,
-                             because availableSidebarGroupsFor() buckets everything
-                             that is not 'main' into one group - see F5 in the audit,
-                             which is why the Captain's links sit under a heading
-                             that says My Account. The badge is drawn from
-                             $badges by route name, so it appears only where a
-                             figure exists and My Account is simply skipped. --}}
-                        <x-icon :name="$link['icon']" class="w-5 h-5 flex-shrink-0" />
-                        <span class="min-w-0 truncate">{{ $link['label'] }}</span>
-                        @if (isset($badges[$link['route']]))
-                            <span class="ml-auto inline-flex min-w-[1.5rem] flex-shrink-0 items-center justify-center rounded-full bg-gold px-1.5 py-0.5 text-2xs font-bold tabular-nums text-navy-900"
-                                title="{{ $badges[$link['route']]['label'] }}"
-                                aria-label="{{ $badges[$link['route']]['label'] }}">
-                                <span aria-hidden="true">{{ App\Support\NavigationBadges::display($badges[$link['route']]['count']) }}</span>
-                            </span>
-                        @endif
-                    </a>
+                @foreach ($groups[$bucket] as $link)
+                    @include('layouts.partials.sidebar-link', ['link' => $link, 'badges' => $badges])
                 @endforeach
             </div>
-        @endif
+        @endforeach
     </nav>
 
     <div class="shrink-0 px-6 py-4 border-t border-white/10 text-sm">
@@ -186,7 +208,21 @@
     figures on a phone as on a desktop.
 --}}
 @php
-    $mobileLinks = array_merge($groups['main'], $groups['account']);
+    /*
+     * The phone bar carries every destination the desktop sidebar does, in the
+     * same order, minus the headings: a heading is a line of text the bar has no
+     * room for, and the bar is a flat strip of icons either way.
+     *
+     * 'admin' is in this merge as well as 'main' and 'account'. It was left out
+     * when the buckets were merged into one, so it was harmless then; now that
+     * Administration is a bucket of its own, dropping it here would quietly take
+     * the Captain's four destinations off the phone.
+     *
+     * PHP comment syntax, not a Blade one, because this is inside a @php block:
+     * Blade strips its own comment markers only outside PHP, so a Blade comment
+     * here reaches the parser as text and the page 500s.
+     */
+    $mobileLinks = array_merge($groups['main'], $groups['admin'], $groups['account']);
 @endphp
 
 @if ($mobileLinks !== [])

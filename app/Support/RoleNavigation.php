@@ -166,9 +166,20 @@ final class RoleNavigation
     }
 
     /**
-     * The staff sidebar split into its two groups, after filtering.
+     * The staff sidebar split into its three groups, after filtering.
      *
-     * @return array{main: list<array{route: string, label: string, icon: string, group: string}>, account: list<array{route: string, label: string, icon: string, group: string}>}
+     * M1/M2 in docs/STAFF_UI_AUDIT.md: this used to return TWO buckets - 'main',
+     * and everything else folded into 'account' - so the `group => 'admin'` that
+     * sidebarFor() declares on the Captain's four destinations was discarded here,
+     * before it ever reached the view. The view then drew its one heading, and the
+     * four Admin pages rendered under a heading that said "My Account".
+     *
+     * Each declared group is now its own bucket, in a fixed order, and the view
+     * draws a heading per non-empty bucket. A Secretary and a Kagawad declare no
+     * 'admin' group, so their shape is unchanged: their main destinations with no
+     * heading of their own, then My Account.
+     *
+     * @return array{main: list<array{route: string, label: string, icon: string, group: string, pattern?: string}>, admin: list<array{route: string, label: string, icon: string, group: string, pattern?: string}>, account: list<array{route: string, label: string, icon: string, group: string, pattern?: string}>}
      */
     public static function availableSidebarGroupsFor(string $role): array
     {
@@ -176,7 +187,8 @@ final class RoleNavigation
 
         return [
             'main' => array_values(array_filter($links, fn (array $l): bool => $l['group'] === 'main')),
-            'account' => array_values(array_filter($links, fn (array $l): bool => $l['group'] !== 'main')),
+            'admin' => array_values(array_filter($links, fn (array $l): bool => $l['group'] === 'admin')),
+            'account' => array_values(array_filter($links, fn (array $l): bool => $l['group'] === 'account')),
         ];
     }
 

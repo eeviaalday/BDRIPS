@@ -561,8 +561,9 @@ visible defects:
 ## 8. Resolution status
 
 Added at the end of the staff-area polish. Every row was re-checked against the code
-in this working tree, not carried over from the finding text above — F4, F5, F10 and
-F11 are all still present, and F3 was still present until the last task.
+in this working tree, not carried over from the finding text above. F10 and F11 are
+still open; F4, F5 (with M1 and M2) have since been fixed, and F3 was still present
+until the last task.
 
 `ROLES.md` now exists and is owner-confirmed, so §0's blocker and §3.1's
 "cannot be produced" are both closed. `tests/Feature/RolesMatrixTest.php` now checks
@@ -575,8 +576,8 @@ the route table against that document, which also closes M4 below.
 | F1 | Pin/Unpin inverted, no Pin button | Bug | **Resolved** | Unpin is now offered only when the announcement is pinned. |
 | F2 | Role-count cards all read 0 | Bug | **Resolved** | `array_replace(array_fill_keys(...), $counts)`; cards show real counts. |
 | F3 | `<title>` is `BDRPIS - BDRPIS` on all 20 pages | Bug | **Resolved** | `AppLayout` now declares `$title` through its constructor, the same trap `GuestLayout` documents. The dead `@isset($title) <h1>` in `layouts/app` was removed at the same time, because making `$title` arrive would have given every page a second `<h1>`. Pinned by `StaffLayoutDocumentTitleTest` (43 cases: title, no `BDRPIS - BDRPIS`, exactly one `<h1>`). |
-| F4 | Sidebar scrolls away | Bug (UX) | **Deferred** | `<aside>` still has `min-h-screen` and no `sticky`/`fixed`/`h-screen`. Fixing it changes the layout for all three roles and belongs with a deliberate decision about the shell, not as a drive-by. |
-| F5 | Admin-only pages sit under "MY ACCOUNT" | Inconsistency | **Deferred** | `availableSidebarGroupsFor()` still folds `group !== 'main'` into one bucket and the heading is still hard-coded. This is M1/M2 and is the same root cause. |
+| F4 | Sidebar scrolls away | Bug (UX) | **Resolved** | The `<aside>` is `fixed inset-y-0 ... h-[100dvh]`, the document scrolls, and the main column takes a matching `md:pl-64` so the two never overlap. `min-h-0` on the inner `<nav>` is load-bearing: a flex child defaults to `min-height: auto` and refuses to shrink, pushing the user block out of the viewport instead of scrolling. Verified in-browser at `1280x500` (`clientHeight=350`, `scrollHeight=578`, `scrollTop` 0→228) and `top=0`/`bottom=innerHeight` at 1280x1000. |
+| F5 | Admin-only pages sit under "MY ACCOUNT" | Inconsistency | **Resolved** | Both halves fixed, with M1 and M2. `availableSidebarGroupsFor()` returns `main`, `admin` and `account` as three buckets, and the view draws a heading per bucket. An Admin now reads **Workspace** / **Administration** / **My Account**; a Secretary and a Kagawad declare no `admin` bucket, so their workspace links stay unlabelled and only My Account keeps its heading. Pinned per role by `tests/Feature/StaffSidebarGroupingTest.php`, which reads the rendered DOM rather than the array, so correct buckets and correct headings cannot drift apart. |
 | F6 | "Still being built" notices | Stale copy | **Resolved** | Both notices removed. |
 | F7 | "Captain" / `Sectors & Kagawad` named to a Kagawad | Stale copy | **Resolved — reversed** | The Captain is the Admin (`ROLES.md` decision 1), so the copy now names them. It still carries no link, because `/staff/sectors` is `role:admin` and a Kagawad would get 403. `KagawadFieldAreaTest` now asserts the Captain is named *and* that no admin-only URL is linked. |
 | F8 | Container widths inconsistent across four tiers | Inconsistency | **Partly resolved** | Tables are uniformly `max-w-6xl` and forms `max-w-3xl`; the staff dashboard moved to `6xl` to match the queue beside it. The remaining `5xl` screens (`batches/show`, `status/index`, the two dashboards) hold wide tables, and narrowing them trades a cosmetic inconsistency for an overflow risk. Measured clean at 375–1920 as they stand. |
@@ -590,8 +591,8 @@ the route table against that document, which also closes M4 below.
 
 | # | Mismatch | Status | Note |
 |---|---|---|---|
-| M1 | `group => 'admin'` is never rendered as its own group | **Deferred** | Same root cause as F5. |
-| M2 | `navigation.blade.php` hard-codes the second heading as "My Account" | **Deferred** | Same root cause as F5. |
+| M1 | `group => 'admin'` is never rendered as its own group | **Resolved** | Same root cause as F5. The buckets are separate now, and `StaffSidebarGroupingTest` asserts the Captain's four land in `admin` and that only the account link is left in `account`. |
+| M2 | `navigation.blade.php` hard-codes the second heading as "My Account" | **Resolved** | Same root cause as F5. One loop per bucket, with the heading in a map alongside the group, so no heading is hard-coded to a bucket. The link markup moved to `layouts/partials/sidebar-link.blade.php`, because the badge and current-page treatment were copied into a second loop and the copy had drifted. |
 | M3 | `sidebarFor()` returns `[]` for an unknown role | **Deferred** | Unreachable today. It fails quietly rather than refusing, which is worth fixing if a fifth role is ever added. |
 | M4 | `PermissionMatrixTest` reads its expectations from the route's own middleware | **Resolved** | `RolesMatrixTest` now transcribes `ROLES.md` independently, so a route with the *wrong* role fails. It also adds the structural guard the old file could not express: any route with `auth` and no `role:` must be on an explicit list. |
 

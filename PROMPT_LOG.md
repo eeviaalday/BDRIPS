@@ -4698,3 +4698,143 @@ console errors in either.**
 - **The dev database was re-seeded.** The badge fixtures replaced the demo sectors,
   residents, requests and batches, so `migrate:fresh --seed` was run to put it
   back. The documented demo accounts are intact.
+
+---
+
+## Prompt #025
+
+### The brief
+
+Three things, in the staff area only, on the same scope rules as the last task
+(`.ai/rules/staff-polish.md` and `ROLES.md` read first):
+
+1. Fix the sidebar grouping. The Admin should read **Workspace**, **Administration**,
+   **My Account**. A Secretary and a Kagawad keep the grouping they have. Badges
+   still work, the phone bottom bar is not changed, the rendered DOM is pinned per
+   role, and the Admin is looked at in a browser at 1280.
+2. `bdrpis_testing` carries 17 sector rows. Find out where they come from and make
+   sure the test database starts empty for every test run. Take the workarounds
+   out. Do not touch the development database.
+3. Tick off the todo list, leaving open only what is genuinely open.
+
+### The 17 sectors are the schema, not litter
+
+They are not committed by a test and not left behind by one. Migration
+`2026_09_29_151741_replace_sector_placeholders_with_purok_names` inserts the
+seventeen puroks, and that is what the barangay is divided into. Proven rather
+than argued: `migrate:fresh` on `bdrpis_testing` with no seeder and no factory
+produces `sectors 17, users 0, resident_profiles 0, document_requests 0,
+relief_batches 0, announcements 0`.
+
+So the test database does start empty — empty of anything a test creates — and
+`RefreshDatabase` already guarantees it, by migrating fresh once per run. The only
+correct change was to the tests, not the schema: `NavigationBadgesTest` had grown
+an `emptyCountedTables()` helper that truncated the counted tables itself, which
+both hid the real baseline and was load-bearing. It is gone. The assertions now
+read the live count (the 17 unassigned sectors, the pending profiles the test made)
+instead of emptying tables to make a number come out right. Two more cases were
+added for the part that actually matters — that assigning a sector lowers the
+Captain's badge, and that an assigned sector is not counted.
+
+`bdrpis` was only ever read. `phpunit.xml` pins `bdrpis_testing` with
+`force="true"`, and `tests/TestCase.php` refuses to start on any other database
+and fails any query aimed at one.
+
+### Two halves, and only one of them was a data bug
+
+The Admin's four destinations sat under a heading that said "My Account" for two
+independent reasons, and fixing either alone would have left the same bug
+reachable:
+
+- `availableSidebarGroupsFor()` returned **two** buckets — `main`, and everything
+  else folded into `account` — so the `group => 'admin'` that `sidebarFor()`
+  declares on the Captain's four was thrown away before it reached the view.
+- The view then drew one hard-coded second heading, labelled "My Account".
+
+Both are fixed. Three buckets now, and one loop per bucket with the heading in a
+map beside it, so no heading is pinned to a bucket. A bucket is only drawn when it
+has something in it, which is why a Secretary sees no empty "Administration"
+section.
+
+`StaffSidebarGroupingTest` asserts the **rendered DOM** per role, not the array.
+That is the choice that matters: an array-only test passes while the headings are
+still wrong, and a markup-only test passes while the buckets are still merged.
+
+### The heading rule, which took two attempts
+
+The brief says the Secretary's grouping must not change, and the naive reading of
+that — "only label a group when there is more than one" — is wrong, because a
+Secretary has two buckets too (main plus My Account). That rule labelled the
+Secretary's workspace links "Workspace" and, worse, suppressed the **My Account**
+heading they have always had. The rule that is actually right is whether the role
+has an Administration section to divide its sidebar at all:
+
+- Admin has one, so all three groups are labelled, Workspace included.
+- Secretary and Kagawad do not, so their workspace links stay unlabelled and My
+  Account keeps its heading.
+
+### A bug the tests could not see
+
+The first version of the group loop left a stray `</div>` after the `@endforeach`,
+which closed the `<nav>` early. The user block stopped being a sibling of the nav
+and became its child; the flex column then gave the nav the full remaining height
+and pushed the user block out of the viewport at 1280x500. Every test passed,
+because each of them looked either at the links inside the nav or at the text —
+never at whether the nav ended where the sidebar said it did.
+
+`StaffSidebarShellTest` pins the shell: exactly three children (logo, nav, user
+block), the nav a direct child of the aside, `min-h-0`/`overflow-y-auto` on the nav
+and `shrink-0` on the other two, and `md:pl-64` on the main column. Re-injecting
+the stray tag makes six of its cases fail, so it is a real guard and not a
+formality.
+
+### The link markup moved to a partial
+
+The badge and current-page treatment were written out twice, and the two copies
+had already drifted — which is how the Captain's Sectors badge went missing for a
+whole task. `layouts/partials/sidebar-link.blade.php` is now the only copy, so
+the badge cannot be right in one group and wrong in another.
+
+The phone bar keeps its own markup, because a bar of stacked icons is not a list
+row. It gained `$groups['admin']` in its merge, which was harmless while the
+buckets were folded together and would otherwise have quietly taken the Captain's
+four destinations off the phone. Both surfaces now carry 11 for an Admin, 7 for a
+Secretary, 4 for a Kagawad.
+
+### Verification
+
+**Tests: 1201 pass** (1200 passed + 1 skipped by owner decision), 7707
+assertions. Net: 1189 before this task's last two commits, 12 grouping cases and
+12 shell cases added. Pint clean. Build committed; the CSS hash moved from
+`app-B5fCFYS1` to `app-DBMx5vpy` and is now stable across a second build. All
+three diff guards print nothing.
+
+**Browser, 9/9** across three roles x {1280x500, 1280x1000, 1920x1080}: the
+sidebar is pinned (`top=0`, `bottom=innerHeight`), the user block stays in view,
+there is no horizontal overflow, and every link is reachable at some scroll
+position.
+
+| Role | Groups | Links |
+|---|---|---|
+| Admin | Workspace (6) / Administration (4) / My Account (1) | 11 |
+| Secretary | unlabelled (6) / My Account (1) | 7 |
+| Kagawad | unlabelled (3) / My Account (1) | 4 |
+
+### Two corrections worth recording
+
+- The tag-balance check reported `<aside> 2 open / 1 close` and I read it as a
+  comment false positive. It was a real unbalanced tag. The check was right and I
+  was wrong, and a moment's proper scepticism about my own tooling would have
+  found it before the browser did.
+- My first browser audit reported two failures on Admin at 1280x500. Both were
+  bugs in the audit script: its user-block selector matched a group wrapper,
+  because the My Account link lives inside one, and it demanded every link be
+  visible *simultaneously* at a single scroll position. The page was fine. Worth
+  noting because the instinct to go and "fix" the app after a red browser check is
+  the wrong one — the first question is which of the two is lying.
+
+### Still open (unchanged, deliberately)
+
+F10 (Settings is one ungrouped form) and F11 (the "Verified" column renders for
+roles where it means nothing) are untouched. Both are real but both are redesigns
+rather than defects, and neither was in this brief. M3 remains unreachable today.

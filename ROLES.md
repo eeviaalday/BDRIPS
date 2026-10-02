@@ -357,12 +357,12 @@ only here. That is fine, but it means the two are not symmetric.
 From `App\Support\RoleNavigation::sidebarFor()`. Every role's list ends with
 **My Account**, which is the one entry they all share.
 
-- **Admin** — 10 entries. The six a Secretary sees (Dashboard, Resident
-  Verification, Residents, Document Requests, Relief Distribution, Announcements)
-  plus **four** in the admin group: **User Accounts**, **Sectors & Kagawad**,
-  **Settings**, **Audit Logs**, then My Account. The four admin-group entries are
-  exactly the four `role:admin` screens, so the menu, the middleware and decision 1
-  all agree.
+- **Admin** — 11 entries in three headed groups. **Workspace**: the six a
+  Secretary sees (Dashboard, Resident Verification, Residents, Document Requests,
+  Relief Distribution, Announcements). **Administration**: **User Accounts**,
+  **Sectors & Kagawad**, **Settings**, **Audit Logs**. **My Account**: My Account.
+  The four Administration entries are exactly the four `role:admin` screens, so the
+  menu, the middleware and decision 1 all agree.
 - **Secretary** — 7 entries, no admin group: the six above plus My Account. All
   announcement capabilities, including delete, are reachable from here.
 - **Kagawad** — 4 entries, still the shortest list: Dashboard, Relief
@@ -374,19 +374,32 @@ From `App\Support\RoleNavigation::sidebarFor()`. Every role's list ends with
   destinations, a profile menu, and **no Dashboard entry**, because a Resident's
   home is the public home page (`RoleNavigation:91`).
 
-The phone bottom bar is built from the same list
-(`layouts/navigation.blade.php` merges `$groups['main']` and `$groups['account']`),
-so the Kagawad's four destinations appear in both without either file knowing about
-the other.
+`RoleNavigation::availableSidebarGroupsFor()` returns three buckets — `main`,
+`admin` and `account` — and `layouts/navigation.blade.php` draws a heading per
+bucket. A bucket is only drawn when it has entries in it, and the heading is only
+drawn for a role whose sidebar is genuinely divided: an Admin labels all three
+groups, while a Secretary and a Kagawad declare no `admin` bucket, so their
+workspace links stay unlabelled and only My Account keeps a heading. Labelling that
+lone run "Workspace" would be a heading that distinguishes nothing.
+
+The phone bottom bar is built from the same three buckets
+(`array_merge($groups['main'], $groups['admin'], $groups['account'])`), minus the
+headings — a heading is a line of text the bar has no room for. So both surfaces
+carry the same destinations: 11 for an Admin, 7 for a Secretary, 4 for a Kagawad.
 
 **No mismatches.** Every sidebar entry is on a route its role can actually open,
 and every admin-group entry is on a `role:admin` route. This is asserted rather
-than assumed: `tests/Feature/RoleNavigationTest.php` pins the exact lists — seven
-for a Secretary, "the Secretary's plus five" for an Admin, four for a Kagawad —
-and separately asserts that a Secretary is *not* given any admin-only route, that a
-Kagawad is *not* given any staff page, that a Kagawad is not offered the **staff**
-Residents page, the Verification queue or Document Requests, and that My Account
-is reachable by every role.
+than assumed, in two layers because either alone leaves the same bug reachable:
+
+- `tests/Feature/RoleNavigationTest.php` pins the exact lists — seven for a
+  Secretary, "the Secretary's plus four" for an Admin, four for a Kagawad — and
+  separately asserts that a Secretary is *not* given any admin-only route, that a
+  Kagawad is *not* given any staff page, that a Kagawad is not offered the **staff**
+  Residents page, the Verification queue or Document Requests, and that My Account
+  is reachable by every role.
+- `tests/Feature/StaffSidebarGroupingTest.php` reads the rendered DOM per role and
+  pins which heading each destination sits under, so the buckets being correct
+  cannot be separated from the headings being correct.
 
 ---
 
