@@ -13,15 +13,15 @@ use Illuminate\Validation\Validator;
 /**
  * Validating a new document request.
  *
- * Three of the four rules here are authorization rather than shape, and they are
+ * Four of the five rules here are authorization rather than shape, and they are
  * here rather than in the controller so that they are checked before anything is
  * written. A rule in a controller is a rule somebody can reach by posting to a
  * different action.
  *
- * The three are independent, and a form that reports only the first is a dead
+ * The four are independent, and a form that reports only the first is a dead
  * end: an unverified resident is told to get verified and not that their account
  * is frozen, because fixing one and submitting again reveals the next. So all
- * three are collected and returned together.
+ * four are collected and returned together.
  */
 class StoreDocumentRequestRequest extends FormRequest
 {
@@ -66,6 +66,11 @@ class StoreDocumentRequestRequest extends FormRequest
      * shape of the input: they are about the person making it. Each returns
      * after reporting, so a pending resident is not also told their three slots
      * are full - a true statement, but not the one they need to act on.
+     *
+     * Read the refusal wording from the model rather than writing it here. The
+     * resident's own requests page warns with the same sentence before they reach
+     * this form, and two copies of an end date would be two chances to tell
+     * somebody the wrong day.
      */
     public function withValidator(Validator $validator): void
     {
@@ -94,6 +99,21 @@ class StoreDocumentRequestRequest extends FormRequest
                     'account',
                     'This account is temporarily restricted. Please contact the barangay office.'
                 );
+
+                return;
+            }
+
+            // Checked before the slot count, and it replaces it: a suspended
+            // resident is refused for the suspension whatever their slot count
+            // happens to be, and telling them the cap is the one they have to act
+            // on would be a true statement about the wrong problem.
+            //
+            // The wording is built by the model rather than here, because the
+            // resident's own page warns with the same sentence moments before
+            // they reach this form. Two copies of a date would be two chances to
+            // tell somebody the wrong day.
+            if ($suspension = DocumentRequest::suspensionMessageFor($user)) {
+                $validator->errors()->add('account', $suspension);
 
                 return;
             }

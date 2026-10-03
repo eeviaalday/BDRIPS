@@ -57,6 +57,7 @@ class RolesMatrixTest extends TestCase
         'kagawad.residents.index' => 'kagawad',
 
         // Resident - role:resident
+        'resident.requests.cancel' => 'resident',
         'resident.relief' => 'resident',
         'resident.requests.create' => 'resident',
         'resident.requests.index' => 'resident',
@@ -84,11 +85,13 @@ class RolesMatrixTest extends TestCase
         'staff.batches.store' => 'admin,secretary',
         'staff.dashboard' => 'admin,secretary',
         'staff.requests.claim' => 'admin,secretary',
+        'staff.requests.excuse' => 'admin,secretary',
         'staff.requests.index' => 'admin,secretary',
         'staff.requests.ready' => 'admin,secretary',
         'staff.requests.reject' => 'admin,secretary',
         'staff.requests.review' => 'admin,secretary',
         'staff.requests.show' => 'admin,secretary',
+        'staff.requests.unclaim' => 'admin,secretary',
         'staff.resident-verifications.id-photo' => 'admin,secretary',
         'staff.residents.index' => 'admin,secretary',
         'staff.residents.show' => 'admin,secretary',

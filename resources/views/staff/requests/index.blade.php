@@ -24,6 +24,15 @@
         <x-staff.stat-row>
             <x-staff.stat-card label="Awaiting decision" :value="$awaitingCount" tone="gold" icon="clock" />
             <x-staff.stat-card label="Ready for pickup" :value="$readyCount" tone="navy" icon="check-circle" />
+            {{-- Two more figures, and they are the ones that carry consequence:
+                 "ready for pickup" is a state, "waiting too long to be collected"
+                 is a problem, and the number of them is a measure of the desk
+                 rather than of the residents. Excused is shown beside Unclaimed
+                 because the honest reading of an unclaimed list is how much of it
+                 was excusable - without it, the two counts sit next to each other
+                 and the first one alone decides how the office sees its residents. --}}
+            <x-staff.stat-card label="Overdue for collection" :value="$overdueCount" tone="gold" icon="help-circle" />
+            <x-staff.stat-card label="Unclaimed" :value="$unclaimedCount" tone="navy" icon="archive" />
         </x-staff.stat-row>
 
         <x-staff.filter-bar :action="route('staff.requests.index')"
@@ -38,8 +47,11 @@
                 :value="$status" :options="[
                     'queue' => 'Awaiting a decision',
                     'ready_for_pickup' => 'Ready for pickup',
+                    'overdue' => 'Overdue for collection',
+                    'unclaimed' => 'Unclaimed',
                     'claimed' => 'Collected',
                     'rejected' => 'Rejected',
+                    'cancelled' => 'Cancelled',
                 ]" />
         </x-staff.filter-bar>
 
@@ -75,11 +87,50 @@
                     </td>
                     <td class="text-sm text-slate-600">{{ $documentRequest->documentType?->label ?? 'Retired document' }}</td>
                     <td class="text-sm text-slate-600">{{ $documentRequest->created_at?->format('j M Y') }}</td>
-                    <td><x-staff.status-badge :status="$documentRequest->status" size="sm" /></td>
+                    <td>
+                        <x-staff.status-badge :status="$documentRequest->status" size="sm" />
+                        {{-- How long it has been sitting ready, because "Ready for
+                             pickup" on its own hides the only fact that decides
+                             whether this row needs work today. Days are counted by
+                             the model against the same 14-day config the server
+                             marks it with, so the queue can never disagree with the
+                             record page about what is overdue. --}}
+                        @if ($documentRequest->status === \App\Models\DocumentRequest::STATUS_READY)
+                            @php $waitingDays = $documentRequest->daysReady(); @endphp
+                            <span @class([
+                                'mt-1 block text-xs',
+                                'font-semibold text-amber-700' => $documentRequest->isOverdue(),
+                                'text-slate-500' => ! $documentRequest->isOverdue(),
+                            ])>
+                                Ready {{ $waitingDays === null ? '—' : $waitingDays.'d' }}
+                                @if ($documentRequest->isOverdue())
+                                    · can be marked unclaimed
+                                @else
+                                    · {{ \App\Models\DocumentRequest::readyDaysBeforeUnclaimed() - $waitingDays }}d left
+                                @endif
+                            </span>
+                        @elseif ($documentRequest->status === \App\Models\DocumentRequest::STATUS_UNCLAIMED)
+                            <span @class([
+                                'mt-1 block text-xs',
+                                'font-semibold text-amber-700' => $documentRequest->unclaimed_excused_at === null,
+                                'text-slate-500' => $documentRequest->unclaimed_excused_at !== null,
+                            ])>
+                                @if ($documentRequest->unclaimed_excused_at)
+                                    Excused {{ $documentRequest->unclaimed_excused_at->format('j M Y') }}
+                                    @if ($excusedCount)
+                                        ({{ $excusedCount }} of {{ $unclaimedCount }} unclaimed)
+                                    @endif
+                                @else
+                                    Not excused · counts as a strike
+                                @endif
+                            </span>
+                        @endif
+                    </td>
                     <td>
                         <div class="flex items-center gap-1">
                         <x-staff.icon-action icon="eye" label="Review request {{ $documentRequest->reference_number }}"
                             :href="route('staff.requests.show', $documentRequest)" />
+                        </div>
                     </td>
                 </tr>
             @endforeach

@@ -6,6 +6,7 @@ use App\Models\DocumentRequest;
 use App\Models\DocumentType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends Factory<DocumentRequest>
@@ -66,6 +67,40 @@ class DocumentRequestFactory extends Factory
             'reviewed_at' => now()->subDays(2),
             'ready_at' => now()->subDays(1),
             'claimed_at' => now()->subHours(6),
+        ]);
+    }
+
+    /**
+     * Marked unclaimed: ready, then left past the window.
+     *
+     * The default dates are a deliberate convenience for the strike tests - an
+     * unclaimed row is always also a strike candidate - but `unclaimedAt()` is
+     * there for the tests that are about the boundaries, where a strike dated
+     * "now" would be the wrong fixture for every assertion in the file.
+     */
+    public function unclaimed(?string $unclaimedAt = null, bool $excused = false): static
+    {
+        return $this->state([
+            'status' => DocumentRequest::STATUS_UNCLAIMED,
+            'reviewed_at' => now()->subDays(20),
+            'ready_at' => now()->subDays(16),
+            'unclaimed_at' => $unclaimedAt === null
+                ? now()->subDays(2)
+                : Carbon::parse($unclaimedAt),
+            'unclaimed_excused_at' => $excused ? now() : null,
+        ]);
+    }
+
+    /**
+     * Withdrawn by the resident before it was ready.
+     */
+    public function cancelled(): static
+    {
+        return $this->state([
+            'status' => DocumentRequest::STATUS_CANCELLED,
+            'reviewed_at' => null,
+            'ready_at' => null,
+            'cancelled_at' => now()->subHour(),
         ]);
     }
 

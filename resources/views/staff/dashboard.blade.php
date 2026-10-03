@@ -28,6 +28,24 @@
             <p class="mt-2 text-sm text-navy-600">Here is what is waiting on you.</p>
         </header>
 
+        {{-- Ageing is the staff cost of the unclaimed policy, and it is a number the
+             desk controls rather than something the residents did, so it gets a
+             banner and not a fifth tile. Four tiles fit the grid; a fifth wraps
+             onto a row of its own and reads as an afterthought. --}}
+        @if ($overdueForPickup > 0)
+            <x-alert variant="warning" icon="help-circle" class="mb-4">
+                <strong>{{ $overdueForPickup }}
+                    {{ \Illuminate\Support\Str::plural('document', $overdueForPickup) }}</strong>
+                {{ $overdueForPickup === 1 ? 'has' : 'have' }} been ready for pickup for longer than
+                {{ \App\Models\DocumentRequest::readyDaysBeforeUnclaimed() }} days and can be marked
+                unclaimed. Each one becomes a strike against a resident if they are not excused.
+                <a href="{{ route('staff.requests.index', ['status' => 'overdue']) }}"
+                    class="ml-1 inline-flex items-center gap-1.5 font-semibold underline underline-offset-2">
+                    Review the overdue list
+                </a>
+            </x-alert>
+        @endif
+
         {{-- The four queues. Ordered by what ages worst: a registration that
              nobody reviewed is the one a household notices. --}}
         <x-staff.stat-row>
@@ -37,7 +55,8 @@
             <x-staff.stat-card label="Requests to review" :value="$awaitingDecision" tone="sky" icon="document"
                 :href="route('staff.requests.index', ['status' => 'queue'])" />
             <x-staff.stat-card label="Ready for pickup" :value="$readyForPickup" tone="navy" icon="check-circle"
-                :href="route('staff.requests.index', ['status' => 'ready_for_pickup'])" />
+                :href="route('staff.requests.index', ['status' => 'ready_for_pickup'])"
+                :hint="$overdueForPickup > 0 ? $overdueForPickup.' overdue for collection' : null" />
             <x-staff.stat-card label="Active relief batches" :value="$activeBatches" tone="green" icon="gift"
                 :href="route('staff.batches.index')" />
         </x-staff.stat-row>

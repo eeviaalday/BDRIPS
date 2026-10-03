@@ -146,6 +146,30 @@ class ResidentDirectoryController extends Controller
                     ->with('batch')
                     ->orderByDesc('relief_batch_id')
                     ->get(),
+
+            // Everything the unclaimed policy decides, computed by the model rather
+            // than recounted here, so this card and the refusal the resident gets
+            // cannot quote different numbers. Null user means an orphaned profile
+            // with no requests to speak of, hence the guards.
+            'strikeCount' => $profile->user === null ? 0 : DocumentRequest::strikeCountFor($profile->user),
+            'suspensionEndsAt' => $profile->user === null ? null : DocumentRequest::suspensionEndFor($profile->user),
+            'heldSlots' => $profile->user === null
+                ? 0
+                : DocumentRequest::query()
+                    ->whereBelongsTo($profile->user)
+                    ->holdingSlot()
+                    ->count(),
+            // Excuses with their note, newest first, because "has this ever been
+            // explained?" is the question this card exists to answer and it is
+            // asked most about a resident who already has a strike.
+            'excuses' => $profile->user === null
+                ? collect()
+                : DocumentRequest::query()
+                    ->whereBelongsTo($profile->user)
+                    ->whereNotNull('unclaimed_excused_at')
+                    ->with('latestExcuse.user')
+                    ->latest('unclaimed_excused_at')
+                    ->get(),
         ]);
     }
 

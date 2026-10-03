@@ -75,6 +75,18 @@
             </x-alert>
         @endif
 
+        {{-- The unclaimed strike warning.
+
+             The sentence is the model's, not this template's. The same string
+             refuses the submission on the create form, and a resident who reads
+             the date here and is told a different one when they try to submit
+             would have no way to tell which is right. --}}
+        @if ($isSuspended)
+            <x-alert variant="warning" icon="lock" title="Document requests on hold" class="mb-6">
+                {{ $suspensionNotice }}
+            </x-alert>
+        @endif
+
         {{-- Three figures that are also the filter. Two are links, one is a
              button that opens a dialog, so the interactive card is a resident
              component of its own: the shared stat-card renders a plain div when
@@ -396,14 +408,73 @@
                                     </div>
                                 @endif
 
-                                <x-request-timeline :status="$documentRequest->status" :request="$documentRequest" />
+                                {{-- The shared timeline walks Submitted -> Under review ->
+                                     Ready -> Claimed and marks everything grey for a status
+                                     it does not know, because it resolves the position with
+                                     array_search on that four-step list. Left as is, an
+                                     unclaimed or cancelled request would render as a request
+                                     that has not started. It is a shared component and out
+                                     of scope to edit, so those two states are explained in
+                                     words instead. --}}
+                                @if ($documentRequest->status === \App\Models\DocumentRequest::STATUS_UNCLAIMED)
+                                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+                                        <p class="font-semibold text-amber-900">This document was not collected.</p>
+                                        <p class="mt-1 text-amber-800">
+                                            It was marked ready for pickup on
+                                            {{ $documentRequest->ready_at?->format('j M Y') ?? 'an earlier date' }}
+                                            and was not collected within
+                                            {{ \App\Models\DocumentRequest::readyDaysBeforeUnclaimed() }} days.
+                                            You can still collect it at the Barangay Hall, quoting
+                                            <strong class="font-mono font-semibold">{{ $documentRequest->reference_number }}</strong>.
+                                        </p>
+                                    </div>
+                                @elseif ($documentRequest->status === \App\Models\DocumentRequest::STATUS_CANCELLED)
+                                    <div class="rounded-lg border border-navy-200 bg-navy-50/60 p-4 text-sm">
+                                        <p class="font-semibold text-navy-900">You cancelled this request.</p>
+                                        <p class="mt-1 text-navy-700">
+                                            Withdrawn on
+                                            {{ $documentRequest->cancelled_at?->format('j M Y') ?? 'an earlier date' }}.
+                                            Cancelling frees your request slot again, and it does not count
+                                            against you.
+                                        </p>
+                                    </div>
+                                @endif
+
+                                @if (! in_array($documentRequest->status, [
+                                    \App\Models\DocumentRequest::STATUS_UNCLAIMED,
+                                    \App\Models\DocumentRequest::STATUS_CANCELLED,
+                                ], true))
+                                    <x-request-timeline :status="$documentRequest->status" :request="$documentRequest" />
+                                @endif
                             </div>
 
-                            <div class="flex flex-col-reverse gap-2 bg-navy-50/50 px-6 py-4 sm:flex-row sm:justify-end">
-                                <x-btn type="button" variant="navy" size="md"
-                                    x-on:click="$dispatch('close-modal', 'track-request')">
-                                    Close
-                                </x-btn>
+                            <div class="flex flex-col-reverse gap-2 bg-navy-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                {{-- Withdrawing is the resident's own call and cannot be
+                                     undone, so it is confirmed. Offered only while the
+                                     request can still be cancelled: once it is ready the
+                                     document is waiting at the hall and collecting it is
+                                     the remedy, not withdrawing it. --}}
+                                @if ($documentRequest->canBeCancelled())
+                                    <x-confirm-dialog name="cancel-request-{{ $i }}"
+                                        title="Cancel this request?"
+                                        message="Your request will be withdrawn and your request slot freed. You can apply again later. This cannot be undone."
+                                        confirm-label="Yes, cancel it"
+                                        tone="danger"
+                                        :form="route('resident.requests.cancel', $documentRequest)" />
+
+                                    <x-btn type="button" variant="outline" size="md" icon="x-circle"
+                                        x-data="{}"
+                                        x-on:click="$dispatch('open-modal', 'cancel-request-{{ $i }}')">
+                                        Cancel request
+                                    </x-btn>
+                                @endif
+
+                                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                                    <x-btn type="button" variant="navy" size="md"
+                                        x-on:click="$dispatch('close-modal', 'track-request')">
+                                        Close
+                                    </x-btn>
+                                </div>
                             </div>
                         </div>
                     @endforeach

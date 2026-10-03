@@ -13,6 +13,12 @@
     uploaded document, which is where it was captured from in the first place, and
     every time they do it is recorded as resident.id_viewed.
 --}}
+
+{{-- Bare name for the reliability card's policy readers. --}}
+@php
+    use App\Models\DocumentRequest;
+@endphp
+
 @php
     /*
      * Read once here so the mask and the emptiness check below cannot disagree
@@ -321,6 +327,79 @@
                 </div>
             </x-card>
         </div>
+
+        <x-card tone="white" padding="p-6">
+            <h2 class="mb-4 text-base font-bold text-navy-900">Request reliability</h2>
+
+            {{-- Reads as a record, not a judgement. The figures come from the same
+                 model methods that refuse a suspended resident's submission, so
+                 the number here and the refusal they met have to agree. --}}
+            <dl class="grid gap-4 sm:grid-cols-3">
+                <div @class([
+                    'rounded-lg border px-4 py-3',
+                    'border-amber-200 bg-amber-50' => $strikeCount >= DocumentRequest::strikesToSuspend(),
+                    'border-navy-100 bg-navy-50/40' => $strikeCount < DocumentRequest::strikesToSuspend(),
+                ])>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Active strikes</dt>
+                    <dd class="mt-1 text-lg font-bold text-navy-900">{{ $strikeCount }}</dd>
+                    <p class="mt-1 text-xs text-slate-600">
+                        Unexcused documents not collected within
+                        {{ DocumentRequest::readyDaysBeforeUnclaimed() }} days, last
+                        {{ DocumentRequest::strikeWindowDays() }} days.
+                        {{ DocumentRequest::strikesToSuspend() }} pause new requests.
+                        Collecting one late does not clear the strike.
+                    </p>
+                </div>
+                <div class="rounded-lg border border-navy-100 bg-navy-50/40 px-4 py-3">
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">New requests</dt>
+                    <dd class="mt-1 text-sm font-bold text-navy-900">
+                        {{ $suspensionEndsAt === null ? 'Not suspended' : 'Paused until '.$suspensionEndsAt->format('j M Y') }}
+                    </dd>
+                    <p class="mt-1 text-xs text-slate-600">
+                        @if ($suspensionEndsAt === null)
+                            This resident can apply for documents normally.
+                        @else
+                            Collecting a document does not lift the pause; only an excuse can.
+                        @endif
+                    </p>
+                </div>
+                <div class="rounded-lg border border-navy-100 bg-navy-50/40 px-4 py-3">
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Request slots held</dt>
+                    <dd class="mt-1 text-lg font-bold text-navy-900">{{ $heldSlots }}</dd>
+                    <p class="mt-1 text-xs text-slate-600">
+                        An unclaimed request holds its slot for
+                        {{ DocumentRequest::unclaimedSlotHoldDays() }} days, then frees it.
+                    </p>
+                </div>
+            </dl>
+
+            {{-- The excuses, verbatim. A strike a Secretary cannot explain is the
+                 one that gets appealed, and the explanation is written here rather
+                 than recomputed from a status nobody remembers. --}}
+            @if ($excuses->isNotEmpty())
+                <h3 class="mb-3 mt-6 text-sm font-bold text-navy-900">Excused documents</h3>
+                <ul class="space-y-3">
+                    @foreach ($excuses as $request)
+                        <li @class([
+                            'rounded-lg border px-4 py-3 text-sm',
+                            'border-green-200 bg-green-50' => true,
+                        ])>
+                            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                <span class="font-mono text-xs font-semibold text-navy-900">{{ $request->reference_number }}</span>
+                                <span class="text-xs text-slate-600">
+                                    {{ $request->documentType?->label ?? 'Retired document' }} ·
+                                    excused {{ $request->unclaimed_excused_at->format('j M Y') }}
+                                    by {{ $request->excusedByName() }}
+                                </span>
+                            </div>
+                            <p class="mt-1 whitespace-pre-line text-navy-800">{{ $request->excuseNote() }}</p>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <p class="mt-4 text-sm text-slate-600">No unclaimed document has been excused for this household.</p>
+            @endif
+        </x-card>
 
         {{-- 5. Request and relief history, as a summary first and the detail
              beneath it. A summary because the answer to "has this household been

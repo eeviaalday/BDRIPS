@@ -195,6 +195,7 @@ Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'
         Route::get('/requests/create', [ResidentDocumentRequestController::class, 'create'])->name('requests.create');
         Route::post('/requests', [ResidentDocumentRequestController::class, 'store'])->name('requests.store');
         Route::get('/requests/{documentRequest}', [ResidentDocumentRequestController::class, 'show'])->name('requests.show');
+        Route::post('/requests/{documentRequest}/cancel', [ResidentDocumentRequestController::class, 'cancel'])->name('requests.cancel');
 
         // Relief: the resident's own household only.
         Route::get('/relief', [ResidentReliefController::class, 'index'])->name('relief');
@@ -291,6 +292,8 @@ Route::middleware(['auth', 'verified', 'role:admin,secretary', 'no-store-authent
         Route::post('/requests/{documentRequest}/ready', [StaffDocumentReviewController::class, 'ready'])->name('requests.ready');
         Route::post('/requests/{documentRequest}/claim', [StaffDocumentReviewController::class, 'claim'])->name('requests.claim');
         Route::post('/requests/{documentRequest}/reject', [StaffDocumentReviewController::class, 'reject'])->name('requests.reject');
+        Route::post('/requests/{documentRequest}/unclaim', [StaffDocumentReviewController::class, 'unclaim'])->name('requests.unclaim');
+        Route::post('/requests/{documentRequest}/excuse', [StaffDocumentReviewController::class, 'excuse'])->name('requests.excuse');
 
         // Relief batches.
         Route::get('/batches', [StaffReliefBatchController::class, 'index'])->name('batches.index');

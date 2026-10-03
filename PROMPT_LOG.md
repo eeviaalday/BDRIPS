@@ -5527,3 +5527,249 @@ Changed files, and only these:
 **Dev data restored.** `users.id = 5` back to no date of birth, gender or civil
 status; `resident_profiles.id = 1` timestamp back; the archive migration left
 applied; one seeded audit row; no archived accounts; no leftover browser sessions.
+
+## Prompt #030
+
+### The brief
+
+Every staff, Kagawad and Admin list table has to be usable on a phone, measured
+rather than eyeballed: no sideways scrolling of the page, every column still named,
+every control still reachable.
+
+### What was actually wrong
+
+`<x-staff.table>` asked for `min-w-[46rem]` — 736px — and asked for it at every
+width. On a 375px phone that is nearly double the screen. Measured on
+`/staff/residents` as Secretary: `documentElement.scrollWidth` 775 against a 375px
+viewport, the household number sat half off the screen, and the Actions column sat
+at x=792, reachable only by scrolling sideways. Nine pages were affected; the
+Kagawad lists were not, because they already hid the table and drew cards.
+
+The first measurement was wrong, though, and worth recording. The harness asked
+"can this be scrolled sideways?" by calling `window.scrollTo(9999, 0)` and reading
+`scrollX`. The app sets `body { overflow-x: hidden }`, which propagates to the
+viewport: a reader cannot pan the page, but the box is still *programmatically*
+scrollable, so `scrollTo` reported 296px of overflow that no person can perceive or
+perform. Chasing that number would have meant breaking the confirm dialogs to
+satisfy a phantom. The harness now sends a real horizontal wheel gesture, and
+asserts on the scrollbar and on the gesture rather than on `scrollTo`.
+
+### The fix
+
+Below `md` the table stops being a table. `<table>` is `block`, `<thead>` is
+`hidden`, and each row becomes a bordered card: the first cell is its title, every
+other cell says which column it is, and the controls move to a left-aligned footer
+under a rule. The 736px minimum is now `md:min-w-[46rem]`, and the wrapper keeps its
+`overflow-x-auto` for the widths where a real table is genuinely wider than the
+column — at 768px the directory needs 783px of table in 462px of space, and that is
+the case the brief says to scroll in its own container.
+
+The labels are published as `--lbl-N` custom properties on the `<table>` and read
+back by `nth-child` rules, because Tailwind emits a utility only if it finds it as
+literal text at build time. A class assembled in a loop produces a table with no
+labels and no error. Those twelve rules are written out and a test asserts each one
+is present. They also need `md:[&_td]:before:hidden`: without it every desktop cell
+prints its own column name before its value.
+
+### Three things that measurement caught and reasoning did not
+
+`contain: layout`, `contain: paint` and `transform: translateZ(0)` on the wrapper
+each removed the document's sideways scroll at 768px, and all three are wrong here.
+`<x-staff.confirm-dialog>` renders a `position: fixed inset-0` modal from inside a
+table cell, and deliberately wraps itself in `display: contents` so that wrapping
+cannot affect it. A containing block or a clip on the wrapper would put a
+full-screen dialog inside a 462px column. `overflow-x: clip` on `main`, on `body`
+and on `html` changed nothing at all.
+
+A `<td colspan="4">` — Sectors puts its entire edit form in one — was being laid out
+as a two-column grid, which would have squeezed a rename form into the 7.5rem label
+column. It is now a plain full-width block with no label, explicitly rather than by
+luck: it was only working before because a spanning cell happens to be the last
+child, which is the same rule that gives a real Actions column its footer.
+
+The audit log's `Action` column is a badge, not a set of controls. Matching the
+footer on "contains the word action" would have put a rule above it and told a
+reader it was a row of buttons. It is matched whole and case-insensitively, or by a
+column declaring `footer => true`.
+
+### What was verified
+
+Every staff, Kagawad and Admin list page, as each role that can reach it, at 375,
+768 and 1280: no horizontal scrollbar, no movement from a real wheel gesture, the
+right layout at each width, every secondary cell's label resolving to its own
+heading, every spanning panel unlabelled, every labelled control reachable, and zero
+console errors. The archived directory was checked separately at 375 and 1280 with a
+household actually archived: the badge, the Restore control and the absence of Edit
+all survive.
+
+`tests/Feature/StaffTableResponsiveTest.php`, new, 30 tests reading the rendered DOM
+— the labels are invisible in the Blade source, so a source-level test would pass
+against a component whose labels never render. Reverting the two things that matter
+fails 10 of them.
+
+**Full suite: 1,440 tests, 1,439 passed, 1 skipped, 12,383 assertions.** Pint clean.
+
+### Changed files, and only these
+
+- `resources/views/components/staff/table.blade.php`, the card layout, the labels, the colspan rule
+- `tests/Feature/StaffTableResponsiveTest.php`, new, 30 tests
+- `PROMPT_LOG.md`, this entry
+- `public/build/manifest.json` and `public/build/assets/app-B3WvDIkJ.css`, the rebuild
+
+`resources/views/components/data-table.blade.php` is untouched, so no resident,
+guest or public page changed shape.
+
+**Dev data restored.** No archived accounts; the one seeded audit row intact; no
+leftover browser sessions.
+
+---
+
+## Prompt #031
+
+### The brief
+
+Documents marked ready for pickup that nobody collects. A resident who never
+turns up ties up a request slot indefinitely, and one request already does that.
+Give the office a way to mark a document unclaimed, make it cost something, and
+still leave a way out when it was not the resident's fault.
+
+### The agreed numbers
+
+Fourteen days ready before it can be marked unclaimed. Three unexcused strikes
+inside 180 days pauses new requests for 90 days from the newest strike. An
+unclaimed request holds its slot for 30 more days, then frees it. An excuse
+removes a strike immediately, and lifts a suspension as soon as it drops the
+resident below three.
+
+All five live in `config/document-requests.php` and are read at runtime, and **not
+one of them is written into the test file either, not even to assert it.** An
+earlier draft did pin the suspension and the slot hold with `assertSame(90, ...)`
+and `assertSame(30, ...)`, on the reasoning that asserting the agreed value is the
+guard on the decision. That reasoning is wrong, and wrong in a way worth spelling
+out: it makes the suite pass against whatever the config happens to say, so the
+exact accident it was meant to catch — a penalty quietly shortened — moves every
+derived boundary in the system at the same time and fails nothing. So the agreed
+figures are recorded in `config/document-requests.php` and in `ROLES.md`, where a
+change is a deliberate edit to a file that says what the number is, and the tests
+prove only that the code follows it. Boundaries are derived: `$days - 1` and
+`$days + 1`, `$hold - 1`, and the two fixture ages are `$hold + 10` and
+`$window + 40` so they keep meaning what the comments say if a setting moves.
+
+### What was actually wrong
+
+Nothing was broken; this was new behaviour. But three design decisions were load
+bearing, and each of them had a plausible wrong version that would have passed
+every other test:
+
+**Collecting late must not erase the strike.** Filtering the strike count on
+`status = unclaimed` looks obviously right and is wrong: it means the one action
+that fixes the underlying problem, the resident actually turning up, silently
+erases the record it caused, so patience would clear a strike for free and the
+Secretary's "mark collected (late)" button would undo the accountability. Strikes
+are keyed on `unclaimed_at`, an event, not on a mutable status.
+
+**Excusing after collection has to stay possible, in the view as well as the
+model.** `canBeExcused()` keys on `unclaimed_at`, but the record page worked its
+own guard out again from the status, so a resident who came back and collected
+late — exactly when the desk learns the absence was not habit — had no excuse
+button. The route would have accepted the POST; nothing on screen could reach it.
+Keyed on the status the strike is permanent and unappealable, and the desk's
+answer to that is to stop marking documents at all. The same view had two smaller
+lies for the same reason: it kept claiming the slot was held until a date that
+had already passed, and it printed "nothing left to decide" directly above the
+excuse control. Both are asserted against now.
+
+**One excuse lifts a suspension outright.** Three strikes pause; two do not.
+Because it is derived, nothing had to be decided about when the suspension
+"ends" — there is no stored counter that could disagree with the requests.
+
+### Scope kept
+
+Marking is derived-overdue plus an audited manual action. There is no scheduler,
+no nightly job, and no stored overdue flag, so a request cannot be overdue in the
+database and not on the screen. **No mail exists in this codebase** — no
+`app/Mail`, no `app/Notifications`, `MAIL_MAILER=log`, nothing to hook a reminder
+onto — so nothing was built to send one. The Mark-unclaimed dialog says outright
+that no message is sent, because a Secretary should not have to read the policy
+to learn that clicking it affects a resident.
+
+`users.restricted_until` is untouched: it is an account-wide freeze, this is
+per-resident and derived, and neither can unlock the other.
+
+Resident edits are confined to the approved exception — the strike warning, Cancel
+on their own un-started request, and the two new labels. `User.php` is unedited,
+and the shared `x-request-timeline` and `x-icon` components are unchanged: the
+timeline resolves position with `array_search` over four statuses, so unclaimed
+and cancelled are left off it and explained in words rather than drawn as
+"nothing has happened yet"; the icon names I first used were not in the map and
+would have rendered as the document glyph, so they were swapped for mapped ones.
+
+### What was verified
+
+`tests/Feature/DocumentRequestUnclaimedPolicyTest.php`, new, 42 tests. Boundaries
+are asserted at the day, not beside it: day `$days - 1` still refused and refused
+with the right date, day `$days + 1` allowed. The slot hold is pinned the same
+way. Two tests change the config and re-assert, so any inlined figure fails. Two
+tests exist only because the natural implementations pass everything else: that
+collecting late leaves the strike, and that an excuse survives collection.
+
+`tests/Feature/DocumentRequestUnclaimedPolicyTest.php` also asserts on rendered
+HTML — a number that exists on a model but never in a view is not something
+anybody was told.
+
+Browser, 375 and 1280, as Secretary and as Resident, zero console errors. Both
+dialogs were **opened by clicking them** and submitted, since a `x-on:click`
+outside any `x-data` scope is inert with no console error. Verified: the overdue
+filter shows the 30-day-old and 17-day-old requests and excludes the submitted
+one; the 3-day-old row is not labelled overdue; Mark unclaimed is absent before
+the window and present after; the dialog states the strike and the absence of any
+message; after excusing, the note and the excuser's name appear on the record
+page and on the resident's reliability card, and the Excuse button is withdrawn;
+the resident sees "This document was not collected" and the real 14-day window in
+the track dialog, with Cancel offered on a submitted request and **not** on an
+unclaimed one.
+
+The 375px page scroll on the resident queue is pre-existing — `min-w-[46rem]` on
+the shared resident table — and unchanged by this work; it is the resident area's
+to fix, not this task's.
+
+**Full suite: 1,485 tests, 1,484 passed, 1 skipped, 12,580 assertions.** Pint clean,
+`npm run build` run for the new Tailwind classes.
+
+### A mistake, recorded rather than tidied away
+
+Cleaning up the browser fixtures I ran `DELETE ... WHERE reference_number LIKE
+'BRGY-%-%'`. That pattern matches `BRGY-2026-2325` too, so it took a pre-existing
+dev request with it, and a second query then removed the audit row that pointed at
+the request it had just deleted, because the row looked orphaned. Two dev rows
+are gone and MySQL binlog is off, so there is no exact recovery.
+
+What survived the fact of it: the row was rebuilt from what was known about it —
+`resident@bdrpis.test`, `BRGY-2026-2325`, submitted — with its `request.submitted`
+audit row. The second original request had no recorded detail and is not
+reconstructed, because inventing a plausible row and calling it restored would be
+worse than an empty table. Nothing in the code, schema or tests depended on those
+rows, and the suite creates its own data.
+
+The lesson is the one the delete itself demonstrates: `LIKE 'BRGY-%-%'` looks like a
+narrow fixture prefix and is not one. Prefix plus a separator is a pattern, not a
+match set.
+
+### Changed files, and only these
+
+- `config/document-requests.php`, new — the five agreed figures
+- `database/migrations/2026_10_02_221920_add_unclaimed_and_cancelled_columns_to_document_requests_table.php`, new
+- `app/Models/DocumentRequest.php`, `app/Models/AuditLog.php` — statuses, derived policy, excuse note reader
+- `app/Http/Requests/StoreDocumentRequestRequest.php` — suspension refusal before the slot cap
+- `app/Http/Controllers/Staff/{DocumentReviewController,DashboardController,ResidentDirectoryController}.php`
+- `app/Http/Controllers/Resident/DocumentRequestController.php` — warning data and owner-scoped cancel
+- `resources/views/staff/{dashboard,requests/index,requests/show,residents/show}.blade.php`
+- `resources/views/components/staff/status-badge.blade.php` — Unclaimed / Cancelled
+- `resources/views/resident/requests/index.blade.php` — the approved exception only
+- `routes/web.php`, `ROLES.md`, `database/factories/DocumentRequestFactory.php`
+- `tests/Feature/DocumentRequestUnclaimedPolicyTest.php`, new; `RolesMatrixTest`, `ResidentRequestFilterTest`
+- `PROMPT_LOG.md`, this entry
+- `public/build/manifest.json` and the rebuilt assets
+
+**Dev data restored.** Browser fixtures and their audit rows removed: 2 requests,
+1 audit row, 0 archived accounts.

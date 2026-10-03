@@ -181,6 +181,8 @@ Verification is not self-asserted — a new Resident lands in
 | `staff.requests.ready` | POST | `…/ready` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.claim` | POST | `…/claim` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.requests.reject` | POST | `…/reject` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.unclaim` | POST | `…/unclaim` | Allowed | Allowed | Denied | Denied | Denied |
+| `staff.requests.excuse` | POST | `…/excuse` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.batches.index` | GET | `/staff/batches` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.batches.create` | GET | `/staff/batches/create` | Allowed | Allowed | Denied | Denied | Denied |
 | `staff.batches.store` | POST | `/staff/batches` | Allowed | Allowed | Denied | Denied | Denied |
@@ -258,6 +260,7 @@ relief status, and has no write verb behind it. See
 | `resident.requests.create` | GET | `/resident/requests/create` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.requests.store` | POST | `/resident/requests` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.requests.show` | GET | `/resident/requests/{documentRequest}` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.requests.cancel` | POST | `/resident/requests/{documentRequest}/cancel` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.relief` | GET | `/resident/relief` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.verification` | GET | `/resident/verification` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.verification.update` | PATCH | `/resident/verification` | Denied | Denied | Denied | Allowed | Denied |
@@ -389,7 +392,8 @@ validation error rather than relying on a hidden button:
 |---|---|
 | `StoreDocumentRequestRequest:83` | The profile must be **verified**. A pending resident is told to get verified, not that their account is broken. |
 | `StoreDocumentRequestRequest:92` | The account must not be **restricted**. |
-| `StoreDocumentRequestRequest:103` | At most `OPEN_REQUEST_LIMIT` (3) open requests. |
+| `StoreDocumentRequestRequest:115` | **Not suspended.** Three or more unexcused unclaimed requests inside `strike_window_days`, newest under `suspension_days`, pauses new requests until the exact date. Refused **before** the slot count, and in the model's words, so the resident's own page warns with the same sentence. |
+| `StoreDocumentRequestRequest:124` | At most `OPEN_REQUEST_LIMIT` (3) open requests. An unclaimed request still holds its slot for `unclaimed_slot_hold_days`. |
 
 The design is deliberate and the reason is written down at
 `StoreDocumentRequestRequest:79-82`: the gate is the **profile**, not
@@ -397,6 +401,19 @@ The design is deliberate and the reason is written down at
 checking that a button is absent — `a_pending_resident_cannot_submit`,
 `a_restricted_resident_cannot_submit` and `a_fourth_open_request_is_refused` in
 `tests/Feature/ResidentDocumentRequestsTest.php`.
+
+The suspension figures are in `config/document-requests.php` and are read at
+runtime, never written into the behaviour: `ready_days_before_unclaimed` (14),
+`strikes_to_suspend` (3), `strike_window_days` (180), `suspension_days` (90) and
+`unclaimed_slot_hold_days` (30). `DocumentRequestUnclaimedPolicyTest` changes each
+one and re-asserts, so a figure inlined anywhere instead of read from config fails
+there rather than at the barangay. The boundary test asserts the final day of a
+suspension is still refused and the day after is not, which is the assertion a
+30-day implementation cannot pass.
+
+`users.restricted_until` is a **separate, account-wide** freeze and is untouched by
+this policy. Suspension is derived per resident from their own requests and needs
+no column, so the two cannot disagree and neither can be used to unlock the other.
 
 Worth noting because it is the exception, not the rule: the *restriction* is
 enforced twice — here and by the role middleware — while *verified* is enforced

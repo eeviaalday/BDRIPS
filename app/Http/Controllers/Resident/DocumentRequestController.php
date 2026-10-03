@@ -58,7 +58,17 @@ class DocumentRequestController extends Controller
             'slotsRemaining' => max(0, DocumentRequest::OPEN_REQUEST_LIMIT - $open),
             'canCreate' => $user->residentProfile?->isVerified() === true
                 && ! $user->isRestricted()
+                && ! DocumentRequest::isSuspended($user)
                 && $open < DocumentRequest::OPEN_REQUEST_LIMIT,
+
+            // The unclaimed warning, and whether it is a hard block or something
+            // to read first. canCreate above is the block; this is the reason,
+            // and the page must be able to say why the button is gone.
+            'suspensionNotice' => DocumentRequest::suspensionMessageFor($user),
+            'isSuspended' => DocumentRequest::isSuspended($user),
+            'strikeCount' => DocumentRequest::strikeCountFor($user),
+            'strikesToSuspend' => DocumentRequest::strikesToSuspend(),
+            'suspensionPolicy' => DocumentRequest::suspensionPolicySentence(),
 
             'statusFilter' => $filter['key'],
             'isFiltered' => $filter['key'] !== null,
@@ -149,7 +159,56 @@ class DocumentRequestController extends Controller
             'slotsRemaining' => max(0, DocumentRequest::OPEN_REQUEST_LIMIT - $open),
             'isVerified' => $user->residentProfile?->isVerified() === true,
             'isRestricted' => $user->isRestricted(),
+            'suspensionNotice' => DocumentRequest::suspensionMessageFor($user),
+            'isSuspended' => DocumentRequest::isSuspended($user),
         ]);
+    }
+
+    /**
+     * Withdraw one of this resident's own requests, before it is ready.
+     *
+     * Ownership is not re-checked here. The route binder resolves documentRequest
+     * through a whereBelongsTo on the signed-in user for every non-staff route,
+     * so another resident's request was never found: it answered 404 before this
+     * method ran, identically to an id that does not exist. A second ownership
+     * check would be a third answer to a question two layers already settled.
+     *
+     * Cancelling is not a strike and cannot clear one. The two are separate
+     * columns, and this one writes only cancelled_at: withdrawing a request you
+     * changed your mind about is not the same act as not turning up for a
+     * document the office finished.
+     *
+     * Refused once the request is ready, because from that moment the document
+     * exists and is waiting at the hall. Withdrawing it then would leave a made
+     * document nobody is expecting and a resident with no record of asking for it;
+     * collecting it is the remedy, and the slot hold is what the policy says
+     * happens if they do not.
+     */
+    public function cancel(Request $request, DocumentRequest $documentRequest): RedirectResponse
+    {
+        if (! $documentRequest->canBeCancelled()) {
+            abort(409, sprintf(
+                'Request %s is %s, so it can no longer be cancelled. Collect it at the Barangay Hall instead.',
+                $documentRequest->reference_number,
+                $documentRequest->statusLabel()
+            ));
+        }
+
+        $from = $documentRequest->status;
+
+        $documentRequest->update([
+            'status' => DocumentRequest::STATUS_CANCELLED,
+            'cancelled_at' => now(),
+        ]);
+
+        $documentRequest->recordStatusChange($request->user(), $from, DocumentRequest::STATUS_CANCELLED);
+
+        return redirect()
+            ->route('resident.requests.index')
+            ->with('success', sprintf(
+                'Request %s was cancelled. Your open request slot is free again.',
+                $documentRequest->reference_number
+            ));
     }
 
     /**

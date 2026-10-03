@@ -103,6 +103,11 @@ class DashboardController extends Controller
             'pendingVerifications' => NavigationBadges::forUser($user)['staff.verifications.index']['count'] ?? 0,
             'awaitingDecision' => NavigationBadges::forUser($user)['staff.requests.index']['count'] ?? 0,
             'readyForPickup' => (clone $ready)->count(),
+            // Ready and past the collection window: the requests that will become
+            // unclaimed if nobody does anything. Counted with the model's scope so
+            // this figure and the queue's "can be marked unclaimed" flag cannot
+            // disagree about which day is the fourteenth.
+            'overdueForPickup' => DocumentRequest::overdue()->count(),
             'activeBatches' => ReliefBatch::query()->active()->count(),
             'oldestPendingDays' => $this->oldestPendingDays($today),
 

@@ -63,14 +63,21 @@ class DocumentReviewController extends Controller
                 });
             })
             ->when($status === 'queue', fn ($requests) => $requests->whereIn('status', $awaiting))
-            ->when($status !== '' && $status !== 'queue', fn ($requests) => $requests->where('status', $status))
-            // Awaiting a decision first, then newest first. `awaitingDecision()` is
-            // deliberately NOT used for the ordering: it carries its own
-            // oldest('created_at'), which is what produced two contradictory sorts.
+            // Not a status: a date predicate over ready ones. Goes through the
+            // model's scope so "overdue" means the same thing here as it does on
+            // the record page and in the refusal the server gives.
+            ->when($status === 'overdue', fn ($requests) => $requests->overdue())
+            ->when(! in_array($status, ['', 'queue', 'overdue'], true), fn ($requests) => $requests->where('status', $status))
+            // Awaiting a decision first, then oldest-ready-longest, then newest.
+            // The overdue ordering matters: a queue whose oldest item is buried is
+            // a queue that generates unclaimed documents, which is the whole
+            // problem the strike policy exists to answer.
             ->orderByRaw(
                 'case when status in (?, ?) then 0 else 1 end',
                 $awaiting
             )
+            ->orderByRaw('case when status = ? then 0 else 1 end', [DocumentRequest::STATUS_READY])
+            ->orderByRaw('ready_at asc')
             ->latest('created_at')
             ->latest('id');
 
@@ -82,13 +89,24 @@ class DocumentReviewController extends Controller
             'readyCount' => DocumentRequest::query()
                 ->where('status', DocumentRequest::STATUS_READY)
                 ->count(),
+            // The two figures the strike policy makes somebody accountable for.
+            // Overdue is the actionable one: those are the requests about to
+            // become unclaimed, and the number of them is a measure of the desk.
+            'overdueCount' => DocumentRequest::overdue()->count(),
+            'unclaimedCount' => DocumentRequest::query()
+                ->where('status', DocumentRequest::STATUS_UNCLAIMED)
+                ->count(),
+            'excusedCount' => DocumentRequest::query()
+                ->where('status', DocumentRequest::STATUS_UNCLAIMED)
+                ->whereNotNull('unclaimed_excused_at')
+                ->count(),
         ]);
     }
 
     public function show(DocumentRequest $documentRequest): View
     {
         return view('staff.requests.show', [
-            'documentRequest' => $documentRequest->load(['user', 'user.residentProfile', 'documentType']),
+            'documentRequest' => $documentRequest->load(['user', 'user.residentProfile', 'documentType', 'latestExcuse.user']),
         ]);
     }
 
@@ -145,12 +163,21 @@ class DocumentReviewController extends Controller
     }
 
     /**
-     * Mark a document as collected. This is the terminal state: the resident has
+     * Mark a document as collected. The terminal state: the resident has
      * their document, and the slot it held is free.
+     *
+     * Also offered on an UNCLAIMED request. A resident who comes back on day 40
+     * has not forfeited the document, and refusing to mark it collected would
+     * leave a document handed over with no record that it was. The strike stands
+     * either way - collecting late does not undo it - because the office did hold
+     * that document for weeks past the window.
      */
     public function claim(Request $request, DocumentRequest $documentRequest): RedirectResponse
     {
-        $this->guard($request, $documentRequest, [DocumentRequest::STATUS_READY]);
+        $this->guard($request, $documentRequest, [
+            DocumentRequest::STATUS_READY,
+            DocumentRequest::STATUS_UNCLAIMED,
+        ]);
 
         $from = $documentRequest->status;
 
@@ -162,10 +189,111 @@ class DocumentReviewController extends Controller
         $documentRequest->recordStatusChange(
             $request->user(),
             $from,
-            DocumentRequest::STATUS_CLAIMED
+            DocumentRequest::STATUS_CLAIMED,
+            null,
+            $from === DocumentRequest::STATUS_UNCLAIMED ? ['collected_late' => true] : []
         );
 
         return back()->with('success', $documentRequest->reference_number.' was collected.');
+    }
+
+    /**
+     * Mark a document Unclaimed: it was made ready and nobody collected it.
+     *
+     * Refused before the window has passed, not merely hidden, because a strike is
+     * something the resident did not earn and the whole policy is built on
+     * strikes counting only when the office genuinely held the document for the
+     * full period.
+     *
+     * The status alone is not the cost. The strike is derived from unclaimed_at,
+     * so this one write is what feeds the count, the suspension and the slot hold
+     * - there is no counter to increment and nothing that can fall out of step.
+     */
+    public function unclaim(Request $request, DocumentRequest $documentRequest): RedirectResponse
+    {
+        $this->guard($request, $documentRequest, [DocumentRequest::STATUS_READY]);
+
+        if (! $documentRequest->canBeMarkedUnclaimed()) {
+            abort(409, sprintf(
+                'Request %s has been ready for %d days, so it cannot be marked unclaimed yet. '
+                .'It becomes eligible after %d days.',
+                $documentRequest->reference_number,
+                (int) $documentRequest->daysReady(),
+                DocumentRequest::readyDaysBeforeUnclaimed()
+            ));
+        }
+
+        $from = $documentRequest->status;
+
+        $documentRequest->update([
+            'status' => DocumentRequest::STATUS_UNCLAIMED,
+            'unclaimed_at' => now(),
+        ]);
+
+        // Who marked it is in the entry itself; how long it had been waiting is
+        // in the context, so an audit reader can see this was not a borderline
+        // call made a day early.
+        $documentRequest->recordStatusChange(
+            $request->user(),
+            $from,
+            DocumentRequest::STATUS_UNCLAIMED,
+            null,
+            [
+                'days_ready' => (int) $documentRequest->daysReady(),
+                'slot_hold_until' => $documentRequest->slotHoldExpiresAt()?->toDateTimeString(),
+            ]
+        );
+
+        return back()->with('success', sprintf(
+            '%s was marked unclaimed. It holds one of the resident\'s request slots for another %d days.',
+            $documentRequest->reference_number,
+            DocumentRequest::unclaimedSlotHoldDays()
+        ));
+    }
+
+    /**
+     * Excuse an Unclaimed request, so it stops counting against the resident.
+     *
+     * The note is REQUIRED. Excusing is the one action in this area that takes a
+     * clerk's judgement about somebody else's reliability and removes a
+     * consequence from them, and a record that reads only "excused" would leave
+     * the next person unable to tell a considered decision from a favour.
+     *
+     * Excusing twice is refused. Once the column is set the strike has already
+     * stopped counting, so a second excuse would write an audit entry describing
+     * a change that had no effect.
+     */
+    public function excuse(Request $request, DocumentRequest $documentRequest): RedirectResponse
+    {
+        // No status guard: canBeExcused() is keyed on unclaimed_at, and a request
+        // collected late can still be excused. Guarding on the current status here
+        // would quietly disagree with the button on the record page.
+        if (! $documentRequest->canBeExcused()) {
+            abort(409, sprintf(
+                'Request %s was already excused.',
+                $documentRequest->reference_number
+            ));
+        }
+
+        $validated = $request->validate([
+            'note' => ['required', 'string', 'min:10', 'max:1000'],
+        ], [
+            'note.required' => 'Say why this one was not the resident\'s fault.',
+            'note.min' => 'Give a reason somebody can act on later, not two words.',
+        ]);
+
+        $documentRequest->update(['unclaimed_excused_at' => now()]);
+
+        $documentRequest->recordExcuse($request->user(), $validated['note']);
+
+        // No status change, so no transition to record: the request is still
+        // unclaimed and the document is still uncollected. Only the resident's
+        // accountability changed, and it changed because a row stopped being one
+        // of the rows the strike count reads.
+        return back()->with('success', sprintf(
+            'The strike on %s was excused. It no longer counts against the resident.',
+            $documentRequest->reference_number
+        ));
     }
 
     /**

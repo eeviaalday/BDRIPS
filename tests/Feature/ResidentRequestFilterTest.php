@@ -34,6 +34,12 @@ class ResidentRequestFilterTest extends TestCase
     /**
      * The bug this file exists for: the total was read off the collection the
      * page had just filtered, so applying any filter changed it.
+     *
+     * The expected figure is the number of statuses the model declares rather
+     * than a literal. What is being proved is that the figure does not MOVE when
+     * a filter is applied, so writing the count in would have made the test fail
+     * every time a status was added - while saying nothing extra about the total
+     * being right, which is what `oneOfEachStatus()` already arranges.
      */
     #[Test]
     #[DataProvider('statusFilters')]
@@ -47,10 +53,12 @@ class ResidentRequestFilterTest extends TestCase
             ->assertOk()
             ->getContent();
 
+        $total = (string) count(DocumentRequest::STATUSES);
+
         $this->assertSame(
-            '5',
+            $total,
             $this->figureIn($html, 'Total on file'),
-            "The total is not 5 while filtering by {$status}. It was reading the filtered collection."
+            "The total is not {$total} while filtering by {$status}. It was reading the filtered collection."
         );
     }
 

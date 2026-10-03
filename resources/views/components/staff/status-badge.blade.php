@@ -45,6 +45,13 @@
         'under_review' => ['Under review', 'bg-indigo-50 text-indigo-800 border-indigo-200', 'bg-indigo-500'],
         'ready_for_pickup' => ['Ready for pickup', 'bg-gold-50 text-gold-800 border-gold-300', 'bg-gold-500'],
         'claimed' => ['Collected', 'bg-green-50 text-green-800 border-green-200', 'bg-green-600'],
+        // Amber rather than red. An unclaimed document is a missed collection, not
+        // a refusal - the resident can still turn up and collect it, and colouring
+        // it as red next to "Rejected" would read as a punishment the office
+        // applied rather than something that happened to both of them.
+        'unclaimed' => ['Unclaimed', 'bg-amber-50 text-amber-800 border-amber-200', 'bg-amber-500'],
+        // Neutral, because nothing went wrong: the resident withdrew it.
+        'cancelled' => ['Cancelled', 'bg-navy-50 text-navy-700 border-navy-200', 'bg-navy-400'],
 
         // Relief batches
         'active' => ['Active', 'bg-green-50 text-green-800 border-green-200', 'bg-green-600'],
