@@ -96,6 +96,7 @@ class AuditLog extends Model
             'request.excused' => 'Strike excused',
             'request.cancelled' => 'Request cancelled by resident',
             'request.pdf_downloaded' => 'Digital copy downloaded',
+            'request.pdf_emailed' => 'Digital copy emailed',
             'relief.batch_created' => 'Relief batch created',
             'relief.batch_closed' => 'Relief batch closed',
             'relief.batch_reopened' => 'Relief batch reopened',

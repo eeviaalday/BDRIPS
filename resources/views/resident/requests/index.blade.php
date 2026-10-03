@@ -357,6 +357,14 @@
                                             Download PDF
                                             <span class="sr-only">of {{ $documentRequest->reference_number }}</span>
                                         </a>
+                                        <form method="POST" action="{{ route('resident.requests.document.email', $documentRequest) }}" class="inline-flex">
+                                            @csrf
+                                            <button type="submit"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs font-semibold text-navy-800 transition hover:border-navy-300 hover:bg-navy-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-1">
+                                                <x-icon name="mail" class="h-3.5 w-3.5" />
+                                                Email me a copy
+                                            </button>
+                                        </form>
                                     @endif
                                 </div>
                             </td>

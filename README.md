@@ -143,6 +143,24 @@ new utility class does not exist in CSS until you do.
 | `app/Support/RoleNavigation.php` | What each role can reach, as data. |
 | `database/seeders/` | Demo data and accounts. |
 
+### Email configuration
+
+The application can send emails for verification and document delivery. For local
+development, set `MAIL_MAILER=log` to write emails to `storage/logs/laravel.log`.
+For production (Gmail), use SMTP with an App Password:
+
+- `MAIL_MAILER=smtp`
+- `MAIL_HOST=smtp.gmail.com`
+- `MAIL_PORT=587`
+- `MAIL_ENCRYPTION=tls`
+- `MAIL_USERNAME` = your Gmail address
+- `MAIL_PASSWORD` = a Gmail App Password (not your account password)
+- `MAIL_FROM_ADDRESS` = the sender address
+- `MAIL_FROM_NAME` = e.g. "Barangay Office"
+
+See `.env.example` for placeholder values. Never commit real credentials.
+
+
 ---
 
 ## Before you change the staff area

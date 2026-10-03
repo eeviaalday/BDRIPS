@@ -32,6 +32,7 @@ class DocumentDelivery extends Model
     protected $fillable = [
         'document_request_id',
         'user_id',
+        'channel',
     ];
 
     public function documentRequest(): BelongsTo

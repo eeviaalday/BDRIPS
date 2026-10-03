@@ -276,7 +276,7 @@
                 </div>
 
                 <p class="mb-3 text-sm text-slate-600">
-                    Downloaded by the resident from their own page. Each row is one download, so a
+                    Issued to the resident (downloaded or emailed) from their own page. Each row is one issuance, so a
                     resident who came back for a second copy leaves two rows - which is how
                     somebody whose password kept failing becomes visible.
                 </p>
@@ -287,8 +287,11 @@
                             <span class="font-medium text-navy-900">
                                 {{ $delivery->created_at?->format('j M Y, g:i a') ?? 'Date not recorded' }}
                             </span>
-                            <span class="font-mono text-xs text-slate-500">
-                                {{ $delivery->user?->name ?? 'Resident' }}
+                            <span class="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                                <span class="font-mono">{{ $delivery->user?->name ?? 'Resident' }}</span>
+                                <span class="rounded-full bg-navy-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-navy-700">
+                                    {{ $delivery->channel ?? 'download' }}
+                                </span>
                             </span>
                         </li>
                     @endforeach

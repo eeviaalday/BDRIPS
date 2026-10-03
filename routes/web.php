@@ -7,6 +7,7 @@ use App\Http\Controllers\Kagawad\ReliefController as KagawadReliefController;
 use App\Http\Controllers\Kagawad\ResidentController as KagawadResidentController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Resident\DocumentRequestController as ResidentDocumentRequestController;
+use App\Http\Controllers\Resident\DocumentRequestEmailController;
 use App\Http\Controllers\Resident\ReliefController as ResidentReliefController;
 use App\Http\Controllers\Resident\VerificationController as ResidentVerificationController;
 use App\Http\Controllers\Staff\AccountController as StaffAccountController;
@@ -206,6 +207,9 @@ Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'
         Route::get('/requests/{documentRequest}/document.pdf', [ResidentDocumentRequestController::class, 'downloadDocument'])
             ->middleware('throttle:10,1')
             ->name('requests.document.download');
+
+        Route::post('/requests/{documentRequest}/email-copy', [DocumentRequestEmailController::class, '__invoke'])
+            ->name('requests.document.email');
 
         // Relief: the resident's own household only.
         Route::get('/relief', [ResidentReliefController::class, 'index'])->name('relief');

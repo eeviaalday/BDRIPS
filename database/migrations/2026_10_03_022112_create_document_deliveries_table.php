@@ -106,6 +106,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('document_request_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('channel', 20)->default('download');
             $table->timestamps();
 
             // The staff filter is "downloaded, not yet collected", which asks every
