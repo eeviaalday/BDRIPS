@@ -252,7 +252,7 @@ scoped in the query, shows only name / household number / sector / verification 
 relief status, and has no write verb behind it. See
 [Code vs ROLES.md](#code-vs-rolesmd).
 
-### Resident — `role:resident` (8 routes)
+### Resident — `role:resident` (9 routes)
 
 | Route | Method | URI | Admin | Secretary | Kagawad | Resident | Guest |
 |---|---|---|---|---|---|---|---|
@@ -261,6 +261,7 @@ relief status, and has no write verb behind it. See
 | `resident.requests.store` | POST | `/resident/requests` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.requests.show` | GET | `/resident/requests/{documentRequest}` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.requests.cancel` | POST | `/resident/requests/{documentRequest}/cancel` | Denied | Denied | Denied | Allowed | Denied |
+| `resident.requests.document.download` | GET | `/resident/requests/{documentRequest}/document.pdf` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.relief` | GET | `/resident/relief` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.verification` | GET | `/resident/verification` | Denied | Denied | Denied | Allowed | Denied |
 | `resident.verification.update` | PATCH | `/resident/verification` | Denied | Denied | Denied | Allowed | Denied |
@@ -268,6 +269,21 @@ relief status, and has no write verb behind it. See
 
 `resident.requests.show` **redirects to the index** rather than rendering a page,
 so the route name exists but there is no per-request screen and no ID to guess at.
+
+`resident.requests.document.download` is the only route that produces a document
+rather than a page. It answers **only the resident who owns the request**, because
+the binding is scoped the same way as every other resident route: another
+resident's copy and a reference number that does not exist are both a 404, and
+they are the same 404. The copy is rendered in memory and never written under
+`public/`, so there is no URL anybody could share, and the response is
+`Cache-Control: no-store, private`. It is reachable only while the request is
+**Ready** — every other status has no copy to give — and it is rate-limited to
+10 a minute per resident so a resident with a failing password cannot grind
+through the alphabet. Each download writes one `document_deliveries` row and one
+`request.pdf_downloaded` audit entry, which is how the desk answers "who has a
+copy of this document". The file is AES-256 encrypted and the password is worked
+out from the resident's own birthdate and surname — the **rule** is on the page,
+their password is not.
 
 ### No role middleware at all
 

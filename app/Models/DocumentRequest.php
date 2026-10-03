@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Carbon;
 
@@ -220,6 +221,59 @@ class DocumentRequest extends Model
     public function documentType(): BelongsTo
     {
         return $this->belongsTo(DocumentType::class);
+    }
+
+    /**
+     * Every digital copy that was sent for this request.
+     *
+     * An event log rather than a flag, so a resident who came back for a second
+     * copy - because they mistyped the password, or needed it printed again - has
+     * left two rows and the office can see that they did.
+     *
+     * Read through a count subquery wherever the answer is only "how many", which
+     * is everywhere on the queue: a page of twenty requests must not cost twenty
+     * queries to decide which badges to draw.
+     *
+     * @return HasMany<DocumentDelivery, $this>
+     */
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(DocumentDelivery::class);
+    }
+
+    /**
+     * How many copies of this document have been issued.
+     *
+     * Written to accept a preloaded count as well as to run one, because the queue
+     * eager-loads it and calling the scope there would throw the work away and
+     * query again per row.
+     */
+    public function deliveryCount(): int
+    {
+        if (array_key_exists('deliveries_count', $this->attributes)) {
+            return (int) $this->attributes['deliveries_count'];
+        }
+
+        return $this->deliveries()->count();
+    }
+
+    public function hasBeenDownloaded(): bool
+    {
+        return $this->deliveryCount() > 0;
+    }
+
+    /**
+     * Whether this document may be sent to the resident as a digital copy.
+     *
+     * Ready only. From the moment it is claimed the resident has the document in
+     * hand, and from unclaimed they were given the chance to collect it and did
+     * not - in both cases the office is no longer the holder of a copy to give
+     * away, and a "download" button on either would hand out a second copy of
+     * something the resident already owns or has forfeited.
+     */
+    public function canBeDownloaded(): bool
+    {
+        return $this->status === self::STATUS_READY;
     }
 
     /**

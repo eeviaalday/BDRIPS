@@ -58,6 +58,7 @@ class RolesMatrixTest extends TestCase
 
         // Resident - role:resident
         'resident.requests.cancel' => 'resident',
+        'resident.requests.document.download' => 'resident',
         'resident.relief' => 'resident',
         'resident.requests.create' => 'resident',
         'resident.requests.index' => 'resident',

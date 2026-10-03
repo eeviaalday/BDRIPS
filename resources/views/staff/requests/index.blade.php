@@ -33,6 +33,13 @@
                  and the first one alone decides how the office sees its residents. --}}
             <x-staff.stat-card label="Overdue for collection" :value="$overdueCount" tone="gold" icon="help-circle" />
             <x-staff.stat-card label="Unclaimed" :value="$unclaimedCount" tone="navy" icon="archive" />
+            {{-- Digital copies, and the requests they were issued against. Both,
+                 because one number alone misleads in a specific way: 12 copies
+                 could be one resident whose password kept failing. "12" beside a
+                 list of a handful of requests is a signal something is wrong; "12
+                 copies across 9 requests" is a normal fortnight. --}}
+            <x-staff.stat-card label="Digital copies issued" :value="$downloadCount" tone="navy" icon="download"
+                :hint="'across '.$downloadedRequestCount.($downloadedRequestCount === 1 ? ' request' : ' requests')" />
         </x-staff.stat-row>
 
         <x-staff.filter-bar :action="route('staff.requests.index')"
@@ -48,6 +55,12 @@
                     'queue' => 'Awaiting a decision',
                     'ready_for_pickup' => 'Ready for pickup',
                     'overdue' => 'Overdue for collection',
+                    {{-- The one option that describes what a resident did rather
+                         than what a Secretary did. It sits next to Ready for
+                         pickup because that is who it selects: a document that was
+                         downloaded and never turned up at the hall is the case
+                         worth seeing, and a claim has not been made either way. --}}
+                    'downloaded' => 'Downloaded, not yet collected',
                     'unclaimed' => 'Unclaimed',
                     'claimed' => 'Collected',
                     'rejected' => 'Rejected',
@@ -89,6 +102,19 @@
                     <td class="text-sm text-slate-600">{{ $documentRequest->created_at?->format('j M Y') }}</td>
                     <td>
                         <x-staff.status-badge :status="$documentRequest->status" size="sm" />
+                        {{-- Whether a digital copy has gone out, and how many
+                             times. Read from the eager-loaded count, so drawing
+                             this badge costs the page nothing. It sits under the
+                             status rather than in a column of its own because it
+                             is a fact about the row, not a queue to be worked
+                             through - except where it is, which is what the filter
+                             above is for. --}}
+                        @php $copies = (int) ($documentRequest->deliveries_count ?? 0); @endphp
+                        @if ($copies > 0)
+                            <span class="mt-1 block text-xs font-semibold text-navy-700">
+                                {{ $copies === 1 ? '1 digital copy issued' : $copies.' digital copies issued' }}
+                            </span>
+                        @endif
                         {{-- How long it has been sitting ready, because "Ready for
                              pickup" on its own hides the only fact that decides
                              whether this row needs work today. Days are counted by

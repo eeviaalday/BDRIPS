@@ -63,6 +63,20 @@ class SettingController extends Controller
                 'label' => 'Contact',
                 'keys' => ['emergency_hotline', 'office_phone', 'office_email', 'office_facebook'],
             ],
+            // The letterhead and the digital-copy rules, in one place, because they
+            // are edited together by the same person and are about the same thing:
+            // what a document the barangay issues looks like when it leaves the
+            // office.
+            //
+            // Captain's name is NOT in this list as a new key. The office already
+            // records who signs documents under punong_barangay, which the PDF
+            // letterhead reads; adding a second "captain name" setting would give
+            // the office two places to answer the same question and no way to tell
+            // which one the signature block was using.
+            'documents' => [
+                'label' => 'Documents',
+                'keys' => ['digital_copy_footer', 'digital_copy_counts_as_claimed', 'barangay_logo_path'],
+            ],
         ];
 
         $byKey = $settings->keyBy('key');

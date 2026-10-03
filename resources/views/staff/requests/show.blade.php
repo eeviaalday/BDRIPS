@@ -253,6 +253,57 @@
             @endif
         </x-card>
 
+        {{-- Digital copies, newest first. Its own card rather than a line in the
+             Request card because the question it answers is a different one: not
+             "what does this request say" but "has this resident already got the
+             document". A Secretary asked whether they still need to prepare a
+             copy for the counter needs that answer before they prepare anything.
+
+             Only ever shown when a copy has actually been issued, so an untouched
+             request does not carry an empty card explaining a feature nobody used.
+             And it deliberately carries no date of birth, no password and nothing
+             else about the resident: this is the one staff page where the fact
+             that a download happened is worth recording, and the derived password
+             is not anybody's business but the resident's. --}}
+        @if ($documentRequest->deliveries->isNotEmpty())
+            <x-card tone="white" padding="p-6">
+                <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                    <h2 class="text-base font-bold text-navy-900">Digital copies issued</h2>
+                    <span class="text-xs text-slate-500">
+                        {{ $documentRequest->deliveries->count() }}
+                        {{ $documentRequest->deliveries->count() === 1 ? 'copy' : 'copies' }}
+                    </span>
+                </div>
+
+                <p class="mb-3 text-sm text-slate-600">
+                    Downloaded by the resident from their own page. Each row is one download, so a
+                    resident who came back for a second copy leaves two rows - which is how
+                    somebody whose password kept failing becomes visible.
+                </p>
+
+                <ol class="space-y-2">
+                    @foreach ($documentRequest->deliveries as $delivery)
+                        <li class="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-navy-100 bg-navy-50/40 px-3.5 py-2.5 text-sm">
+                            <span class="font-medium text-navy-900">
+                                {{ $delivery->created_at?->format('j M Y, g:i a') ?? 'Date not recorded' }}
+                            </span>
+                            <span class="font-mono text-xs text-slate-500">
+                                {{ $delivery->user?->name ?? 'Resident' }}
+                            </span>
+                        </li>
+                    @endforeach
+                </ol>
+
+                @if ($documentRequest->status === \App\Models\DocumentRequest::STATUS_UNCLAIMED)
+                    <p class="mt-4 text-sm text-amber-800">
+                        This document was downloaded but was not collected. A copy was issued and
+                        the resident still came to the hall for it, so the two are worth reading
+                        together rather than as a contradiction.
+                    </p>
+                @endif
+            </x-card>
+        @endif
+
         {{-- The shared timeline resolves position with array_search over
              submitted/under-review/ready/claimed, so unclaimed and cancelled
              render as four grey steps - "nothing has happened yet", which is the

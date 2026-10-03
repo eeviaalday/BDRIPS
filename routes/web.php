@@ -197,6 +197,16 @@ Route::middleware(['auth', 'verified', 'role:resident', 'no-store-authenticated'
         Route::get('/requests/{documentRequest}', [ResidentDocumentRequestController::class, 'show'])->name('requests.show');
         Route::post('/requests/{documentRequest}/cancel', [ResidentDocumentRequestController::class, 'cancel'])->name('requests.cancel');
 
+        // The digital copy. Throttled because it is the one resident route that
+        // costs real CPU - a PDF is rendered, encrypted with AES-256 and base64s
+        // an image - and unlike every other route here it can be hit in a loop by
+        // somebody with an account. Ten a minute is several times what a resident
+        // needs for a document they can only download once, and a reset of the
+        // file cannot be forced by asking again.
+        Route::get('/requests/{documentRequest}/document.pdf', [ResidentDocumentRequestController::class, 'downloadDocument'])
+            ->middleware('throttle:10,1')
+            ->name('requests.document.download');
+
         // Relief: the resident's own household only.
         Route::get('/relief', [ResidentReliefController::class, 'index'])->name('relief');
 

@@ -5773,3 +5773,125 @@ match set.
 
 **Dev data restored.** Browser fixtures and their audit rows removed: 2 requests,
 1 audit row, 0 archived accounts.
+
+---
+
+## Prompt #032
+
+### The brief
+
+A resident who cannot get to the Barangay Hall. Let them download their own
+document instead, without handing out a copy that anyone else can open, and
+without the office losing the ability to say who has a copy.
+
+### The brief as agreed
+
+Four rules, fixed before any code was written.
+
+**The password is the resident's own facts, not a code the office hands out.** Their
+birthdate as `mm/dd/yy`, then the uppercase first letter of the last word of the
+name on file. Nothing is stored, nothing is emailed, nothing is written down, and
+nobody at the hall can read it off a screen. The *rule* is printed on the resident's
+page; their password is not, because a password on a page at the hall is a password
+their neighbour can see. A resident with no birthdate on file, or a last name with
+no letter in it, gets no copy and is sent to the hall — a wrong password is
+indistinguishable from a wrong document, and guessing is worse than asking.
+
+**Only while the request is Ready.** Every other status has no copy to give.
+
+**Encrypted, and not merely marked encrypted.** AES-256 (`/V 5`, `/R 5`,
+`/Length 256`, `/CFM /AESV3`), metadata included. R6 was considered and rejected:
+it needs AES-256 *and* an algorithm a given reader may not have, so it is a copy
+some residents could not open. Every copy is generated on demand and keyed to a
+freshly random owner password that is never stored, so two copies of one request are
+not the same file and a withdrawn copy is not still openable.
+
+**The office knows who has a copy.** One `document_deliveries` row and one
+`request.pdf_downloaded` audit entry per download, and on the staff side a count, a
+filter for *downloaded but not yet collected*, and a history on the record.
+
+### What was actually hard
+
+Three things, none of which reasoning alone caught.
+
+**The library does not ship its font metrics.** tc-lib-pdf reads `helvetica.json`
+and thirteen siblings from a folder the maintainer generates from Adobe's AFM files
+with a build step. A fresh `composer install` on XAMPP produces a library that
+throws `unable to read file: helvetica.json` the first time anybody asks for a
+certificate. The fourteen core metrics were converted once and committed under
+`resources/pdf-fonts`, with the licence and the source recorded beside them. No
+deploy-time build, no shell, nothing to remember on a machine where the project was
+deployed by copying files.
+
+**A malformed tag silently clipped the signature block.** The last rendered draft
+had one unclosed `<font>` in the signature row. The copy still rendered, still
+encrypted, still opened with the right password — and the "Not valid without the dry
+seal" line was cut off mid-word, with the signature rule truncated to nineteen
+characters. It was found by extracting the text of a generated PDF and reading it,
+not by looking at the PDF, which looks fine until you know what is missing. The
+narrow cell and the logo were both investigated first and neither was the cause; a
+bisection that rendered one fragment at a time found it.
+
+**The queue page had an N+1, and the test for it found it rather than confirming it.**
+The row prints the household number and the profile behind it was not eager-loaded,
+so the staff queue issued one extra query per row. This was pre-existing, not
+introduced here. It was caught by a test that counts queries for ten requests and
+again for twenty and requires the two numbers to match — the kind of test that fails
+if somebody writes a correct-looking `withCount` but leaves the rest of the row
+lazy. Twenty rows went from twenty-nine queries to fourteen, and the count is now
+the same at any size.
+
+### A decision that was made rather than discovered
+
+Whether a download should count as collection. It is **off by default**, because a
+download is not a collection: the tab may have been closed unread, or the copy
+wanted for somebody else. When an office turns it on, the claim is written only from
+Ready, never over a `claimed_at` the desk wrote, and the audit entry says
+`channel: resident_download` — because "was this collected, or only downloaded?" is
+the question the entry exists to answer.
+
+### What was verified
+
+1,553 tests, 1,552 passed, 1 skipped, 12,776 assertions. The baseline before this
+work was 1,486 / 1,485 / 1 / 12,587.
+
+Encryption was verified two ways: the bytes were inspected for the encryption
+dictionary and the four agreed figures, and generated PDFs were opened with the
+resident's real password (`03/17/94S`) and refused with a wrong one and with none.
+The refusal matters as much as the success — a PDF that opens without a password is
+encrypted in name only.
+
+67 new tests across four files: password derivation as a table of names including
+accents and suffixes and the two cases that produce no password; entitlement and
+status gating including the pair that must be indistinguishable (another resident's
+request and a made-up one, both 404); delivery and audit rows; the claim flag both
+ways; secrecy (no password in the filename, the headers or the audit context, and
+nothing written under `public/`); rate limiting; the staff counts, filter, ordering
+and history; the settings flag round-trip and the words it will still read as on or
+off; and the query count.
+
+### Scope kept
+
+One direct Composer dependency, one migration, and the resident file limited to the
+button, the password notice and the controller action. No shared component was
+touched. `RoutesMatrixTest` failed on the new route until `ROLES.md` and the matrix
+both recorded who may reach it — which is the point of that test.
+
+### Changed files, and only these
+
+- `composer.json`, `composer.lock` — `tecnickcom/tc-lib-pdf` 8.76.3
+- `resources/pdf-fonts/` — fourteen core font metrics, `LICENSE`, `SOURCE.md`
+- `database/migrations/2026_10_03_022112_create_document_deliveries_table.php`, new
+- `database/factories/DocumentDeliveryFactory.php`, new
+- `app/Models/DocumentDelivery.php`, new; `DocumentRequest.php`, `Setting.php`, `AuditLog.php`
+- `app/Services/DigitalCopyPassword.php`, `app/Services/DigitalCopyRenderer.php`, new
+- `app/Providers/AppServiceProvider.php` — renderer binding
+- `app/Http/Controllers/Resident/DocumentRequestController.php` — download, delivery, audit, optional claim
+- `app/Http/Controllers/Staff/DocumentReviewController.php` — counts, filter, history, and the missing eager load
+- `app/Http/Controllers/Staff/SettingController.php` — Documents section
+- `resources/views/resident/requests/index.blade.php` — the approved exception only
+- `resources/views/staff/requests/{index,show}.blade.php`, `resources/views/staff/settings/index.blade.php`
+- `routes/web.php` — `resident.requests.document.download`, throttled 10/min
+- `ROLES.md` — the route, and why it is the only document-producing route
+- `tests/Feature/{DigitalCopyPasswordTest,DigitalCopyDownloadTest,DigitalCopyRendererTest,StaffDocumentDeliveryTrackingTest,StaffDocumentCopySettingsTest}.php`, new; `RolesMatrixTest.php`
+- `PROMPT_LOG.md`, this entry

@@ -95,6 +95,7 @@ class AuditLog extends Model
             'request.unclaimed' => 'Request marked unclaimed',
             'request.excused' => 'Strike excused',
             'request.cancelled' => 'Request cancelled by resident',
+            'request.pdf_downloaded' => 'Digital copy downloaded',
             'relief.batch_created' => 'Relief batch created',
             'relief.batch_closed' => 'Relief batch closed',
             'relief.batch_reopened' => 'Relief batch reopened',

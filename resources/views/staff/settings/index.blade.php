@@ -116,6 +116,7 @@
             x-data="{
                 initial: {},
                 dirty: false,
+                digitalCopyCountsAsClaimed: {{ \App\Models\Setting::isTruthy($published['digital_copy_counts_as_claimed'] ?? null) ? 'true' : 'false' }},
                 readInitial() {
                     this.initial = {}
                     this.$root.querySelectorAll('input[name]').forEach((field) => { this.initial[field.name] = field.value })
@@ -199,9 +200,52 @@
                                 @if ($setting->description)
                                     <p class="mt-0.5 text-xs text-slate-500">{{ $setting->description }}</p>
                                 @endif
-                                <input id="setting-{{ $setting->key }}" name="values[{{ $setting->key }}]" type="text"
-                                    maxlength="2000" value="{{ old('values.'.$setting->key, $setting->value) }}"
-                                    class="mt-1.5 w-full rounded-lg border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200">
+
+                                {{-- ONE KEY IS A SWITCH, NOT A LINE OF TEXT.
+
+                                     digital_copy_counts_as_claimed is stored as the
+                                     strings '0' and '1' like every other setting,
+                                     because SettingController validates and writes
+                                     them all the same way. Rendering it as a text
+                                     box would mean the office types "0" or "1" and
+                                     has to know that, which is a rule that exists
+                                     only because of the storage format.
+
+                                     The hidden input is what carries the name and
+                                     the value, because an unchecked checkbox
+                                     submits nothing at all and the key would then
+                                     be absent from the POST - leaving the old value
+                                     in place with no way for the office to turn it
+                                     off. The visible checkbox is bound to the same
+                                     Alpine property as the hidden input rather than
+                                     carrying its own name, which keeps ONE input
+                                     per key for the dirty-check below to read: two
+                                     inputs sharing a name would compare the hidden
+                                     '0' against the checkbox's '1' on load and
+                                     report the form dirty before anybody touched
+                                     it. --}}
+                                @if ($setting->key === 'digital_copy_counts_as_claimed')
+                                    @php $flagOn = \App\Models\Setting::isTruthy($published[$setting->key] ?? null); @endphp
+
+                                    <input type="hidden" name="values[{{ $setting->key }}]"
+                                        value="{{ $flagOn ? '1' : '0' }}"
+                                        x-model="digitalCopyCountsAsClaimed">
+
+                                    <label class="mt-2 inline-flex cursor-pointer items-center gap-2.5 text-sm text-navy-900">
+                                        <input id="setting-{{ $setting->key }}" type="checkbox"
+                                            class="h-4 w-4 rounded border-navy-300 text-navy-700 focus:ring-2 focus:ring-navy-300"
+                                            x-model="digitalCopyCountsAsClaimed"
+                                            @checked($flagOn)>
+                                        <span>Mark a document collected when the resident downloads their copy</span>
+                                    </label>
+                                @else
+                                    <input id="setting-{{ $setting->key }}" name="values[{{ $setting->key }}]" type="text"
+                                        maxlength="2000" value="{{ old('values.'.$setting->key, $setting->value) }}"
+                                        @if ($setting->key === 'barangay_logo_path')
+                                            placeholder="images/Zone 1_logo.png - leave empty to use the one in public/images"
+                                        @endif
+                                        class="mt-1.5 w-full rounded-lg border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200">
+                                @endif
                             </div>
                         @endforeach
                     </div>

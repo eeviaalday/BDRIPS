@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
+use App\Models\DocumentDelivery;
 use App\Models\DocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,7 +54,16 @@ class DocumentReviewController extends Controller
         $awaiting = [DocumentRequest::STATUS_SUBMITTED, DocumentRequest::STATUS_UNDER_REVIEW];
 
         $query = DocumentRequest::query()
-            ->with(['user', 'documentType'])
+            // user.residentProfile is here for the same reason deliveries are, and
+            // was missing: the row prints the household number, and without this the
+            // profile was fetched once per row, so the queue cost one extra query
+            // for every request on the page.
+            ->with(['user', 'user.residentProfile', 'documentType'])
+            // One subquery for the whole page rather than a count per row. This is
+            // what keeps the queue's query count identical whether it is showing
+            // one request or twenty: a badge that counted deliveries by touching
+            // each row would make the desk's slowest page the busiest one.
+            ->withCount('deliveries')
             ->when($search !== '', function ($requests) use ($search): void {
                 $requests->where(function ($inner) use ($search): void {
                     $inner->where('reference_number', 'like', "%{$search}%")
@@ -67,7 +77,15 @@ class DocumentReviewController extends Controller
             // model's scope so "overdue" means the same thing here as it does on
             // the record page and in the refusal the server gives.
             ->when($status === 'overdue', fn ($requests) => $requests->overdue())
-            ->when(! in_array($status, ['', 'queue', 'overdue'], true), fn ($requests) => $requests->where('status', $status))
+            // The one filter that is about what a resident did rather than what a
+            // Secretary did. whereHas rather than a join, because the question is
+            // about the deliveries and not about a column on the request - and the
+            // same subquery is what the withCount above uses, so a row that shows
+            // "Downloaded" is a row this filter can find.
+            ->when($status === 'downloaded', fn ($requests) => $requests
+                ->whereHas('deliveries')
+                ->whereIn('status', [DocumentRequest::STATUS_READY, DocumentRequest::STATUS_UNCLAIMED]))
+            ->when(! in_array($status, ['', 'queue', 'overdue', 'downloaded'], true), fn ($requests) => $requests->where('status', $status))
             // Awaiting a decision first, then oldest-ready-longest, then newest.
             // The overdue ordering matters: a queue whose oldest item is buried is
             // a queue that generates unclaimed documents, which is the whole
@@ -100,13 +118,27 @@ class DocumentReviewController extends Controller
                 ->where('status', DocumentRequest::STATUS_UNCLAIMED)
                 ->whereNotNull('unclaimed_excused_at')
                 ->count(),
+            // Copies issued, and how many requests they went out against. Two
+            // numbers because they answer different questions and either alone
+            // misleads: a handful of requests with five downloads each is a
+            // resident whose password kept failing, not a busy month.
+            'downloadCount' => DocumentDelivery::query()->count(),
+            'downloadedRequestCount' => DocumentRequest::query()->whereHas('deliveries')->count(),
         ]);
     }
 
     public function show(DocumentRequest $documentRequest): View
     {
         return view('staff.requests.show', [
-            'documentRequest' => $documentRequest->load(['user', 'user.residentProfile', 'documentType', 'latestExcuse.user']),
+            'documentRequest' => $documentRequest->load([
+                'user',
+                'user.residentProfile',
+                'documentType',
+                'latestExcuse.user',
+                // Newest first, because the question the desk asks is "when was the
+                // last time somebody took a copy" and the answer is the top row.
+                'deliveries' => fn ($query) => $query->latest('id'),
+            ]),
         ]);
     }
 

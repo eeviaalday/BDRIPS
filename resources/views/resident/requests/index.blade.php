@@ -337,13 +337,27 @@
                                     </button>
 
                                     {{--
-                                        View PDF is deliberately absent. Nothing in this
-                                        system puts a document behind a request: the only
-                                        PDF anywhere is a resident's uploaded ID, and
-                                        generating one would need a package this project
-                                        does not have. A button that always leads to
-                                        nothing is worse than no button.
-                                    --}}
+                                        The digital copy is offered only while the
+                                        document is ready. canBeDownloaded() is the
+                                        same test the download route enforces, so the
+                                        button cannot appear for a request the server
+                                        would refuse - and a request that was
+                                        collected, rejected or withdrawn has no copy
+                                        to give.
+
+                                        The comment this replaces explained why View
+                                        PDF was absent: nothing put a document
+                                        behind a request, and the only PDF in the
+                                        system was an uploaded ID. That is no
+                                        longer true. --}}
+                                    @if ($documentRequest->canBeDownloaded())
+                                        <a href="{{ route('resident.requests.document.download', $documentRequest) }}"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs font-semibold text-navy-800 transition hover:border-navy-300 hover:bg-navy-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-1">
+                                            <x-icon name="download" class="h-3.5 w-3.5" />
+                                            Download PDF
+                                            <span class="sr-only">of {{ $documentRequest->reference_number }}</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -405,6 +419,40 @@
                                             Collect it at the Barangay Hall, quoting
                                             <strong class="font-mono font-semibold">{{ $documentRequest->reference_number }}</strong>.
                                         </p>
+
+                                        {{-- The password rule, next to the button that
+                                             needs it. The rule is stated rather than
+                                             the resident's own password printed out:
+                                             they can work it out from details they
+                                             already know, and a password rendered on
+                                             the page would be one somebody at the
+                                             counter could read over their shoulder,
+                                             and one left in the browser cache and in
+                                             any screenshot they take of it. --}}
+                                        <div class="mt-3 border-t border-sky-200 pt-3 text-sky-900">
+                                            <p class="font-semibold">Downloading a copy</p>
+                                            <p class="mt-1 text-sky-800">
+                                                You can download a copy of this document instead of
+                                                collecting it at the hall. The file is encrypted, and
+                                                the password is worked out from your own details:
+                                            </p>
+                                            <p class="mt-2 font-mono text-xs font-semibold text-sky-900">
+                                                your birthdate as mm/dd/yy, then the first letter of your surname
+                                            </p>
+                                            <p class="mt-2 text-sky-800">
+                                                For example, a resident born on 17 March 1994 with the surname
+                                                Cruz opens their copy with
+                                                <span class="font-mono text-xs font-semibold">03/17/94C</span>.
+                                                Accented surnames use the plain letter - &ntilde; is N - and a
+                                                resident whose surname begins with a letter that cannot be
+                                                typed will be asked to collect at the hall instead.
+                                            </p>
+                                            <p class="mt-2 text-sky-800">
+                                                A downloaded copy is valid only once it is printed with the
+                                                official signature and dry seal, and the office can see
+                                                that a copy was downloaded.
+                                            </p>
+                                        </div>
                                     </div>
                                 @endif
 
