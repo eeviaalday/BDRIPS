@@ -5895,3 +5895,135 @@ both recorded who may reach it — which is the point of that test.
 - `ROLES.md` — the route, and why it is the only document-producing route
 - `tests/Feature/{DigitalCopyPasswordTest,DigitalCopyDownloadTest,DigitalCopyRendererTest,StaffDocumentDeliveryTrackingTest,StaffDocumentCopySettingsTest}.php`, new; `RolesMatrixTest.php`
 - `PROMPT_LOG.md`, this entry
+
+## Prompt #033
+
+### The brief
+
+Make the verification email a letter from the barangay rather than a framework
+default, make the link last a day instead of an hour, and make a wrong App
+Password on our side an inconvenience for the office instead of a lost
+registration for the resident.
+
+### What the audit found before anything was changed
+
+`User` already implemented `MustVerifyEmail`, and the resident routes already
+carried `auth -> verified -> role:resident`. Both facts were verified rather than
+assumed: an unverified resident posting to `/resident/requests` is redirected to
+`verification.notice`, and the same POST as a verified resident creates the
+request. Nothing in the access layer needed changing, so nothing in it was
+changed.
+
+Three real problems, all of them consequences of the framework defaults rather
+than of anything written here.
+
+**The link died after an hour.** `auth.verification.expire` was absent, so
+Laravel's sixty minutes applied. The reader is a resident on a phone on a
+connection they did not choose, and the mail may sit unread behind a secretary or
+a spam folder for a day. Twenty-four hours is bounded all the same, because the
+link is signed and dies on its own.
+
+**The notice was sent inside the transaction.** `Registered` was dispatched from
+within the `DB::transaction` closure, before the commit. A synchronous SMTP call
+is a network request to a server this code does not control, on credentials an
+operator can get wrong, so one wrong App Password rolled back a registration that
+had already succeeded: the resident was shown a 500 for a problem with our mail
+settings, and the account they had just created went with it. The rows now commit
+first and the notice is best-effort afterwards.
+
+**The page said something untrue on the failure path.** The default introduction
+reads "clicking on the link we just emailed to you". With the send failing, that
+sentence describes an email that was never sent, to a resident who has just been
+told their account was made. The two cases now have their own text.
+
+### A failure the tests were built to miss
+
+The first version of the mail-failure test used a mailer name that was never
+declared, so the send failed with "Mailer [always-fails] is not defined" instead
+of an SMTP rejection. Every test passed, because the controller's catch does
+handle any `Throwable` — and none of them were testing what they claimed to. A
+test that passes for the wrong reason is worse than one that fails, because it
+reports the work as done.
+
+The fake now declares its mailer *and* its transport and throws from inside
+`TransportInterface::send()`, so the failure happens where a real authentication
+rejection happens: after the message has been fully rendered, on the way to the
+server. A guard test asserts the exception reaching the controller really is a
+transport failure, so the helper cannot quietly go back to testing a typo.
+
+The second attempt needed the same treatment. Pressing Resend while our mail
+settings are still broken was a 500, on the one screen that exists to get a
+resident unstuck, in response to doing exactly what we asked. It is now caught and
+logged like the first, and reported as a status on the same page.
+
+### A decision that was made rather than discovered
+
+Where the failure message is shown. `session()->flash()` is discarded after the
+next request, and the success path redirects through `/dashboard` before the
+confirmation page renders — so a warning flashed at registration would have been
+gone by the time the resident read it. Rather than bend the flash lifetime, a
+failed send redirects straight to the confirmation page, where the message and the
+Resend button are both present, and the success path is left exactly as it was.
+
+The sender is the barangay name from `Setting` rather than `APP_NAME`, because the
+`From` line is the one thing a resident sees before deciding whether a stranger's
+mail is real. The address is left alone: inventing one would either send from a
+domain that does not exist or quietly override a working `MAIL_FROM_ADDRESS`.
+
+### What was verified
+
+1,607 tests, 1,606 passed, 1 skipped, 12,919 assertions. The baseline before this
+work was 1,554 / 1,553 / 1 / 12,788. Pint clean.
+
+Fifty-three tests in one new file, written as what a resident receives rather than
+as what the code calls: one message to the address registered; the office, the
+action and the number of hours in the wording; a link built on the host from
+`APP_URL`; expiry refused one minute past the setting and accepted one minute
+inside it; a tampered link refused; resend works and is throttled; a change of
+address requiring verification again; an unverified resident stopped from the
+resident routes while a verified one is let through; and the four failure cases,
+each asserting the account, the profile and the uploaded ID all survive.
+
+The whole journey was then walked twice in a real browser against
+`MAIL_MAILER=log`, in Chromium, from the registration wizard to the resident area:
+five steps filled and submitted, `/resident/requests` refused while unverified,
+the Resend button pressed and confirmed in the page, the link read out of the log
+and opened, then `/resident/requests` returning the real page. **Zero console
+errors and zero uncaught page errors** across every page. The Playwright install
+used for this lives outside the repository; nothing was added to `package.json`.
+
+The link in the log was on the server's own host, and the message body carried
+"Barangay Linasin, Zone 1" as both sender name and subject, and "expires in 24
+hours". Two of the browser assertions were themselves wrong before they were
+right, and both had to be fixed to report honestly rather than to pass: the button
+label is uppercased in CSS, so a case-sensitive match for it reported a button
+that was on the page all along, and the first failure test passed for the wrong
+reason described above.
+
+The database was checked afterwards rather than inferred from the redirect:
+`email_verified_at` set, `hasVerifiedEmail()` true, the profile row and the
+uploaded ID still present.
+
+### Scope kept
+
+The auth verification surface only. `routes/web.php`, the resident views, the
+staff views and every shared component are untouched; the diff is seven modified
+files, all of them named below, plus the new test. `.env` was neither read nor
+written: the example file carries placeholders and the README says which values to
+paste in. A scan of tracked files found no credential — `MAIL_PASSWORD=null` in the
+example, a bracketed placeholder in the README, and no `APP_KEY=base64:` anywhere.
+
+No new dependency, and no CSS rebuild: the view reuses utility classes the
+stylesheet already had.
+
+### Changed files, and only these
+
+- `app/Providers/AppServiceProvider.php` — the wording, the sender name and the stated expiry of the verification notice
+- `app/Http/Controllers/Auth/RegisteredUserController.php` — the notice after the commit, caught and logged, with the redirect the failure needs
+- `app/Http/Controllers/Auth/EmailVerificationNotificationController.php` — the resend treated as the second attempt it is
+- `resources/views/auth/verify-email.blade.php` — an introduction that is true on both paths
+- `config/auth.php` — `auth.verification.expire`, 1440 minutes
+- `.env.example` — `AUTH_VERIFICATION_EXPIRE`, and what each mail value is for
+- `README.md` — the mail setup, and `config:clear` after changing the environment
+- `tests/Feature/Auth/EmailVerificationDeliveryTest.php`, new
+- `PROMPT_LOG.md`, this entry

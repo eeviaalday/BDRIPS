@@ -143,23 +143,112 @@ new utility class does not exist in CSS until you do.
 | `app/Support/RoleNavigation.php` | What each role can reach, as data. |
 | `database/seeders/` | Demo data and accounts. |
 
-### Email configuration
+### Mail setup
 
-The application can send emails for verification and document delivery. For local
-development, set `MAIL_MAILER=log` to write emails to `storage/logs/laravel.log`.
-For production (Gmail), use SMTP with an App Password:
+Two messages depend on this working, and nothing else in the application sends mail:
 
-- `MAIL_MAILER=smtp`
-- `MAIL_HOST=smtp.gmail.com`
-- `MAIL_PORT=587`
-- `MAIL_ENCRYPTION=tls`
-- `MAIL_USERNAME` = your Gmail address
-- `MAIL_PASSWORD` = a Gmail App Password (not your account password)
-- `MAIL_FROM_ADDRESS` = the sender address
-- `MAIL_FROM_NAME` = e.g. "Barangay Office"
+- **Confirm your email address**, sent the moment a resident registers. Until they
+  press that link the account exists but cannot reach the resident area.
+- **Email me a copy**, the encrypted PDF of a ready document, sent to the
+  resident's own verified address.
 
-See `.env.example` for placeholder values. Never commit real credentials.
+Both are sent **synchronously** — the notification is not queued, so there is no
+worker to run and no `jobs` table to watch.
 
+#### 1. `APP_URL` has to match your browser
+
+This is the step that breaks first and is easiest to miss. The confirmation link
+is a signed URL built from `APP_URL`, so if it says `localhost` and you are
+reading the email on a phone, the link points at the phone and can never work.
+
+Set it to the address you actually browse from, port included:
+
+```
+APP_URL=http://localhost:8000        # php artisan serve
+APP_URL=http://localhost:8001        # php artisan serve --port=8001
+APP_URL=https://bdrpis.example.gov.ph # production
+```
+
+#### 2. Local: read the email out of the log
+
+The default needs no credentials and no network. Every message is written whole
+into `storage/logs/laravel.log`, and the verification URL is on a line of its
+own:
+
+```
+MAIL_MAILER=log
+```
+
+To find the link during development:
+
+```
+tail -f storage/logs/laravel.log
+```
+
+Look for `verification/verify` and copy the URL out. This is also how the
+end-to-end check reaches the confirmation step.
+
+#### 3. Real delivery over Gmail
+
+Turn on SMTP and supply an App Password:
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_ENCRYPTION=tls
+MAIL_USERNAME=your.barangay@gmail.com
+MAIL_PASSWORD=<paste the 16-character App Password>   # spaces are ignored
+MAIL_FROM_ADDRESS=your.barangay@gmail.com
+```
+
+To get an App Password:
+
+1. Turn on 2-Step Verification for the Google account — the menu below only
+   appears once it is on.
+2. Go to <https://myaccount.google.com/apppasswords>.
+3. Create one named for this application and copy the 16 characters **when it is
+   shown**. Google displays it exactly once and there is no way to read it back
+   later; if it is lost, delete it and make another.
+
+Three things that quietly do not work:
+
+- **The account password is not the App Password.** Gmail rejects it, or accepts
+  the connection and drops the mail. Neither is obvious from the symptom.
+- **`MAIL_FROM_ADDRESS` should be the same account, or an alias that account is
+  allowed to send as.** A third address is silently discarded.
+- **Port 587 with `tls` is deliberate.** Port 465 wants `ssl` instead.
+
+#### 4. After editing `.env`
+
+```bash
+php artisan config:clear && php artisan cache:clear
+```
+
+and restart the server. Config is cached, so a running server keeps serving the
+values it read at boot — edit `.env` and reload the page and nothing appears to
+have happened. In short: after changing `.env`, run `php artisan config:clear`
+and restart the server.
+
+#### Link lifetime
+
+`AUTH_VERIFICATION_EXPIRE` sets how long a confirmation link stays valid, in
+minutes. The default is `1440` — 24 hours. The framework's own default is 60,
+which is short for a reader on a phone whose mail may sit unread behind a
+secretary or a spam folder for a day; the setting is a plain number, and the
+message tells the resident the same number the server enforces.
+
+#### Never commit a credential
+
+`.env.example` carries placeholders only, and `.env` is ignored by git. Check
+before pushing:
+
+```bash
+git ls-files | grep -v vendor | xargs grep -nE "MAIL_PASSWORD=.+|APP_KEY=base64:.+"
+```
+
+Any hit is a real secret in a tracked file. See `.env.example` for the full set
+of placeholder values.
 
 ---
 
