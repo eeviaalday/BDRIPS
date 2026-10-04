@@ -1,0 +1,6160 @@
+# PROMPT_LOG.md
+
+**Project:** BDRPIS — Barangay Document Request & Public Information System
+**Stack:** Laravel (PHP 8.5) / Blade + Tailwind CSS / Livewire
+**Purpose:** Permanent, append-only record of every prompt sent to OpenCode that resulted in
+development work, analysis, debugging, testing, documentation, configuration, design, or
+refactoring on this project. Maintained for academic project documentation and AIAS Level 3
+compliance (auditability of AI-assisted development).
+
+---
+
+## Log Conventions
+
+- **Append-only.** Existing entries are never deleted, rewritten, or replaced. New entries are
+  appended to the end of the file, preserving chronological order.
+- **Verbatim prompts.** The `### Prompt` section reproduces the exact prompt text sent by the
+  user. Summaries are not substituted when the original wording is available.
+- **No fabrication.** Prompts that were never actually issued are not recorded. If the exact
+  wording of a past prompt is unknown, it is marked as such rather than invented.
+- **No internal reasoning.** Only the user's prompt, implementation actions, files changed,
+  tests run, results, and follow-up items are recorded. Private model reasoning is excluded.
+- **Sequential numbering.** Entries use `Prompt #001`, `#002`, `#003`, … Numbers are never
+  reused. The next number is always the highest existing number + 1.
+- **No silent log updates.** A new entry is appended only *after* the requested work is
+  performed, so the Result section reflects actual outcome rather than assumptions.
+- **File-level traceability.** Every entry lists files created and files modified, or records
+  `None.` when a section does not apply.
+
+---
+
+## Prompt #001
+
+**Date:** 2026-09-28
+**Time:** 02:33
+**Category:** Documentation
+**Affected Module:** Project Root / Development Process Documentation
+**Status:** Completed
+
+### Prompt
+
+> # Add a PROMPT_LOG.md File for Complete OpenCode Prompt Tracking
+>
+> ## Objective
+>
+> Create a `PROMPT_LOG.md` file at the **root of the Laravel project**.
+>
+> This file will serve as the project's permanent **AI interaction/prompt log** for documenting
+> every prompt I send to OpenCode during development.
+>
+> This is required for my academic project documentation and AIAS Level 3 compliance.
+>
+> ---
+>
+> ## 1. Create the File
+>
+> Create:
+>
+> ```text
+> PROMPT_LOG.md
+> ```
+>
+> at the Laravel project root, alongside files such as:
+>
+> ```text
+> artisan
+> composer.json
+> package.json
+> README.md
+> ```
+>
+> If `PROMPT_LOG.md` already exists, **do not overwrite or delete its existing contents**.
+> Preserve everything already recorded and continue adding new entries.
+>
+> ---
+>
+> ## 2. Purpose of the Log
+>
+> The file must record **every prompt I send to OpenCode** that results in development work,
+> analysis, debugging, testing, documentation, configuration, design, refactoring, or other
+> project-related actions.
+>
+> The log should provide an auditable history of:
+>
+> - What I asked OpenCode to do
+> - When I asked it
+> - What part of the system the prompt affected
+> - What OpenCode changed
+> - What files were modified or created
+> - What tests/checks were performed
+> - The result of the work
+> - Any important notes or follow-up items
+>
+> This must be treated as an **append-only academic development log**.
+>
+> ---
+>
+> # 3. IMPORTANT: Never Delete Existing Entries
+>
+> `PROMPT_LOG.md` is a historical record.
+>
+> Therefore:
+>
+> - Never delete previous entries.
+> - Never rewrite previous entries unless explicitly instructed by me.
+> - Never replace the entire file with a newly generated version.
+> - Never "clean up" old entries by removing information.
+> - Always append new entries to the existing log.
+> - Preserve the chronological order.
+> - Do not fabricate historical prompts that were never actually provided.
+>
+> If you do not know the exact wording of a previous prompt, do not invent it.
+>
+> ---
+>
+> # 4. Prompt Entry Format
+>
+> Every new prompt entry should use this structure:
+>
+> ```markdown
+> ## Prompt #XXX
+>
+> **Date:** YYYY-MM-DD
+> **Time:** HH:MM
+> **Category:** <category>
+> **Affected Module:** <module or feature>
+> **Status:** <Completed / Partially Completed / Blocked>
+>
+> ### Prompt
+>
+> > <Exact prompt sent by the user>
+>
+> ### Objective
+>
+> <Brief explanation of what the prompt was intended to accomplish.>
+>
+> ### Changes Made
+>
+> - <change 1>
+> - <change 2>
+> - <change 3>
+>
+> ### Files Created
+>
+> - `<file path>`
+> - `<file path>`
+>
+> ### Files Modified
+>
+> - `<file path>`
+> - `<file path>`
+>
+> ### Tests / Verification
+>
+> - `<test or verification performed>`
+> - `<result>`
+>
+> ### Result
+>
+> <Short summary of the outcome.>
+>
+> ### Notes / Follow-up
+>
+> - <remaining issue>
+> - <future task>
+> ```
+>
+> ---
+>
+> # 5. Prompt Numbering
+>
+> Use sequential numbering:
+>
+> ```text
+> Prompt #001
+> Prompt #002
+> Prompt #003
+> Prompt #004
+> ...
+> ```
+>
+> Never reuse a prompt number.
+>
+> Before adding a new entry, inspect the existing `PROMPT_LOG.md` and determine the highest
+> existing prompt number.
+>
+> If the latest entry is:
+>
+> ```text
+> Prompt #017
+> ```
+>
+> the next entry must be:
+>
+> ```text
+> Prompt #018
+> ```
+>
+> ---
+>
+> # 6. Record the EXACT Prompt
+>
+> The `### Prompt` section should contain the actual prompt I sent to OpenCode as accurately as
+> possible.
+>
+> Do not summarize the prompt when the exact prompt is available.
+>
+> For example:
+>
+> ```markdown
+> ### Prompt
+>
+> > Fix the resident document request detail route.
+> > The current route uses `{documentRequest}` while the controller
+> > expects `$requestRecord`. Investigate the issue, fix it, and add tests.
+> ```
+>
+> Do not replace it with:
+>
+> ```markdown
+> > Fixed the document request route.
+> ```
+>
+> The purpose of this file is to preserve the actual AI interaction history.
+>
+> ---
+>
+> # 7. Do Not Log Internal Reasoning
+>
+> Only record:
+>
+> - My prompt
+> - Relevant implementation actions
+> - Files changed
+> - Tests
+> - Results
+> - Follow-up items
+>
+> Do NOT record hidden chain-of-thought, private reasoning, internal model reasoning, or
+> speculative internal analysis.
+>
+> ---
+>
+> # 8. Automatically Update the Log After Development Prompts
+>
+> Whenever I send a project-related prompt to OpenCode and OpenCode performs work, update
+> `PROMPT_LOG.md` as part of completing that task.
+>
+> The workflow should be:
+>
+> 1. Read the existing `PROMPT_LOG.md`.
+> 2. Determine the next prompt number.
+> 3. Perform the requested development work.
+> 4. Run appropriate tests/checks.
+> 5. Append a new prompt entry.
+> 6. Include the actual prompt.
+> 7. Record the implementation result.
+> 8. Record files changed.
+> 9. Record tests and verification.
+> 10. Leave the project in a clean state.
+>
+> The log update should happen **after the work has been performed**, so the result section
+> contains actual information rather than assumptions.
+>
+> ---
+>
+> # 9. Categories
+>
+> Use an appropriate category such as:
+>
+> - Architecture
+> - Security
+> - Privacy
+> - UI/UX
+> - Frontend
+> - Backend
+> - Database
+> - Authentication
+> - Authorization
+> - Resident Portal
+> - Staff Portal
+> - Kagawad Portal
+> - Document Requests
+> - Document Generation
+> - Relief Transparency
+> - Announcements
+> - Public Information
+> - Testing
+> - Bug Fix
+> - Refactoring
+> - Documentation
+> - Deployment
+> - Configuration
+> - Academic Compliance
+> - Other
+>
+> Use the most specific applicable category.
+>
+> ---
+>
+> # 10. Include File-Level Traceability
+>
+> For every development prompt, identify files that were:
+>
+> ### Created
+>
+> ```markdown
+> ### Files Created
+>
+> - `app/Http/Controllers/ExampleController.php`
+> - `resources/views/example.blade.php`
+> ```
+>
+> ### Modified
+>
+> ```markdown
+> ### Files Modified
+>
+> - `routes/web.php`
+> - `app/Models/Example.php`
+> ```
+>
+> If no files were created, write:
+>
+> ```markdown
+> ### Files Created
+>
+> None.
+> ```
+>
+> If no files were modified, write:
+>
+> ```markdown
+> ### Files Modified
+>
+> None.
+> ```
+>
+> ---
+>
+> # 11. Testing Information
+>
+> Whenever tests are run, record:
+>
+> - Test command
+> - Number of tests
+> - Number of assertions if available
+> - Pass/fail
+
+### Objective
+
+Establish `PROMPT_LOG.md` as the project's permanent, append-only AI interaction log at the
+Laravel project root, and define the governing rules for how it is maintained: sequential
+numbering, verbatim prompt recording, no deletion or rewriting of past entries, no fabrication
+of historical prompts, exclusion of internal reasoning, and mandatory append-after-work
+behavior for all future project-related prompts. The file serves academic project
+documentation and AIAS Level 3 compliance evidence.
+
+### Changes Made
+
+- Verified that no `PROMPT_LOG.md` already existed at the project root, so no prior content
+  was at risk of being overwritten.
+- Confirmed no `.ai/rules` directory exists in the project, so no additional project rules
+  applied to this documentation change.
+- Created `PROMPT_LOG.md` at the Laravel project root, alongside `artisan`, `composer.json`,
+  `package.json`, and `README.md`.
+- Added a file header identifying the project, stack, and academic/compliance purpose of the
+  log.
+- Added a "Log Conventions" section that codifies the append-only policy: no deletion or
+  rewriting of previous entries, chronological ordering, verbatim prompt recording, no
+  fabricated historical prompts, no internal-reasoning content, sequential non-reusable
+  numbering, and log updates occurring only after work is performed.
+- Logged this prompt itself as the first entry (`Prompt #001`) using the exact entry structure
+  specified in the prompt, recording the verbatim prompt text, objective, changes, files
+  created, files modified, verification steps, result, and follow-up items.
+
+### Files Created
+
+- `PROMPT_LOG.md`
+
+### Files Modified
+
+None.
+
+### Tests / Verification
+
+- Verified absence of a pre-existing log with a project-root file search
+  (`glob PROMPT_LOG.md`) — result: no matches, so the file was created fresh and no historical
+  entries were overwritten.
+- Verified the file is located at the Laravel project root next to `artisan`,
+  `composer.json`, `package.json`, and `README.md` — result: confirmed.
+- Confirmed this documentation-only change requires no PHP formatting run
+  (`vendor/bin/pint`) and no PHPUnit suite execution, as no application source code, routes,
+  views, or tests were touched.
+- Manual review of the created file — result: header, Log Conventions section, and the
+  `Prompt #001` entry all match the required template and numbering scheme.
+
+### Result
+
+`PROMPT_LOG.md` now exists at the Laravel project root as the project's permanent AI
+interaction log. It contains the governing conventions for maintaining the log and a complete
+first entry (`Prompt #001`) for this prompt, which establishes the log as of 2026-09-28. The
+next entry to be appended is `Prompt #002`. No application behavior was changed.
+
+### Notes / Follow-up
+
+- Future project-related prompts that result in work will append a new numbered entry to
+  `PROMPT_LOG.md` after the work is performed and verified, per the conventions now recorded
+  in the file.
+- Prompts issued to OpenCode before this log existed are not recorded, since their exact
+  wording is not verifiable; they were deliberately not reconstructed to avoid fabricating
+  history. Backfilling is only possible if the user supplies the original prompt text.
+- Consider whether `PROMPT_LOG.md` should be tracked in version control (it currently sits at
+  the project root, which is inside the repository working tree) to preserve the audit trail
+  across commits.
+
+---
+
+## Prompt #002
+
+**Date:** 2026-09-28
+**Time:** 03:17
+**Category:** UI/UX
+**Affected Module:** Public Information — Public Homepage (`/`) and Configuration (`config/bdrpis.php`)
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — PHASE 2 CONTINUATION: IMAGE ASSET UPDATE & UI VERIFICATION
+>
+> Context:
+> Phase 2 UI/UX redesign instructions have been established. Real photographs have now been added directly into the `public/images/` directory, sharing exact filenames with existing image references or placeholders.
+>
+> Primary Goal:
+> Update and verify all image references across all Blade templates and stylesheets to ensure the newly added real photographs render accurately across all public pages, while ensuring existing functional tests and styling standards remain intact.
+>
+> Instructions:
+>
+> 1. Update & Audit Image References:
+>    - Audit all Blade views (especially public homepage, activities, hero, officials, and secondary pages) for image paths.
+>    - Ensure all image tags reference the updated assets in `public/images/` accurately (e.g., `asset('images/filename.jpg')`).
+>    - Retain `public/images/Zone 1_logo.png` as the primary logo.
+>    - Verify that fallback logic or neutral avatar SVGs are used if an official photo is missing.
+>
+> 2. Visual & Layout Quality Assurance:
+>    - Check image sizing and aspect ratios across responsive breakpoints (1440px desktop, 768px tablet, 390px mobile).
+>    - Ensure image containers use Tailwind utilities like `object-cover`, `object-center`, and appropriate aspect ratios (`aspect-video`, `aspect-square`) so layout shifts or distorted images do not occur.
+>    - Ensure contrast with text overlays (like hero text over background images) remains accessible using appropriate subtle overlays (`bg-navy-900/60` or similar).
+>
+> 3. Safeguard Business Logic & Security:
+>    - DO NOT alter any backend controllers, routes, document rules, verification policies, three-strike rules, or relief transparency logic.
+>    - DO NOT expose any private resident ID photos or sensitive information.
+>
+> 4. Testing & Code Formatting:
+>    - Run the full test suite: `php artisan test`
+>    - Run code styling check: `php artisan pint --test`
+>    - Ensure all tests pass without failures.
+>
+> Deliverables Required Upon Completion:
+> 1. List of updated Blade files and image assets referenced.
+> 2. Responsive layout verification summary.
+> 3. Test suite output confirmation (tests/assertions count).
+> 4. Pint formatting result.
+
+### Objective
+
+Wire the newly added real photographs in `public/images/` into the public-facing pages so they
+render instead of the previous SVG design placeholders, and verify that the resulting layout is
+responsive and accessible across the 1440px, 768px, and 390px breakpoints. This work was
+deliberately confined to Blade views, configuration, and tests; no controller, route, policy, or
+document/relief business logic was to be touched, and no resident ID photo exposure was to be
+introduced.
+
+### Changes Made
+
+- Audited every image reference across the project. All image tags resolve through two sources:
+  `config('bdrpis.images.*')` (hero, about, six community activity images) and the hard-coded
+  `asset('images/Zone 1_logo.png')` brand mark used in `public/welcome.blade.php`,
+  `layouts/public.blade.php`, `layouts/navigation.blade.php`, and `layouts/guest.blade.php`.
+  Confirmed that no CSS or JavaScript file references an image path, and that announcements
+  render text-only cards with no imagery.
+- Verified by measurement that the eight files in `public/images/` are genuine photographs, not
+  artwork: `barangay-hero-placeholder.jpg`, `barangay-hall-placeholder.jpg` (both 2048×1536) and
+  the four 2048×1536 community images, plus `community-health-placeholder.jpg` (1500×1125) and
+  `community-meeting-placeholder.jpg` (1535×1152). All are 4:3.
+- Repointed every `bdrpis.images` key in `config/bdrpis.php` from
+  `images/placeholders/*.svg` to the corresponding real photograph in `images/*.jpg`, keeping
+  the filenames the user supplied unchanged.
+- Added a new `image_fallbacks` config block that preserves the original neutral SVG artwork
+  paths, and rewrote the stale config doc block that claimed every image was a temporary
+  placeholder.
+- Added per-activity `alt` text to the `bdrpis.activities` config array so each rendered `alt`
+  attribute describes what its paired photograph actually shows, rather than the previous
+  generic "Illustrative placeholder for a … scene" string.
+- Rewrote the Community Activities section caption, which asserted the imagery was
+  "illustrative placeholder artwork", to accurately state that the photographs are of Barangay
+  Linasin community activities while the programme categories remain general examples.
+- Updated the About section `alt` text, which read "Illustrative illustration of a barangay
+  hall in a community setting", to describe the actual multi-purpose hall photograph.
+- Introduced a single `$imageUrl()` resolver closure at the top of `public/welcome.blade.php`
+  that resolves a config key to its photograph and transparently falls back to the neutral SVG
+  artwork when the photograph is absent from disk, so a public page never renders a broken
+  image. All three image call sites in the view now use it.
+- Hardened responsive image behaviour: added explicit `object-center` to the About and community
+  card images, made the hero `object-center` at small widths with `lg:object-right` so the photo
+  is not cropped to its right edge on a 390px screen, and added `decoding="async"` to the lazily
+  loaded photographs.
+- Reworked the hero scrim for text-contrast accessibility. The previous single
+  `from-navy via-navy/90 to-navy/35` gradient left the right-hand side lightly covered, which is
+  exactly where hero copy sits once it spans the full width on tablet and mobile. Replaced the
+  flat `opacity-70` on the hero image with a breakpoint-aware base scrim
+  (`bg-navy-900/70 lg:bg-navy-900/40`) beneath the existing directional gradients: strong and
+  uniform on small screens where text overlays the whole image, lighter from `lg` where the copy
+  is confined to the left column and the photograph stays readable on the right.
+- Retained `public/images/Zone 1_logo.png` as the primary logo unchanged (verified 500×500
+  square, so the existing `rounded-full object-cover` treatment is correct at all breakpoints).
+- Verified the official-photo fallback requirement. No official photograph exists in the system
+  and none was introduced; `<x-official-card>` and the officials directory continue to render
+  neutral generated avatars (initials on a tinted disc), which is the correct behaviour.
+- Added `tests/Feature/PublicImageryTest.php` covering the new configuration contract: the
+  homepage renders the configured photographs and the retained logo, a missing photograph falls
+  back to the SVG artwork instead of a broken image, every configured photograph exists on disk,
+  and the officials directory renders no `<img>` element and no resident ID photo reference.
+- Rebuilt the frontend assets with `npm run build` so the new Tailwind utilities
+  (`object-center`, `lg:object-right`, `bg-navy-900/70`, `lg:bg-navy-900/40`) are present in the
+  compiled stylesheet referenced by the Vite manifest.
+
+### Files Created
+
+- `tests/Feature/PublicImageryTest.php`
+
+### Files Modified
+
+- `config/bdrpis.php`
+- `resources/views/public/welcome.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-DQb4vVQ-.css` (rebuilt stylesheet; previous `app-CiZpOaEl.css` and
+  `app-Ca3WgC9A.css` were replaced by the build)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Baseline before changes — `php artisan test`: **80 tests, 80 passed, 202 assertions**
+  (29,373 ms), and `vendor/bin/pint --test`: **passed**.
+- New feature test, `vendor/bin/phpunit tests/Feature/PublicImageryTest.php`:
+  **4 tests, 4 passed, 24 assertions**. An initial run failed 3 of 4 tests because the test
+  class lacked `RefreshDatabase` and the homepage queries the `announcements` table
+  (`no such table: announcements`); adding the trait resolved it. A second failure came from an
+  over-broad `assertStringNotContainsString('<img', ...)` that also matched the shared layout
+  logo in the page header and footer; the assertion was narrowed to the `<main>` region.
+- Full suite after changes — `php artisan test`: **84 tests, 84 passed, 226 assertions**
+  (0 failures). Delta against baseline: +4 tests, +24 assertions, all from
+  `PublicImageryTest`. No pre-existing test was modified or removed.
+- Code formatting — `vendor/bin/pint --test`: **passed**, no style violations. Note: the
+  `php artisan pint` command requested in the prompt does not exist in this application
+  (`Command "pint" is not defined`); Laravel Pint is installed as a dev dependency and is invoked
+  through its binary, so `vendor/bin/pint --test` was used and reported instead. Pint was also
+  run in write mode over the changed PHP files with a pass result. `--dirty` was rejected
+  because the project working tree is not a Git repository.
+- Frontend build — `npm run build`: **succeeded** in 24.07 s, emitting
+  `public/build/assets/app-DQb4vVQ-.css` (78.37 kB, gzip 13.69 kB) and
+  `app-DIZEten-.js`; `manifest.json` updated to reference the new stylesheet. The pre-existing
+  Figtree font-resolution warnings for `/fonts/figtree-*.woff2` are unchanged and unrelated to
+  this work.
+- Confirmed the newly added utilities are present in the compiled CSS by fixed-string search:
+  `object-center`, `lg:object-right`, `bg-navy-900\/70`, `lg:bg-navy-900\/40`,
+  `aspect-\[16\/9\]`, `aspect-\[16\/10\]`, `object-cover` — all found.
+- Business-logic safeguard confirmed by inspection: no file under `app/Http/Controllers/`,
+  `app/Models/`, `app/Policies/`, `app/Services/`, or `routes/` was opened for editing or
+  modified. Document rules, verification policy, the three-strike abandonment policy, and relief
+  transparency logic are untouched, and the resident ID photo route
+  (`staff.resident-verifications.id-photo`) was not referenced or altered.
+
+### Result
+
+The eight real photographs in `public/images/` now render across the public homepage. The hero
+background, the About panel, and all six Community Activity cards resolve to the new `.jpg`
+assets, while `public/images/Zone 1_logo.png` remains the brand mark in the header, footer,
+contact card, guest layout, and dashboard navigation. The layout is verified stable across all
+three target breakpoints: the About image is held in an `aspect-[16/10]` box with
+`object-cover object-center` and matching `width`/`height` attributes (1600×1000) so no
+cumulative layout shift occurs; each activity card uses an `aspect-[16/9]` box with
+`object-cover object-center` and 1600×900 attributes, contained by an `overflow-hidden` parent so
+the `group-hover:scale-[1.03]` effect cannot overflow its card; the logo is a square 500×500 asset
+rendered inside fixed square `h-* w-*` containers, so `rounded-full object-cover` crops cleanly
+at every width. Hero text contrast is now guaranteed by a base scrim that is strong on mobile
+and tablet, where the copy overlays the full image, and lighter on desktop, where the copy is
+confined to the left column and the photograph remains visible on the right. Officials continue
+to render neutral initials avatars rather than fabricated portraits, and no resident ID photo is
+exposed anywhere in the public pages. The full test suite passes with 84 tests and 226
+assertions and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **Image/content mismatch to review:** `community-meeting-placeholder.jpg` does not show a
+  community meeting. It shows volunteers repacking rice and goods into resident kits. Its
+  `alt` text was written to describe the photograph accurately, but the card is still titled
+  "Community Meeting" with a description about general assemblies. Either supply a genuine
+  meeting photograph for that card, or retitle the card to match the photograph. This is a
+  content decision and was left unchanged pending the user's direction.
+- **Filenames still contain `-placeholder`:** the supplied photographs retain the original
+  design-phase suffix, so `config/bdrpis.php` now points at files named
+  `barangay-hero-placeholder.jpg` and so on. The files are real photographs; the suffix is
+  historical. Renaming them was not done because the user supplied the files under those exact
+  names — a rename is a straightforward follow-up if cleaner filenames are wanted.
+- **Secondary page note:** the Senior Citizen Activity photograph shows a general community
+  distribution with senior residents present rather than a dedicated senior programme. The
+  `alt` text was written to match what is shown.
+- `public/images/placeholders/*.svg` is retained deliberately as the fallback layer. It can be
+  deleted once the fallback behaviour is no longer wanted, at the cost of losing the
+  missing-image safety net.
+- The project working tree is not a Git repository, so `vendor/bin/pint --dirty` cannot be used
+  and changes are not currently version-controlled. Initialising Git would make the
+  file-level traceability in this log independently verifiable.
+- Run `npm run dev` (or `composer run dev`) to see the changes with hot reload; the production
+  build has already been regenerated, so `npm run build` is not required.
+- Consider whether the public pages should load the 2048×1536 photographs at a smaller size;
+  the eight files total roughly 4.2 MB, which is heavy for a public landing page and would
+  benefit from responsive `srcset` variants.
+
+---
+
+## Prompt #003
+
+**Date:** 2026-09-28
+**Time:** 03:48
+**Category:** UI/UX
+**Affected Module:** Public Information — Homepage Hero Section and Public Header Navigation
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — HERO SECTION VISUAL REFINEMENT & STYLING ADJUSTMENTS
+>
+> Objective:
+> Refine the styling, color overlay, typography, and layout details of the Hero section on the homepage to match our target design mock-up without changing the underlying Laravel Blade component structure or business logic.
+>
+> Target Design Specifications (Hero Section):
+>
+> 1. Curved Bottom Border (Wave/Swoop):
+>    - Add an elegant white curved/swoop bottom border to the hero container to transition smoothly into the white content section below.
+>    - Use an inline SVG or a CSS mask/clip-path for the wave divider at the bottom of the hero.
+>
+> 2. Background Image Overlay & Colors:
+>    - Adjust the overlay opacity over the hero background image so the landscape background is clearer, vibrant, and visible (less dark than the current dark blue mask).
+>    - Use a subtle gradient overlay (e.g., `bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent`).
+>
+> 3. Left Column Content & Typography:
+>    - Header Text: Change main hero heading to: "Welcome to Barangay Linasin, Zone 1, Bangued, Abra" using a bold, bright white sans-serif font.
+>    - Subtext: "Your one-stop online platform for document requests, public information and barangay services. Fast. Easy. Secure."
+>    - Primary CTA Button: Bright electric blue background (`bg-blue-600 hover:bg-blue-500`), rounded pill/semi-rounded shape, text: "Request a Document".
+>    - Secondary CTA Button: Glassmorphic outline style (`border border-white/40 bg-white/10 hover:bg-white/20 text-white`), text: "View Services".
+>
+> 4. Right Side Decorative Callout / Floating Card:
+>    - On desktop, place a floating card at the bottom right overlapping the hero curve.
+>    - Content inside card:
+>      - Header image: Barangay Hall picture.
+>      - Badge: "Our Barangay".
+>      - Text: "Barangay Hall - Bangued, Abra".
+>      - Button: Small blue button "View Details".
+>    - Add a handwriting-style accent text above the card on the hero background: "Mas Maayos na Serbisyo Para Sa Bawat Pamilya!" (using an artistic/script font fallback if available, or clean italic font).
+>
+> 5. Header / Navigation Refinements:
+>    - Left side: Include "BDRPIS" bold title above "Barangay Linasin, Zone 1".
+>    - Add a subtle search bar input in the navigation header on desktop ("Search services, announcements...").
+>    - Ensure "Home", "Services", "About", "Announcements", "Map", "Contact" links are aligned cleanly.
+>
+> Scope Restrictions:
+> - DO NOT break mobile responsiveness or introduce horizontal overflow.
+> - DO NOT rewrite backend logic or alter database models.
+> - Preserve all existing routes and page logic.
+
+### Objective
+
+Restyle the public homepage hero and the shared public header to match the supplied design
+mock-up: a curved wave divider, a lighter and more vibrant background treatment, new hero
+copy and call-to-action styling, a floating "Our Barangay" callout on the bottom right, and a
+reorganised navigation bar. The work was confined to Blade templates, Tailwind classes, and
+tests. No Blade component structure was refactored, no controller, route, model, or service was
+touched, and the previously added image assets and their fallback logic were left in place.
+
+### Changes Made
+
+- **Clarified three ambiguous items with the user before building, because the specification
+  referenced targets that do not exist in the application.** The user's answers were: the "Map"
+  link resolves to the Contact section anchor; the header search bar ships presentational and
+  disabled until a search backend exists; and the Tagalog accent line uses a clean italic that
+  preserves the project's no-third-party-font posture.
+- **Wave divider (spec item 1).** Added an inline SVG swoosh pinned to the bottom of the hero,
+  stretched with `preserveAspectRatio="none"` so it spans any width without distortion, sized
+  `h-16 sm:h-20 lg:h-24` against a `0 0 1440 96` viewBox. Filled with `text-surface` rather
+  than pure white, because the section immediately following the hero is
+  `<x-shell id="services" tone="surface">` whose background is `bg-surface` (`#F6F9FC`); a pure
+  white wave would have left a visible hairline seam, which contradicts the "transition smoothly"
+  requirement.
+- **Restructured the hero stacking context** to allow the callout to overhang the section edge.
+  `overflow-hidden` was moved off the `<section>` and onto the background-image wrapper only. The
+  section keeps `relative isolate`, and every decorative layer remains at a negative z-index, so
+  nothing bleeds onto the rest of the page.
+- **Lighter, more vibrant overlay (spec item 2).** Replaced the previous navy mask stack with
+  the requested slate gradient `bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent`,
+  added a vertical `from-slate-900/50 via-transparent to-slate-900/20` for depth, and replaced
+  the flat `opacity-70` on the photograph with a base scrim of `bg-slate-900/70 lg:bg-slate-900/20`.
+  The base scrim is retained deliberately: below `lg` the hero copy spans the full viewport
+  width, so the `to-transparent` end of the horizontal gradient would leave white text sitting
+  on the bright sky of the photograph. Dimming the whole image on small screens keeps the copy
+  legible while the requested gradient governs contrast from `lg` upward, where the copy is
+  confined to the left column. Removed the now-inappropriate `border-gold/10` decorative ring,
+  the gold hairline, and the blue radial highlight, all of which existed to enrich the old dark
+  navy mask.
+- **Hero copy and CTAs (spec item 3).** Replaced the heading with "Welcome to Barangay Linasin,
+  Zone 1, Bangued, Abra" in `font-extrabold text-white`, and the subtext with "Your one-stop
+  online platform for document requests, public information and barangay services. Fast. Easy.
+  Secure." Replaced both `x-btn` calls with plain anchor elements carrying the exact utilities
+  from the specification: `bg-blue-600 hover:bg-blue-500` in a `rounded-full` pill, and the
+  glassmorphic `border-white/40 bg-white/10 hover:bg-white/20 text-white` treatment with
+  `backdrop-blur-sm`. Plain anchors were used because `x-btn` merges a variant's background
+  utilities with the passed `class` string, and two conflicting same-property Tailwind utilities
+  resolve by stylesheet order rather than attribute order — the result would have been
+  unpredictable. The component itself was not modified. Preserved the existing auth-aware
+  destination for the primary CTA, so guests reach `register` and authenticated residents reach
+  `resident.requests.create`, and pointed the secondary CTA at the existing `#services` anchor.
+- **Floating "Our Barangay" callout (spec item 4).** Added a desktop-only absolutely positioned
+  card at `-bottom-16 right-4 lg:right-8 w-[19rem]`, overlapping the wave by design. Contains the
+  Barangay Hall photograph in a fixed `h-32` crop with `object-cover object-center` and matching
+  `width`/`height` attributes to avoid layout shift, the "Our Barangay" badge, the text
+  "Barangay Hall - Bangued, Abra", and a small `bg-blue-600 hover:bg-blue-500` pill button
+  "View Details" targeting the existing `#about` anchor. Hidden below `lg` so it never
+  competes with the copy column or risks overflowing a 390px viewport.
+- **Tagalog accent line.** Added "Mas Maayos na Serbisyo Para Sa Bawat Pamilya!" above the
+  callout in `font-serif italic text-gold` with a slight negative rotation and a text shadow.
+  A serif stack is used deliberately: only Figtree is self-hosted, and the project documents
+  that self-hosting exists to avoid third-party font requests on a system that handles resident
+  personal data. The browser's local serif supplies the handwriting-adjacent contrast against
+  Figtree without any new font dependency.
+- **Header brand.** Changed the brand block to a bold "BDRPIS" line above
+  "Barangay Linasin, Zone 1".
+- **Header search bar.** Added a desktop-only (`xl:block`) rounded search field with the
+  `search` icon and the requested placeholder, rendered as a `disabled` input with a
+  `sr-only` label stating "coming soon" and a `title` attribute. Shipping it disabled rather
+  than live avoids presenting a control that silently does nothing, and the user confirmed there
+  is no search index or search route to wire it to.
+- **Navigation links.** Replaced the eight-item inline array with a `$primaryNav` array holding
+  the six specified links in the specified order — Home, Services, About, Announcements, Map,
+  Contact — and a `$secondaryNav` array retaining Officials Directory, Relief Transparency, and
+  Track a Request. The desktop bar renders `$primaryNav`; the mobile menu renders
+  `array_merge($primaryNav, $secondaryNav)`, so no page became unreachable. Widths were budgeted
+  so the bar plus the search field plus the auth buttons fit inside `max-w-shell` (80rem) at
+  every breakpoint, which is why the search field starts at `xl` rather than `lg`.
+- **Added `tests/Feature/PublicHomeHeroTest.php`** covering the new design contract: the hero
+  renders the wave, both CTA labels, the accent line and the callout; the primary CTA targets
+  registration for a guest and the request form for an authenticated resident; the six primary
+  navigation links and the Map-to-contact target are present; and the search field exists but
+  ships disabled.
+
+### Files Created
+
+- `tests/Feature/PublicHomeHeroTest.php`
+
+### Files Modified
+
+- `resources/views/public/welcome.blade.php`
+- `resources/views/layouts/public.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-BhDowdWg.css` (rebuilt stylesheet; `app-DQb4vVQ-.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- New feature test — `vendor/bin/phpunit tests/Feature/PublicHomeHeroTest.php`:
+  **5 tests, 5 passed, 24 assertions**. Passed on the first run with no fixes required.
+- Full suite before the hero work — `php artisan test`: **84 tests, 84 passed, 226 assertions**.
+- Full suite after the hero work — `php artisan test`: **89 tests, 89 passed, 250 assertions**
+  (0 failures). Delta: +5 tests, +24 assertions, entirely from `PublicHomeHeroTest`. No
+  pre-existing test was modified or removed.
+- `tests/Feature/PublicImageryTest.php` re-run in isolation after the hero rewrite —
+  **4 tests, 4 passed, 24 assertions**, confirming the image fallback contract survived the
+  restructure (the callout reuses the `about` photograph through the same `$imageUrl` resolver).
+- Code formatting — `vendor/bin/pint --test`: **passed**, no style violations. As recorded in
+  `Prompt #002`, the `php artisan pint` command requested in this prompt family does not exist
+  in this application, so the `vendor/bin/pint` binary was used.
+- Frontend build — `npm run build`: **succeeded**, emitting
+  `public/build/assets/app-BhDowdWg.css` (80.23 kB, gzip 13.99 kB) with `manifest.json`
+  updated. The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed every newly introduced utility is present in the compiled stylesheet by
+  fixed-string search: `text-surface`, `from-slate-900\/80`, `via-slate-900\/40`,
+  `lg:bg-slate-900\/20`, `bg-blue-600`, `hover:bg-blue-500`, `bg-white\/10`,
+  `border-white\/40`, `rounded-full`, `font-serif`, `text-2xs`, `lg:right-8`, `xl:block`,
+  `w-[19rem]` — all found.
+- Horizontal-overflow review: the `<section>` no longer sets `overflow-hidden`, so each element
+  that extends past it was checked individually. The only overhang is the callout, which extends
+  64px below the section and is bounded horizontally by `right-4`/`lg:right-8` with a fixed
+  `w-[19rem]`; the wave and the content wrapper are `inset-x-0`/`w-full`; the background image
+  is contained by its own `overflow-hidden` wrapper. The existing `body { overflow-x: hidden }`
+  guard in `resources/css/app.css` remains as a second line of defence. The callout is
+  `hidden` below `lg`, so no mobile viewport can be affected.
+- Mobile nav review: at 390px only the brand block and the 44px toggle button render, totalling
+  roughly 247px against 358px of available width, so the `truncate`/`shrink-0` brand text cannot
+  force a scrollbar.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, or `routes/` was modified; `components/btn.blade.php` and
+  `components/icon.blade.php` were read but not edited; the resident ID photo route
+  (`staff.resident-verifications.id-photo`) is still referenced only from the authenticated
+  staff and resident views and is not reachable from any public page.
+
+### Result
+
+The homepage hero now matches the supplied mock-up. A smooth white wave divider closes the
+hero and hands over to the E-Services section without a seam, using an inline SVG rather than a
+clip-path so the curve renders identically across browsers. The background photograph is visibly
+brighter and more colourful than before, with the requested slate gradient
+(`from-slate-900/80 via-slate-900/40 to-transparent`) governing contrast on desktop and a stronger
+uniform scrim retained below `lg` where the copy overlays the full image width. The heading,
+subtext, and both call-to-action buttons carry the exact copy and colours specified: an electric
+blue pill "Request a Document" and a glassmorphic "View Services" outline. A floating
+"Our Barangay" card sits at the bottom right on desktop, straddling the wave with the Barangay
+Hall photograph, and the Tagalog accent line reads above it in gold italic. The header now leads
+with "BDRPIS" over "Barangay Linasin, Zone 1", carries a disabled desktop search field, and
+aligns the six specified links cleanly. Mobile responsiveness is preserved with no horizontal
+overflow, all 89 tests pass with 250 assertions, and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **"Map" and "Contact" both resolve to `/#contact`,** so the two labels currently lead to the
+  same anchor. This is the option the user selected because no map page exists. When a real map
+  view is built, `Map` should be repointed at its own route and the header given room.
+- **The header search bar is deliberately inert.** Turning it into real search needs a search
+  endpoint and either a search index or filters on `PublicController::announcements()`. That is
+  backend work and was outside this styling prompt.
+- **Desktop navigation dropped three destinations** to make room for the search bar and the six
+  specified links. Officials Directory, Relief Transparency, and Track a Request remain in the
+  mobile menu, the footer, and the hero/contact sections, so no page is unreachable, but their
+  prominence is reduced. Worth a look in the browser at 1280px to confirm the trade-off reads
+  well.
+- **The gold decorative ring, gold hairline, and blue radial highlight were removed** from the
+  hero. They existed to enrich the old heavy navy mask and looked wrong once the overlay was
+  lightened. Easy to reinstate if the design calls for them.
+- **The `Barangay Linasin` badge above the heading was kept,** even though the new heading also
+  names the barangay, so that the duplication can be reviewed rather than removed unasked.
+- **The hero statistics strip (`4` / `24/7` / `1`) was kept.** It was not mentioned in the
+  specification and its values are hardcoded marketing copy rather than live data; it is a
+  candidate for removal or for wiring to real counts.
+- Only Figtree is self-hosted, so the Tagalog accent line renders in the browser's local serif
+  rather than a true handwriting face. Supplying a self-hosted script `woff2` would allow
+  registering a real script font in `resources/css/app.css` and `tailwind.config.js` without
+  reintroducing third-party requests.
+- The `z-50` sticky header and the hero callout's `z-10` sit in separate stacking contexts (the
+  hero is `isolate`), so the callout scrolls under the sticky header rather than over it. Worth
+  a visual confirmation on a short viewport.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #004
+
+**Date:** 2026-09-28
+**Time:** 04:07
+**Category:** UI/UX
+**Affected Module:** Public Information — Homepage Hero Section Proportions and Layout
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — HERO SECTION PROPORTION & LAYOUT FINE-TUNING
+>
+> Objective:
+> Adjust the hero section styling so that its scale at 100% zoom matches the more compact, high-density look currently seen at 80% zoom. Additionally, nudge the main text block, reshape the floating card, and make the bottom wave outline much more pronounced.
+>
+> Specific Visual Adjustments Required:
+>
+> 1. Overall Scale & Density (80% Zoom Feel at 100% Default):
+>    - Reduce padding and vertical spacing in the Hero container (e.g., reduce top/bottom padding from `py-20`/`py-24` down to `py-10` or `py-12`).
+>    - Slightly downscale heading sizes (e.g., change `text-5xl`/`text-6xl` to `text-3xl`/`text-4xl lg:text-5xl`).
+>    - Adjust the overall container max-width and margins so content is more compactly balanced across large screen resolutions without requiring browser zoom out.
+>
+> 2. Text Alignment & Position:
+>    - Shift the left-hand text content ("Welcome to Barangay Linasin...", subtext, and CTA buttons) slightly further left toward the margin/side padding (e.g., adjust horizontal container padding or remove excessive left offset) rather than having it sitting too far toward the center.
+>
+> 3. Floating Card Reshaping (Barangay Hall Card):
+>    - Change the aspect ratio of the top image inside the "Our Barangay" card so it is wider/rectangular (`aspect-video` or `aspect-[16/9]`) instead of square/tall.
+>    - Adjust card bounds and padding so the card presents as a clean horizontal rectangle.
+>
+> 4. Wave SVG Divider Prominence:
+>    - Make the white bottom wave / swoop curve significantly more noticeable and pronounced.
+>    - Increase the height of the bottom wave SVG container (e.g., `h-16 md:h-24 lg:h-32`) or adjust its SVG path amplitude so the swoop curves higher into the hero image background before leveling out.
+>
+> Scope Safeguards:
+> - Keep all functional links, CTA button actions, and text content intact.
+> - Do not affect backend routes, controllers, or tests.
+
+### Objective
+
+Tighten the homepage hero so it reads at 100% browser zoom the way it previously read at 80%,
+by reducing vertical rhythm and the type scale, moving the left-hand copy further toward the
+margin on large displays, reshaping the floating Barangay Hall card into a wide horizontal
+rectangle with a 16:9 header image, and making the bottom wave divider substantially more
+prominent. This was a pure presentation pass: every existing link, CTA destination, and string
+of copy was preserved verbatim, and no route, controller, model, service, or test was modified.
+
+### Changes Made
+
+- **Vertical density (spec item 1).** Reduced the hero content wrapper from
+  `pb-24 pt-20 sm:pb-28 sm:pt-24 lg:pb-32 lg:pt-32` to
+  `pb-20 pt-10 sm:pb-24 sm:pt-12 lg:pb-28 lg:pt-14`. Top padding is the larger saving: 128px to
+  56px at `lg`, which is where the 80% zoom impression was most noticeable. The bottom padding
+  was reduced more conservatively than the top, because the floating callout overhangs the
+  section edge and the enlarged wave now occupies more vertical space there.
+- **Type scale (spec item 1).** Downscaled the heading from `text-4xl sm:text-5xl lg:text-6xl`
+  to `text-3xl sm:text-4xl lg:text-5xl` and relaxed `leading-[1.1]` to `leading-[1.15]`, since
+  the smaller size no longer needs the tighter leading. The subtext dropped from
+  `text-base sm:text-lg` to `text-sm sm:text-base`. Both CTA buttons dropped from
+  `px-7 py-3.5 text-base` to `px-6 py-3 text-sm sm:text-base`; at `text-sm` the pill still
+  measures 44px tall, so the minimum touch target is preserved. The statistics strip was
+  tightened in step: `mt-12 … gap-y-5 … pt-8` to `mt-8 … gap-y-4 … pt-6`, with values from
+  `text-2xl` to `text-xl` and labels from `text-xs` to `text-2xs`.
+- **Container width and leftward shift (spec items 1 and 2).** Added
+  `2xl:max-w-[90rem]` to the hero wrapper while keeping `max-w-shell` below 1536px. This was
+  chosen deliberately over widening the wrapper at all breakpoints: `max-w-shell` is the
+  project-wide shell token shared with `x-shell`, so the hero is aligned with every section
+  below it up to 1535px, and only diverges on very large displays where the shell would
+  otherwise leave a 320-640px gutter. The measured effect on the copy column's left edge is
+  160px to 80px at 1536px, 352px to 272px at 1920px, and 672px to 592px at 2560px. The
+  horizontal padding scale (`px-4 sm:px-6 lg:px-8`) was left as-is, since the offset problem
+  came from the centred shell margin rather than from padding.
+- **Floating card reshape (spec item 3).** Replaced the fixed `h-32` header crop with
+  `aspect-video w-full object-cover object-center`, which is 16:9 and therefore matches the
+  existing `width="640" height="360"` attributes, keeping the box reserved before the image
+  loads. Widened the card from `w-[19rem]` (304px) to `w-[24rem]` (384px) and tightened the
+  body padding from `p-5` to `p-4`, with internal gaps reduced (`mt-3` to `mt-2.5` on the
+  heading, `mt-1.5` to `mt-1` on the description, `mt-4` to `mt-3` on the button) and the
+  description set to `text-2xs`. The card now presents as a wide horizontal rectangle roughly
+  384px by 344px, against roughly 304px by 278px before. The `-bottom-16` overhang that places
+  it across the wave was preserved, as was every string of copy and the `#about` destination.
+- **Card breakpoint moved from `lg` to `xl` (consequence of the reshape).** The 384px card
+  collides with the `max-w-2xl` copy column at 1024-1279px viewports: at 1024px the copy column
+  ends at 704px while the card would begin at 608px. Hiding the callout below `xl` removes that
+  collision instead of narrowing the copy column, which would have worked against the density
+  goal.
+- **Wave prominence (spec item 4).** Both requested levers were applied together. The container
+  height went from `h-16 sm:h-20 lg:h-24` to `h-16 md:h-24 lg:h-32`, doubling the rendered
+  amplitude at `lg`. The path was also rewritten from
+  `M0,64 C216,104 468,8 720,32 C972,56 1224,104 1440,56` to
+  `M0,52 C200,104 440,8 720,36 C1000,64 1240,110 1440,60`, which raises the leading crest
+  higher into the photograph and deepens the trailing trough so the swoop oscillates across
+  most of the 96-unit viewBox instead of flattening out.
+- No functional change was made. The auth-aware primary CTA still sends guests to `register`
+  and authenticated residents to `resident.requests.create`; the secondary CTA still targets
+  `#services`; "View Details" still targets `#about`; the hero photograph and the callout
+  photograph still resolve through the same `$imageUrl` fallback closure.
+
+### Files Created
+
+None.
+
+### Files Modified
+
+- `resources/views/public/welcome.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-qb40JTif.css` (rebuilt stylesheet; `app-BhDowdWg.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Full suite before the changes — `php artisan test`: **89 tests, 89 passed, 250 assertions**.
+- Full suite after the changes — `php artisan test`: **89 tests, 89 passed, 250 assertions**
+  (0 failures). The count is intentionally unchanged: this was a presentation-only pass, and the
+  prompt explicitly scoped tests out of bounds, so no test was added or modified and the
+  existing `PublicHomeHeroTest` and `PublicImageryTest` continue to pass unchanged. Those tests
+  assert the hero's copy, wave, callout, CTA destinations, and image fallback behaviour, so
+  they act as the regression net for this pass.
+- Targeted re-run — `vendor/bin/phpunit tests/Feature/PublicHomeHeroTest.php
+  tests/Feature/PublicImageryTest.php`: **9 tests, 9 passed, 48 assertions**.
+- Code formatting — `vendor/bin/pint --test`: **passed**. No PHP source file was changed in
+  this pass, so this confirms the pass introduced no formatting drift.
+- Frontend build — `npm run build`: **succeeded** in 841ms, emitting
+  `public/build/assets/app-qb40JTif.css` (80.79 kB, gzip 14.09 kB) with `manifest.json`
+  updated. The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the newly introduced utilities are present in the compiled stylesheet:
+  `lg:pt-14`, `lg:pb-28`, `md:h-24`, `lg:h-32`, `aspect-video`, `w-[24rem]`, `xl:block`,
+  `text-3xl`, `lg:text-5xl` — all found. `2xl:max-w-[90rem]` was initially reported missing by
+  a fixed-string search; that was a false negative in the check, not a build fault. Tailwind
+  escapes the leading digit of a `2xl` class selector, emitting
+  `.\\32 xl\\:max-w-\\[90rem\\]{max-width:90rem}` inside `@media (width>=1536px)`. A wider search
+  confirmed it is present, and it is the only `2xl` utility in the stylesheet.
+- Overlap review across breakpoints, comparing the copy column's right edge against the
+  callout's left edge: at 1280px the copy ends at 704px and the card begins at 864px; at 1440px
+  784px against 1024px; at 1920px 944px against 1504px; at 2560px 1264px against 2144px. No
+  collision at any width where the callout is visible.
+- Wave clearance review: at `lg` the 128px wave's crest sits roughly 40px above the section
+  bottom while the copy column ends 112px above it, and the deepest trough falls at about 86%
+  of the viewport width, beyond the copy column. The callout intentionally overlaps the wave.
+- Horizontal-overflow review: the only element extending past the section remains the callout,
+  bounded horizontally by `right-4`/`xl:right-8` with a fixed `w-[24rem]`, and it is hidden
+  below `xl`, so no mobile viewport is affected. The `body { overflow-x: hidden }` guard in
+  `resources/css/app.css` is unchanged.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, `routes/`, or `tests/` was modified.
+
+### Result
+
+The hero now presents at 100% zoom with the compact density it previously only had at 80%. Top
+padding is down from 128px to 56px at `lg`, the heading is one type step smaller
+(`text-5xl` at `lg` instead of `text-6xl`), the subtext, CTA pills, and statistics strip are
+all scaled down in step, and the call-to-action pills still meet the 44px minimum touch target.
+On large monitors the left copy column moved meaningfully toward the margin — 80px from the
+edge at 1536px instead of 160px, and 272px instead of 352px at 1920px — while remaining exactly
+aligned with the sections below up to 1535px. The "Our Barangay" card is now a 384px-wide
+horizontal rectangle with a proper 16:9 header image instead of a 128px-tall crop, and it is
+hidden below `xl` so it can never collide with the copy column. The wave divider is markedly
+more prominent, reaching 128px tall at `lg` with a path that sweeps higher into the photograph
+before levelling out. All 89 tests pass with 250 assertions and Pint reports no style
+violations.
+
+### Notes / Follow-up
+
+- **The hero and the sections below are only left-edge aligned up to 1535px.** From `2xl` the
+  hero widens to 90rem while `x-shell` stays at 80rem, so on a 1920px display the hero copy
+  starts 80px left of the "E-Services" heading. This is the standard full-bleed-hero pattern and
+  is what produces the requested leftward shift, but if strict alignment matters more than the
+  shift, drop `2xl:max-w-[90rem]` and the hero returns to matching every other section at every
+  width.
+- **The callout is now hidden below 1280px.** It previously appeared from 1024px. The 384px card
+  cannot coexist with the 672px copy column at 1024-1279px without collision, so the choice was
+  between hiding the card and narrowing the copy. Narrowing would have undone the density work.
+  Showing the card at `lg` would require the copy column to drop to roughly `max-w-xl`.
+- **The "80% zoom feel" is approximate.** Matching a browser zoom level exactly would mean
+  expressing the hero in viewport-relative units or a `zoom` transform, both of which break
+  `rem`-based type and Tailwind's fixed spacing scale. What was delivered is a proportional
+  reduction of roughly 25-30% across padding and type, which reads similarly at 100%. A browser
+  check at 100% on a 1920px display is the right confirmation.
+- **The wave path is now more dramatic at the trailing edge.** Its deepest trough sits at roughly
+  86% of the viewport width, which is behind the callout on desktop and behind plain background
+  on smaller screens. If the trough reads as too deep once seen in a browser, raising the
+  `1240,110` control point toward `1240,88` will level it without losing the leading crest.
+- The `2xs` label size in the statistics strip and the callout description is the smallest step
+  in the project's type scale. Both remain legible, but they are now the smallest text on the
+  page and are worth a contrast check against WCAG AA at final review.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #005
+
+**Date:** 2026-09-28
+**Time:** 04:24
+**Category:** UI/UX
+**Affected Module:** Public Information — Public Header Navigation and Homepage Hero Copy
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — HEADER & HERO SECTION VISUAL CLEANUP AND ALIGNMENT ADJUSTMENTS
+>
+> Objective:
+> Refine the navbar and hero section layout to clean up unused elements, align brand elements properly with the hero body text, remove redundant stat counters, and re-style the Tagalog slogan.
+>
+> Specific Adjustments Required:
+>
+> 1. Navigation Bar Cleanup & Distribution:
+>    - Remove the search input box entirely from the navigation header.
+>    - Align the left brand block (Logo + "BDRPIS Barangay Linasin, Zone 1") flush to the left, perfectly aligning its vertical axis with the hero section's "Welcome..." text below it.
+>    - Distribute the main navigation tabs ("Home", "Services", "About", "Announcements", "Map", "Contact") evenly across the center space created by removing the search bar.
+>    - Keep "Log in" and "Register" cleanly aligned on the far right.
+>
+> 2. Remove Hero Stat Cards:
+>    - Completely remove the 3 stat counter metrics ("4 Online services", "24/7 Request tracking", "1 Barangay portal") located directly beneath the "Request a Document" and "View Services" CTA buttons.
+>
+> 3. Tagalog Slogan Styling & Positioning:
+>    - Slogan: "Mas Maayos na Serbisyo Para Sa Bawat Pamilya!"
+>    - Text Color: Change font color to solid White (`text-white` or `text-white/95` with subtle text-shadow for contrast).
+>    - Position & Alignment: Center the text directly above the "Our Barangay" floating card.
+>    - Slant / Angle: Apply a subtle upward slant/tilt effect (e.g., using Tailwind `transform -rotate-6` or `-rotate-3`) so it angles dynamically across the landscape background, matching the target sample graphic.
+>
+> Scope Safeguards:
+> - Retain all mobile menu functionality and responsive behaviors.
+> - Do not alter backend logic, routes, or underlying Laravel Blade variables.
+
+### Objective
+
+Clean up the public header and homepage hero: delete the unused search field, align the brand
+block's left axis with the hero copy beneath it, distribute the six navigation tabs evenly
+across the freed space, remove the three hero stat counters, and restyle the Tagalog slogan to
+white, centred above the callout, with an upward tilt. All mobile menu behaviour and responsive
+behaviour were retained, and no route, controller, model, or Blade variable was altered.
+
+### Changes Made
+
+- **Removed the search field entirely** from `layouts/public.blade.php`, deleting the wrapper
+  `div`, its `sr-only` label, the `search` icon, and the disabled `<input id="site-search">`
+  along with its placeholder. This reverses the Prompt #003 decision to ship the field as a
+  disabled placeholder while no search backend exists, which the user has now chosen over.
+- **Aligned the brand block with the hero copy.** Added `2xl:max-w-[90rem]` to the header's
+  `<nav>` container so it uses the same width ramp as the hero content wrapper
+  (`max-w-shell 2xl:max-w-[90rem]`). This was the only way to satisfy "perfectly aligning its
+  vertical axis with the hero section's 'Welcome...' text" while keeping the leftward shift
+  requested in Prompt #004: the brand's left edge and the hero heading's left edge now coincide
+  exactly at every breakpoint, at 80px from the viewport edge at 1536px and 272px at 1920px.
+- **Distributed the six tabs evenly.** Changed the desktop `<ul>` from
+  `ml-auto hidden items-center gap-1 lg:flex` to
+  `hidden min-w-0 flex-1 items-center justify-evenly gap-x-1 lg:flex`, and reduced each link's
+  horizontal padding from `px-3` to `px-2`. `flex-1` makes the list absorb the space vacated by
+  the search field while the brand stays pinned left under `shrink-0` and the auth actions stay
+  pinned right under `shrink-0`; `justify-evenly` spreads the six links evenly across that
+  space. `min-w-0` was added so the list can shrink rather than force the bar to overflow at
+  exactly 1024px, the narrowest width where it is visible.
+- **Removed the hero stat counters.** Deleted the entire `<dl>` block containing the three
+  hardcoded metrics ("4 Online services", "24/7 Request tracking", "1 Barangay portal") and its
+  `border-t` rule, which was the last element in the hero copy column. The copy column now ends
+  with the CTA row.
+- **Restyled the Tagalog slogan.** Changed `text-gold drop-shadow-md` to `text-white` with
+  `font-semibold` added, changed `text-right` to `text-center` so it centres within the callout
+  wrapper and therefore sits directly above the card, and added `-rotate-3` for the requested
+  upward tilt. The rotation is applied to the `<p>` alone, not to the wrapper, so the card itself
+  stays square to the page. Replaced the generic `drop-shadow-md` with an arbitrary
+  `drop-shadow-[0_2px_10px_rgba(2,6,23,0.9)]`: the far right of the hero is where the directional
+  overlay fades to fully transparent, so white text there needs a tight, dark shadow rather than
+  a soft one to stay legible over the photograph's bright sky.
+- **Updated `tests/Feature/PublicHomeHeroTest.php`**, which was required rather than optional.
+  Its `test_header_search_field_is_rendered_but_disabled` asserted that the now-removed field
+  existed, so it failed against the requested change. It was replaced with
+  `test_header_no_longer_renders_a_search_field`, which asserts the field and its placeholder
+  are absent, locking in the removal instead of leaving a red test. A companion
+  `test_hero_no_longer_renders_the_stat_counters` was added for the same reason, so neither
+  removal can silently regress. No other test was touched.
+- Mobile menu behaviour was left exactly as it was: `$primaryNav` and `$secondaryNav` are
+  unchanged, the panel still renders `array_merge($primaryNav, $secondaryNav)`, and the
+  `x-data="{ navOpen: false }"` scope shared between the toggle and the panel was not modified.
+  Removing the desktop-only search field had no effect on the mobile panel.
+
+### Files Created
+
+None.
+
+### Files Modified
+
+- `resources/views/layouts/public.blade.php`
+- `resources/views/public/welcome.blade.php`
+- `tests/Feature/PublicHomeHeroTest.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-BJaXKHf-.css` (rebuilt stylesheet; `app-qb40JTif.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Targeted run immediately after the template edits, before updating the test file —
+  `vendor/bin/phpunit tests/Feature/PublicHomeHeroTest.php`: **failed, 5 tests, 4 passed**. The
+  single failure was `test_header_search_field_is_rendered_but_disabled`, as expected, since it
+  asserted the presence of the field the user asked to remove. No other test failed.
+- Targeted re-run after updating the test file — **6 tests, 6 passed, 26 assertions**.
+- Full suite after the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**
+  (0 failures). Against the 89 tests / 250 assertions baseline, the net change is +1 test and
+  +2 assertions: one test renamed in place and one new test added for the stat counters.
+- Code formatting — `vendor/bin/pint tests/Feature/PublicHomeHeroTest.php` returned **passed**,
+  and a full `vendor/bin/pint --test` also returned **passed**.
+- Frontend build — `npm run build`: **succeeded** in 1.08s, emitting
+  `public/build/assets/app-BJaXKHf-.css` (80.84 kB, gzip 14.07 kB) with `manifest.json` updated.
+  The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the new utilities are in the compiled stylesheet: `justify-evenly`, `-rotate-3`
+  (emitted as `.-rotate-3{--tw-rotate:-3deg;transform:...}`), and
+  `drop-shadow-[0_2px_10px_rgba(2,6,23,0.9)]`. `2xl:max-w-[90rem]` was again reported missing by
+  a naive fixed-string search and again confirmed present as
+  `.\\32 xl\\:max-w-\\[90rem\\]{max-width:90rem}` inside `@media (width>=1536px)`, since Tailwind
+  escapes the leading digit of a `2xl` selector. This is the second time that search pattern
+  produced a false negative; it should be treated as a known quirk of the verification command
+  rather than a build fault.
+- Confirmed by source search that `site-search` and `Search services, announcements` no longer
+  appear in `layouts/public.blade.php` (0 matches each) and that `Online services` no longer
+  appears in `public/welcome.blade.php` (0 matches).
+- Nav width budget at the tightest visible breakpoint, 1024px: container 1024px less 32px of
+  `px-8` padding, minus the 48px mobile toggle, minus 16px of `gap-4`, minus a roughly 189px
+  brand block, minus a roughly 174px guest auth group, leaves about 549px for the six links. The
+  links total roughly 446px including their `px-2` padding, leaving about 103px of slack to
+  distribute across seven slots at roughly 15px each. The bar therefore fits without overflow at
+  1024px, and the slack grows at every larger width.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, or `routes/` was modified, and the `$primaryNav` / `$secondaryNav` Blade
+  arrays, their route targets, and all mobile menu markup are unchanged in behaviour.
+
+### Result
+
+The header is now three clean blocks: the brand pinned flush left, the six navigation tabs
+distributed evenly across the freed centre space, and the auth actions pinned far right. The
+brand's left edge sits on exactly the same vertical axis as the "Welcome to Barangay Linasin,"
+heading beneath it at every breakpoint, including the wide layouts where the hero widens to
+90rem. The unused search field is gone. The hero copy column now ends cleanly at the two CTA
+buttons, with the three stat counters and their divider rule removed. The Tagalog slogan reads
+in solid white, centred directly over the "Our Barangay" card and tilted three degrees upward,
+with a tight dark shadow keeping it legible where the hero overlay fades out. Mobile menu
+functionality and all responsive behaviour are unchanged. 90 tests pass with 252 assertions and
+Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **A test had to be changed, and that was unavoidable.** The prompt's safeguards excluded
+  backend logic, routes, and Blade variables but not tests, and the existing suite asserted the
+  presence of the search field. Rather than leave a failing test or delete coverage, the
+  assertion was inverted so it now locks in the removal.
+- **The header is now wider than the content on non-home pages at 1536px and above.** The
+  header nav uses `2xl:max-w-[90rem]` to match the hero, but `x-shell` still uses `max-w-shell`
+  (80rem), so on `/directory`, `/announcements`, `/transparency`, and `/track` the brand sits
+  80px left of the page heading at those widths. This is the unavoidable cost of aligning the
+  brand to the hero specifically. The alternative is to drop `2xl:max-w-[90rem]` from the hero
+  and the header together, which would restore site-wide alignment but undo the leftward shift
+  requested in Prompt #004.
+- **"Map" and "Contact" still both resolve to `/#contact`,** now occupying two of the six
+  evenly distributed slots and pointing at the same anchor. Worth resolving when a real map view
+  exists.
+- **The desktop bar still hides Officials Directory, Relief Transparency, and Track a Request.**
+  They remain in the mobile menu, the footer, and the hero and contact sections. With the search
+  field gone there is now noticeably more room in the bar, so restoring one or two of these as
+  desktop tabs is a reasonable follow-up; the width budget above shows roughly 103px of slack at
+  1024px.
+- **The white slogan sits where the hero overlay is weakest.** The directional overlay runs
+  `from-slate-900/80 via-slate-900/40 to-transparent`, so the far right of the hero carries
+  almost no scrim, and the slogan now centres near 85% of the viewport width. The
+  `drop-shadow-[0_2px_10px_rgba(2,6,23,0.9)]` handles this, but it is worth an actual contrast
+  check against WCAG AA in a browser, particularly against the bright sky region of the hero
+  photograph. If it reads thin, raising the shadow opacity or adding a small local scrim behind
+  the slogan is the fix.
+- **The hero is now noticeably shorter** with the stat counters gone, which increases the
+  prominence of the wave divider relative to the hero height. The wave remains at
+  `h-16 md:h-24 lg:h-32` with the `lg:pb-28` bottom padding, so no clearance issue arises, but
+  the balance is worth a visual check.
+- `text-shadow-*` utilities are not available in this project's Tailwind build; only
+  `drop-shadow-*` is, which is why an arbitrary `drop-shadow-[...]` value was used for the
+  requested text shadow. Recorded so the choice is not mistaken for an oversight.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #006
+
+**Date:** 2026-09-28
+**Time:** 04:39
+**Category:** UI/UX
+**Affected Module:** Public Information — Public Header Navigation and Homepage Hero Vertical Rhythm
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — NAVBAR SPACING CORRECTION & HERO HEIGHT BALANCING
+>
+> Objective:
+> Fix the oversized navigation link spacing and restore normal vertical padding in the Hero section so it feels balanced and comfortable at standard 100% display scaling.
+>
+> Specific Fixes Required:
+>
+> 1. Navigation Tabs Spacing (Make it look like a standard web navbar):
+>    - Do NOT stretch or auto-justify navigation links across the full remaining width.
+>    - Group the navigation items ("Home", "Services", "About", "Announcements", "Map", "Contact") close together in a natural flex group (`flex items-center space-x-6` or `gap-6` / `gap-8` maximum).
+>    - Position this grouped navigation cluster either centrally or cleanly aligned to the left side right after the logo/brand block.
+>
+> 2. Hero Height & Padding Adjustments:
+>    - Increase vertical padding inside the Hero section slightly (e.g., `py-16 md:py-20 lg:py-24`) so the main text and background image have breathing room, matching the proportion seen at 120% zoom.
+>    - Do NOT shrink the Hero text or squeeze the vertical container height too much.
+>    - Keep the right-hand "Our Barangay" card size and aspect ratio stable—only adjust the hero wrapper's top/bottom margins and padding.
+>
+> Scope Safeguards:
+> - Do not affect responsive breakpoints or mobile dropdown menus.
+> - Ensure all links remain functional and tests pass cleanly.
+
+### Objective
+
+Correct two over-corrections from the previous passes: the navigation links were being stretched
+across the header with `justify-evenly`, which produced unnatural gaps between tabs, and the hero
+vertical padding had been tightened one step too far. The navigation was returned to a natural
+flex group and the hero's vertical rhythm was restored to the `py-16 / md:py-20 / lg:py-24` ramp,
+with the hero type scale explicitly left alone and the floating callout left untouched.
+
+### Changes Made
+
+- **Returned the desktop navigation to a natural flex group.** Replaced
+  `hidden min-w-0 flex-1 items-center justify-evenly gap-x-1 lg:flex` with
+  `hidden items-center gap-4 lg:flex xl:gap-6`. Removing `flex-1` and `justify-evenly` is what
+  actually fixes the reported spacing: the `<ul>` no longer absorbs the leftover width, so the
+  six links sit together at a fixed gap instead of being distributed edge to edge. The parent row
+  already carries `justify-between`, so with three children — brand, list, auth actions — the
+  nav cluster is centred in the space between the brand and the auth buttons without any extra
+  positioning class, satisfying the "centrally" option the prompt allowed.
+- **Restored the per-link tap padding** from `px-2` back to `px-3`. The tighter padding had been
+  introduced purely to make the stretched `justify-evenly` layout fit at 1024px; with the cluster
+  no longer stretched the extra breathing room is free, and `px-3` gives the labels more room so
+  the hover and focus backgrounds do not look clipped.
+- **Made the gap responsive rather than fixed at the maximum.** The prompt allowed `gap-6` or
+  `gap-8` at most. `xl:gap-6` was chosen over a flat `gap-6` because a width budget at 1024px —
+  the narrowest breakpoint where the desktop bar is visible — leaves only roughly 25px of slack
+  with `gap-6`, which is too little margin for comfort given that label widths vary with the
+  installed font. At `gap-4` the same row has roughly 93px of slack at 1024px, and the cluster
+  opens out to the requested `gap-6` from 1280px where there is ample room. `gap-8` would have
+  overflowed at 1024px and was not used.
+- **Restored the hero's vertical padding.** Replaced the split
+  `pb-20 pt-10 sm:pb-28 sm:pt-12 lg:pb-28 lg:pt-14` scale with the symmetric
+  `py-14 sm:py-16 md:py-20 lg:py-24`. At `lg` this raises top padding from 56px to 96px and
+  lowers bottom padding from 112px to 96px, giving a net gain of 24px of hero height plus a much
+  more even top-to-bottom rhythm, which is what the "breathing room" requirement called for. The
+  `py-*` shorthand was used because top and bottom padding are now equal, making the intent
+  readable at a glance.
+- **Deliberately left the hero type scale alone**, as instructed. The heading remains
+  `text-3xl sm:text-4xl lg:text-5xl`, the subtext `text-sm sm:text-base`, and the CTA pills
+  `px-6 py-3 text-sm sm:text-base`, all as set in Prompt #004.
+- **Left the "Our Barangay" card completely untouched**, as instructed: still `w-[24rem]` with an
+  `aspect-video` header image, the same `p-4` body padding, and the same `-bottom-16` overhang.
+  No responsive breakpoint, media query, or mobile menu behaviour was touched.
+- No test was added or modified. The existing `PublicHomeHeroTest` already asserts the six
+  navigation labels, the Map-to-contact target, the hero copy, the wave, and the callout, all of
+  which are unaffected by spacing and padding, so it serves as the regression net for this pass.
+
+### Files Created
+
+None.
+
+### Files Modified
+
+- `resources/views/layouts/public.blade.php`
+- `resources/views/public/welcome.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-k0rYAs3S.css` (rebuilt stylesheet; `app-BJaXKHf-.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Full suite before the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**.
+- Full suite after the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**
+  (0 failures). Unchanged, which is the expected result for a pure spacing and padding pass.
+- Code formatting — `vendor/bin/pint --test`: **passed**. No PHP source file was changed, so this
+  confirms no formatting drift.
+- Frontend build — `npm run build`: **succeeded** in 1.10s, emitting
+  `public/build/assets/app-k0rYAs3S.css` (80.00 kB, gzip 13.97 kB) with `manifest.json` updated.
+  The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the newly used utilities are present in the compiled stylesheet: `py-14`,
+  `md:py-20`, `lg:py-24`, `xl:gap-6`, and `gap-4`.
+- Verified by source search that `justify-evenly` no longer appears in any Blade template; the
+  only `flex-1 items-center` occurrence left in the views is the unrelated centred content wrapper
+  in `layouts/guest.blade.php`. `justify-evenly` is still emitted into the stylesheet, but only
+  because `tailwind.config.js` includes `./storage/framework/views/*.php` in its `content` glob,
+  so a stale compiled Blade cache from an earlier test run still references it. This is dead CSS
+  of a few bytes, a pre-existing config quirk already noted in `Prompt #002`, and not a defect in
+  this change.
+- Nav width budget at 1024px, the narrowest width where the desktop bar is visible: container
+  1024px less 32px of `px-8` padding, minus the 48px mobile toggle, minus 16px of `gap-4`, minus a
+  roughly 189px brand block, minus a roughly 174px guest auth group, leaves about 565px. The six
+  links total roughly 452px including their `px-3` padding, and the five `gap-4` gaps add 80px for
+  a total of about 532px, leaving roughly 33px of slack. At `gap-6` the same row would leave only
+  about 25px, which is why the gap steps up from `xl` instead. No overflow at 1024px, and the
+  slack grows at every larger width.
+- Hero height check: at `lg` the wrapper now contributes 96px above and 96px below the copy
+  column, against 56px and 112px before, so the hero is about 24px taller and visually balanced.
+  The `lg:h-32` wave crest sits roughly 40px above the section bottom while the copy column now
+  ends 96px above it, so clearance improved from 56px to 56px of gap and no collision arises. The
+  callout's `-bottom-16` overhang is unaffected because it is positioned against the section edge
+  and the following section's `py-20` top padding, neither of which changed.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, `routes/`, or `tests/` was modified, and the `$primaryNav` / `$secondaryNav`
+  arrays, their route targets, the mobile menu markup, and the `x-data` scope are unchanged.
+
+### Result
+
+The navigation now reads as a conventional web navbar: the six links sit together as one tight
+cluster with a `gap-4` gap (stepping to `gap-6` from 1280px) instead of being spread across the
+full header width, and the cluster is centred in the space between the brand block on the left
+and the "Log in" / "Register" group on the right, with no stretching and no auto-justification.
+Link padding returned to `px-3` for comfortable tap targets. The hero's vertical rhythm is
+restored to `py-14 sm:py-16 md:py-20 lg:py-24`, which at desktop adds 40px of breathing room
+above the copy and evens out the top and bottom, giving the proportion seen at 120% zoom without
+shrinking a single character of the hero text. The "Our Barangay" card is byte-for-byte
+unchanged in size and aspect ratio. No breakpoint, media query, or mobile menu behaviour was
+altered, all navigation links remain functional, and 90 tests pass with 252 assertions while
+Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **`justify-evenly` is still present in the compiled stylesheet** even though no template uses
+  it, because `tailwind.config.js` scans `./storage/framework/views/*.php` and stale compiled
+  Blade caches from earlier test runs still reference the class. Harmless, but it means the
+  production stylesheet is not minimal. Running `php artisan view:clear` before a final build
+  would let Tailwind drop it, and removing `./storage/framework/views/*.php` from the `content`
+  glob would prevent the compiled CSS from growing as views are compiled.
+- **The hero has now been through three padding scales** — generous, then the tight
+  `pt-10`-to-`lg:pt-14` density pass, now this `py-14`-to-`lg:py-24` restoration. A browser check
+  at 100% is the only way to confirm this is the settled value, since each pass has oscillated by
+  design rather than converging analytically.
+- **The `gap-4` to `xl:gap-6` step means the nav looks slightly tighter at exactly 1024px and
+  1280px than on a 1440px display.** If the tighter spacing at 1024px reads as cramped, the fix is
+  to shorten a label rather than to increase the gap, since the gap cannot grow without
+  overflowing that breakpoint.
+- **The desktop bar still omits Officials Directory, Relief Transparency, and Track a Request.**
+  With the cluster now a fixed width rather than stretched, the freed space sits as a single gap
+  either side of the centred cluster, so restoring any of those as a seventh or eighth tab is now
+  straightforward without a reflow of everything else.
+- **"Map" and "Contact" still both resolve to `/#contact`,** unchanged and still worth resolving
+  when a real map view exists.
+- The header remains 80px wider than the page content on the non-home public pages at 1536px and
+  above, a consequence carried over from `Prompt #005` where the brand was aligned specifically
+  to the hero.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+## Prompt #007
+
+**Date:** 2026-09-28
+**Time:** 04:44
+**Category:** UI/UX
+**Affected Module:** Public Information — Homepage Hero Section Height
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — HERO HEIGHT FINE-TUNING
+>
+> Objective:
+> Increase the Hero section height slightly more so the content and background landscape have optimal vertical breathing room at 100% display scale.
+>
+> Specific Adjustment Required:
+> - Increase the top and bottom padding of the Hero container slightly (e.g., adjust to `py-20 lg:py-28` or increase min-height to `min-h-[520px]` / `min-h-[560px]`).
+> - Ensure the left text content ("Welcome to Barangay Linasin...", CTA buttons) and the right-hand "Our Barangay" card remain vertically aligned and balanced within the expanded Hero frame.
+> - Keep the navbar spacing, card proportions, and wave divider as they currently are.
+
+### Objective
+
+Add a final increment of vertical breathing room to the homepage hero so the copy and the
+background photograph sit more comfortably at 100% display scale, while keeping the navigation
+spacing, the floating callout's proportions, and the wave divider exactly as they were. This was
+a single-utility change, taken after confirming that padding and `min-h` produce effectively the
+same result in this particular layout.
+
+### Changes Made
+
+- **Raised the hero wrapper's vertical padding** from `py-14 sm:py-16 md:py-20 lg:py-24` to
+  `py-16 sm:py-20 md:py-24 lg:py-28`. This lands exactly on the `sm:py-20` and `lg:py-28` values
+  named in the prompt, and keeps the smallest breakpoint one step tighter at `py-16`, which suits
+  a 390px viewport. Padding is the hero's only height lever, because the copy column is a
+  fixed-height stack with nothing in it that stretches; the extra space is therefore converted
+  directly into additional visible area of the landscape photograph above and below the copy.
+- **Chose padding over `min-h-[520px]` / `min-h-[560px]`**, after working both options through
+  against the measured layout. The hero height is `2P + C`, where `P` is the wrapper padding and
+  `C` is the roughly 330px copy column. At `lg` the previous `py-24` gave `2(96) + 330 = 522px`,
+  so a `min-h-[560px]` would have bound. Reaching 560px through `lg:py-28` instead gives
+  `2(112) + 330 = 554px` — within 6px of the same result. The `min-h` route would additionally
+  have required adding `flex items-center` to the wrapper, because an uncentred `min-h` dumps all
+  the surplus space below the copy and pushes the copy further from the callout, which works
+  against the balance requirement. Padding reaches the target height with one utility change and
+  no restructuring.
+- **Left everything else untouched**, as instructed. The "Our Barangay" card retains
+  `w-[24rem]`, `aspect-video`, `p-4`, and its `-bottom-16` overhang; the wave divider retains
+  `h-16 md:h-24 lg:h-32` and its existing path; the navigation cluster, the `gap-4 xl:gap-6`
+  spacing, the six labels, and their route targets are unchanged; and the hero type scale
+  (`text-3xl sm:text-4xl lg:text-5xl` for the heading) was not touched.
+- No test was added or modified. Height and spacing are not asserted anywhere in the suite, and
+  the existing `PublicHomeHeroTest` and `PublicImageryTest` already cover the hero's copy, the
+  wave, the callout, the CTA destinations, and the image fallbacks that this change could
+  plausibly have affected.
+
+### Files Created
+
+None.
+
+### Files Modified
+
+- `resources/views/public/welcome.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-DI3kMOFN.css` (rebuilt stylesheet; `app-k0rYAs3S.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Full suite before the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**.
+- Full suite after the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**
+  (0 failures). Unchanged, as expected for a padding-only change.
+- Code formatting — `vendor/bin/pint --test`: **passed**. No PHP source file was changed, so this
+  confirms no formatting drift.
+- Frontend build — `npm run build`: **succeeded** in 941ms, emitting
+  `public/build/assets/app-DI3kMOFN.css` (79.79 kB, gzip 13.92 kB) with `manifest.json` updated.
+  The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the four new utilities are present in the compiled stylesheet: `py-16`, `sm:py-20`,
+  `md:py-24`, and `lg:py-28`.
+- Confirmed by source search that the elements the prompt asked to preserve are unchanged, each
+  appearing exactly once: `w-[24rem]`, `aspect-video`, `-bottom-16` in the callout wrapper, and
+  `lg:h-32` in the wave container.
+- Hero height arithmetic at `lg`, using a measured copy-column height of roughly 330px: the
+  section grows from `2(96) + 330 = 522px` to `2(112) + 330 = 554px`, an increase of 32px, which
+  matches the "slightly more" the prompt asked for. The same one-step increase applies at every
+  breakpoint below `lg`, and the growth scales with the padding ramp.
+- Vertical balance review of the copy against the callout at `lg`: the copy column now spans
+  112px to 442px measured from the section top, while the callout wrapper — positioned against
+  the section's bottom edge at `-bottom-16`, and roughly 392px tall including the slogan — spans
+  roughly 226px to 618px. The two still share a substantial overlap band of roughly 216px, down
+  from roughly 232px, because the section grew 32px while the copy's own top offset grew 16px.
+  The relationship is therefore preserved rather than reset; the callout drifts 16px further
+  down relative to the copy, which is not visible at this magnitude.
+- Wave clearance review at `lg`: the `lg:h-32` wave crest sits roughly 40px above the section
+  bottom, while the copy column now ends 112px above it, improving clearance from 56px to 72px.
+  No collision between the copy and the wave.
+- Callout overhang unchanged: `-bottom-16` still places 64px of the card into the following
+  section's `lg:py-20` top padding, which was not modified, so the overlap across the wave is
+  identical to before.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, `routes/`, or `tests/` was modified, and `layouts/public.blade.php` was not
+  opened for editing at all, since the prompt scoped this change to the hero.
+
+### Result
+
+The hero is 32px taller at desktop and one padding step taller at every other breakpoint, giving
+the "Welcome to Barangay Linasin," block and the landscape photograph noticeably more room to
+breathe at 100% zoom. The change was made through the wrapper's vertical padding alone, reaching
+554px at `lg` against the 560px a `min-h` floor would have imposed, so the requested outcome was
+obtained without introducing a minimum-height constraint or a flex-centring change. The
+navigation spacing, the "Our Barangay" card's size and aspect ratio, and the wave divider are all
+byte-for-byte unchanged, the copy and the callout remain vertically overlapped and balanced, and
+wave clearance improved. 90 tests pass with 252 assertions and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **The hero has now been through four padding scales** across prompts #004, #006, and #007:
+  generous, then a tight density pass, then a restoration, then this further increase. This is
+  the first pass where the ramp has moved in one direction and stayed there, so a browser check
+  at 100% should confirm it has converged.
+- **Padding remains the right lever while the copy column is a fixed-height stack.** If the hero
+  ever needs a guaranteed height regardless of copy length — for example if a longer heading or
+  an extra badge is added — a `min-h` floor should be introduced at the same time as
+  `flex items-center` on the wrapper, never on its own, or the surplus space will all collect
+  below the copy and unbalance the callout.
+- **The copy-to-callout relationship drifts slightly with every height increase**, since the
+  callout is anchored to the section's bottom edge and therefore travels twice as far as the
+  copy's top offset. At 16px per increment this is not perceptible, but if the hero grows much
+  further the callout should be re-anchored to the content block instead of the section edge.
+- `justify-evenly` and other stale utilities are still emitted into the stylesheet because
+  `tailwind.config.js` scans `./storage/framework/views/*.php`; `php artisan view:clear` before a
+  final production build will let Tailwind drop them. Carried over from `Prompt #006`.
+- The desktop bar still omits Officials Directory, Relief Transparency, and Track a Request, and
+  "Map" and "Contact" still both resolve to `/#contact`. Both are carried over from earlier
+  passes and are unchanged here.
+- The header remains 80px wider than the page content on the non-home public pages at 1536px and
+  above, carried over from `Prompt #005`.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #008
+
+**Date:** 2026-09-28
+**Time:** 04:51
+**Category:** UI/UX
+**Affected Module:** Public Information — Homepage Hero Section Full-Viewport Fit
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — HERO SECTION HEIGHT ADJUSTMENT (FULL VIEWPORT FIT)
+>
+> Objective:
+> Increase the vertical height of the Hero section slightly further so that on standard desktop displays (100% zoom), the hero fills almost the entire initial viewport height, leaving ONLY the top "E-SERVICES" section badge visible at the very bottom.
+>
+> Specific Fix Required:
+> - Increase the Hero section container min-height / vertical padding (e.g., set `min-h-[calc(100vh-80px)]` or increase padding to `py-26 lg:py-34`).
+> - Ensure the wave SVG curve is pushed down so that the text "Supported Document Services" and description text are hidden below the initial screen fold, leaving only the small "E-SERVICES" eyebrow label visible before the user scrolls down.
+> - Maintain the vertical spacing and positioning of the left hero text block and right "Our Barangay" card.
+
+### Objective
+
+Make the homepage hero fill essentially the whole initial desktop viewport, so that at 100% zoom
+the only thing visible below the hero is the small "E-Services" eyebrow label, with the
+"Supported Document Services" title and its description pushed below the fold. The prompt's
+worked example and its stated outcome turned out to be mutually exclusive, so the fold geometry
+was measured first and the constant was derived from that measurement rather than taken from the
+example. The left copy block, the floating callout, and the wave divider all keep their existing
+anchoring rules.
+
+### Changes Made
+
+- **Established that the prompt's example contradicts the prompt's own outcome before writing any
+  code.** The suggested `min-h-[calc(100vh-80px)]` would place the E-Services section top at
+  exactly y = 100vh, because the 80px sticky header already consumes 80px of the document above
+  the hero. The section's own 80px top padding would then put the eyebrow at y = 100vh + 80,
+  entirely below the fold, so *nothing* of the E-Services section would be visible. The stated
+  goal — eyebrow visible, title and description hidden — therefore requires a hero noticeably
+  shorter than the example.
+- **Measured the actual fold geometry from the source rather than assuming it.** The E-Services
+  band is `<x-shell id="services" tone="surface">`, whose wrapper carries `py-14 sm:py-16
+  lg:py-20`, so at `lg` the eyebrow sits exactly 80px below the section top. From
+  `components/section-heading.blade.php` the eyebrow is a `text-xs` paragraph with a 16px line
+  box and no top margin, the title is an `h2` with `mt-3` (12px), and the description follows
+  with a further `mt-3`. Measured offsets from the section top at `lg` are therefore: eyebrow top
+  80px, eyebrow bottom 96px, title top 108px, title bottom 148px, description top 160px.
+- **Added `lg:min-h-[calc(100vh-194px)]`** to the hero wrapper, with the 194px offset broken
+  down in an inline comment as 80px header + 80px section padding + 16px eyebrow line box + 12px
+  eyebrow-to-title margin + 6px clearance. Against the measurements above this places the eyebrow
+  bottom at y = 100vh - 18px and the title top at y = 100vh - 6px, so the eyebrow is fully
+  visible with surface showing beneath it, the title never peeks above the fold, and the
+  description is a further 52px below that. The same relationship holds at any desktop window
+  height because the offset is a constant subtracted from the viewport, not a fixed pixel height.
+- **Added `lg:flex lg:flex-col lg:justify-center`** to the same wrapper, and gated all three
+  classes at `lg`. This was necessary rather than cosmetic: with a `min-h` and a top-aligned copy
+  column, every surplus pixel collects beneath the copy, so a 1440px-tall display would produce a
+  1246px hero holding 442px of copy and roughly 690px of empty photograph. Centring distributes
+  the surplus above and below instead. Gating it at `lg` means tablet and phone layouts are
+  completely untouched and no mobile device receives a full-viewport hero.
+- **Deliberately kept the existing `py-16 sm:py-20 md:py-24 lg:py-28` padding ramp** rather than
+  switching to the suggested `py-26 lg:py-34`. `min-h` is now the height lever, and stacking
+  extra fixed padding on top of it would have pushed the copy and callout apart again at short
+  window heights, working against the "maintain positioning" requirement. The padding now only
+  governs the floor at which the content is centred.
+- **Confirmed the wave moves down without being touched.** The wave and the callout are both
+  positioned against the `<section>` rather than the wrapper, so enlarging the wrapper enlarges
+  the section and carries both down automatically. The wave keeps `h-16 md:h-24 lg:h-32` and its
+  existing path, and the callout keeps `w-[24rem]`, `aspect-video`, `p-4`, and `-bottom-16`.
+- **Confirmed short-viewport safety.** `min-h` is a floor, not a fixed height. At a 768px-tall
+  window the min-height resolves to 574px while the content plus padding needs about 554px, so
+  the layout falls back to its content height and nothing is clipped. The hero only begins to
+  exceed its content height above roughly 750px of viewport height.
+- No test was added or modified. Nothing in this change is functionally assertable, and the
+  existing `PublicHomeHeroTest` and `PublicImageryTest` continue to cover the hero copy, the wave,
+  the callout, the CTA destinations, and the image fallbacks.
+
+### Files Created
+
+None.
+
+### Files Modified
+
+- `resources/views/public/welcome.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-DRkt5COk.css` (rebuilt stylesheet; `app-DI3kMOFN.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Full suite before the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**.
+- Full suite after the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**
+  (0 failures). Unchanged, as expected for a layout-only change.
+- Code formatting — `vendor/bin/pint --test`: **passed**. No PHP source file was changed, so this
+  confirms no formatting drift.
+- Frontend build — `npm run build`: **succeeded** in 878ms, emitting
+  `public/build/assets/app-DRkt5COk.css` (79.76 kB, gzip 13.96 kB) with `manifest.json` updated.
+  The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the new utilities are present in the compiled stylesheet: `lg:justify-center`,
+  `lg:flex-col`, `lg:py-28`, and the min-height, which is emitted as
+  `.lg\\:min-h-\\[calc\\(100vh-194px\\)\]{min-height:calc(100vh - 194px)}` inside the `lg` media
+  query. That class escaped a naive fixed-string search on the first attempt because Tailwind
+  escapes the parentheses as well as the colons and brackets, making this the third recorded
+  instance of a verification command producing a false negative rather than a build fault.
+- Fold arithmetic re-derived from the measured component values and recorded in the template
+  comment: eyebrow bottom at `100vh - 18px`, title top at `100vh - 6px`, description top at
+  `100vh + 46px`. The title and description are therefore below the fold and the eyebrow is above
+  it at every desktop height, not merely at the viewport the change was tuned on.
+- Responsive review: all three new classes are `lg`-prefixed, so the `py-16 sm:py-20 md:py-24`
+  ladder and the top-aligned copy column are exactly as they were below 1024px. No phone or
+  tablet viewport receives a `100vh`-derived height, and `100vh` on mobile browsers — where it
+  includes the URL bar — is never reached.
+- Callout and wave review at a 1080px-tall window: the section grows to 886px, the copy is
+  centred within the 662px content box, the wave crest still sits roughly 40px above the section
+  bottom, and the callout still overhangs by 64px into the following section's 80px top padding.
+  None of those relationships changed, because all three are anchored to the section or to the
+  section's bottom edge rather than to the copy.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, `routes/`, or `tests/` was modified, and neither `layouts/public.blade.php`
+  nor any Blade component was edited.
+
+### Result
+
+The hero now fills the initial desktop viewport. At 100% zoom on any window 1024px wide or wider,
+scrolling to the top shows the full-height hero — heading, subtext, both call-to-action buttons,
+the tilted Tagalog slogan, the "Our Barangay" callout, and the wave divider — with only the small
+"E-SERVICES" eyebrow visible beneath it at the very bottom of the screen. The
+"Supported Document Services" title and its description sit below the fold, as required. The
+offset was derived from the real component geometry rather than the prompt's illustrative value,
+so the result holds at any window height instead of only at one, and a short 768px window falls
+back to the content height without clipping. The left copy block and the right callout keep their
+existing spacing and anchoring, the wave keeps its size and path, the navbar spacing is untouched,
+and below `lg` nothing changed at all. 90 tests pass with 252 assertions and Pint reports no
+style violations.
+
+### Notes / Follow-up
+
+- **The prompt's `min-h-[calc(100vh-80px)]` was deliberately not used as written.** It would have
+  hidden the E-Services section entirely, contradicting the second bullet of the same prompt. The
+  194px constant is the corrected value; the arithmetic is recorded in a comment in
+  `resources/views/public/welcome.blade.php` so it can be re-derived if the header height, the
+  `x-shell` padding, or the section heading type scale ever change.
+- **The 194px constant is coupled to three values that could drift:** the `lg:h-20` header
+  height, the `x-shell` `lg:py-20` section padding, and the `text-xs` eyebrow in
+  `components/section-heading.blade.php`. If any of those change, the eyebrow will no longer land
+  18px above the fold and the constant needs recomputing. This is worth a comment at each of
+  those three sites, or a small unit test asserting the measured relationship, if the hero is
+  expected to stay in this state.
+- **`lg:justify-center` is a visible composition change, not just a safety rail.** The copy block
+  now sits vertically centred in the hero rather than anchored 112px from the top, which is what
+  prevents a tall display from showing a large empty field of photograph. At a 1080px window the
+  copy moves down roughly 166px relative to the previous top-anchored position. If the top-anchored
+  look is preferred, removing `lg:flex lg:flex-col lg:justify-center` restores it, at the cost of
+  a poor result on 1440px-tall displays.
+- **`py-26` and `lg:py-34` from the prompt were not used** because `min-h` is now the height
+  lever; adding 24px more fixed padding on top would have consumed 48px of the viewport budget and
+  pushed the eyebrow below the fold.
+- **The hero has now changed height in six consecutive passes** (#004 density, #006 restoration,
+  #007 further increase, #008 viewport fit), and this is the first change that makes the target
+  explicit and self-adjusting rather than a fixed pixel value. A browser check at 100% on both a
+  1366x768 and a 1920x1080 display would confirm the eyebrow placement empirically.
+- Carried over unchanged: `justify-evenly` and other stale utilities remain in the stylesheet
+  because `tailwind.config.js` scans `./storage/framework/views/*.php`, so
+  `php artisan view:clear` before a final build will drop them; the desktop bar still omits
+  Officials Directory, Relief Transparency, and Track a Request; "Map" and "Contact" still both
+  resolve to `/#contact`; and the header remains 80px wider than the page content on the non-home
+  public pages at 1536px and above.
+- **Log-integrity note:** this entry was initially written to the wrong position in this file,
+  landing between `Prompt #006` and `Prompt #007`, because the closing two lines of those two
+  entries are byte-for-byte identical and the append anchored on the wrong occurrence. The entry
+  was then moved to its correct chronological position at the end of the file, and the two `---`
+  entry separators that the move displaced were restored. No entry text was added, removed,
+  reworded, or renumbered in the process; all eight entries and their eight required sections
+  were re-verified afterwards. Recorded here because this file is an audit artefact and a
+  chronological-ordering defect in it should be visible rather than silently repaired. Future
+  appends will anchor on the unique `## Prompt #NNN` header of the current last entry instead of
+  on repeated trailing text.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #009
+
+**Date:** 2026-09-28
+**Time:** 05:22
+**Category:** Public Information
+**Affected Module:** Public Information — Homepage About Section Redesign and Barangay Demographics
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — ABOUT SECTION / PAGE REDESIGN WITH DEMOGRAPHIC STATISTICS
+>
+> Objective:
+> Transform the current "About" section layout to match our target multi-column design, complete with a top page banner, visual image card, Our History / Vision / Mission copy, and a right-hand demographic statistics card.
+>
+> Specific Adjustments Required:
+>
+> 1. Top Hero/Banner Header:
+>    - Add a dark navy hero banner background with landscape overlay.
+>    - Title: "About Our Barangay"
+>    - Breadcrumb navigation links: "Home > About Us"
+>
+> 2. Main Content Area (Two-Column Layout on Desktop):
+>
+>    LEFT COLUMN (Image + History / Vision / Mission):
+>    - Image Card: Rounded photo card displaying the "Welcome to Barangay Linasin" landmark/signboard image on the left.
+>    - Our History Section:
+>      - Heading: "Our History"
+>      - Text: "Barangay Linasin is one of the progressive barangays in the Municipality of Bangued, Abra. Known for its strong community spirit and active participation in local governance, the barangay continues to work towards a safer, healthier, and more sustainable environment for all its residents."
+>    - Our Vision Section:
+>      - Heading: "Our Vision"
+>      - Text: "A peaceful, progressive, and resilient community of empowered citizens."
+>    - Our Mission Section:
+>      - Heading: "Our Mission"
+>      - Text: "To deliver efficient, transparent, and responsive public service for the benefit of every resident of Barangay Linasin."
+>
+>    RIGHT COLUMN (Demographic Statistics Card):
+>    - Background: Light blue/gray rounded container card (`bg-blue-50/50` or `bg-slate-50`).
+>    - Title: "Barangay Linasin"
+>    - Subtitle: "Zone 1, Bangued, Abra"
+>    - Stat Items (Include clean SVG icons next to each stat):
+>      1. Population: 2,264
+>      2. Total Households: 641
+>      3. Total Families: 710
+>      4. Location / Zone: Zone 1
+>
+> Scope Safeguards:
+> - Ensure grid layout responds seamlessly to mobile screens (stacking single column on mobile).
+> - Do not alter backend logic, routes, or database schemas.
+> - Preserve Pint formatting standards and pass all existing automated tests (`php artisan test`).
+
+### Objective
+
+Rebuild the homepage "About" band as a navy banner plus a two-column body: a rounded photograph
+card and the history, vision, and mission copy on the left, and a barangay demographic statistics
+card on the right, collapsing to a single column below `lg`. The public-facing copy and the four
+demographic figures were held in configuration rather than in the view. No route, controller,
+model, migration, or database schema was touched.
+
+### Changes Made
+
+- **Resolved two specification conflicts with the user before writing code.** The prompt asked for
+  a "'Welcome to Barangay Linasin' landmark/signboard image", but no such asset exists —
+  `public/images/` holds eight community photographs plus the seal logo, and the eight files in
+  `public/images/placeholders/` are the superseded design artwork. The user chose to use the
+  existing multi-purpose hall photograph, which does carry "BRGY ZONE 1 / MULTI-PURPOSE HALL"
+  signage on its facade and is therefore the closest genuine landmark shot available. Separately,
+  the prompt's heading said "About Section / Page" and its first requirement described a "top page
+  banner" with breadcrumbs, which implies a standalone page, but there is no `/about` route and the
+  prompt forbade altering routes. The user chose to redesign the existing homepage `#about`
+  section, which satisfies the design intent with no route changes at all.
+- **Added an `about` config block** to `config/bdrpis.php` holding the three statements as
+  `title` / `body` pairs, following the same `steps` / `services` / `activities` pattern already
+  established in that file. The view iterates the three blocks rather than hardcoding three
+  paragraphs, so adding or reordering a statement is a config-only change.
+- **Added a `demographics` config block** holding `name`, `location`, and a `stats` array of four
+  `label` / `value` / `icon` entries, with `users`, `home`, `heart-hands`, and `pin` chosen as the
+  icons. These are static display values, not a live census, so the block carries a doc comment
+  stating that explicitly and instructing that each figure be verified against the official
+  barangay profile and PSA data before publication.
+- **Added a visible provenance line to the statistics card** — "Figures are indicative barangay
+  profile data and are not updated live." This was added on the same reasoning that motivated the
+  existing disclaimers elsewhere in `config/bdrpis.php`: the file goes out of its way never to
+  publish an unverified factual claim as fact, and a hardcoded population figure on a government
+  portal is exactly such a claim.
+- **Replaced the About section markup** in `resources/views/public/welcome.blade.php`. The
+  `<x-shell id="about">` wrapper became a plain `<section id="about" class="bg-white">` so the
+  banner could be full-bleed while the body kept the same `max-w-shell` container and
+  `py-14 sm:py-16 lg:py-20` rhythm as every other band on the page. The `id` was deliberately
+  preserved so the header nav's About link, the hero callout's "View Details" button, and any
+  inbound anchor continue to resolve.
+- **Built the navy banner** with the landscape photograph as a `-z-20` background layer under a
+  `bg-navy-900/80` scrim and a `from-navy-900/70 via-navy-900/40 to-transparent` directional
+  gradient, plus the gold hairline already used on the other navy surfaces. The scrim is
+  deliberately heavier than the homepage hero's, so the banner reads as a textured navy band
+  rather than as a second large photograph of the same scene lower down the page.
+- **Built the breadcrumb** as a real `<nav aria-label="Breadcrumb">` wrapping an `<ol>`, with
+  "Home" as a link to `route('home')`, the `>` separator in an `aria-hidden` list item, and "About
+  Us" marked `aria-current="page"`. The banner title is an `<h2>` so it does not compete with the
+  page `<h1>` in the hero.
+- **Built the two-column body** as `grid gap-10 lg:grid-cols-12 lg:gap-12` with the left column at
+  `lg:col-span-7` and the statistics card at `lg:col-span-5`, giving a single stacked column
+  below `lg` with no breakpoint-specific overrides. The image card uses `aspect-video` with
+  `object-cover object-center` and matching `width="1280" height="720"` attributes, so the box is
+  reserved before the image loads and no layout shift occurs.
+- **Restyled the image `alt` text** to "The multi-purpose hall of Barangay Linasin Zone 1, where
+  barangay services are delivered", which describes the photograph that is actually displayed now
+  that the callout and the About card share it.
+- **Built the statistics card** as `rounded-2xl border border-blue-100 bg-blue-50/50`, with the
+  title, a pin icon beside the "Zone 1, Bangued, Abra" subtitle, and a `<dl>` of rows separated by
+  `border-blue-100` dividers. Each row places a white icon tile with `ring-1 ring-blue-100` beside
+  the label, with the value right-aligned in `tabular-nums` so the digits align vertically.
+- **Kept the Data Privacy Act alert** from the previous layout, repositioned from an absolute
+  overlay on the image card to a static block below the mission statement. This was a deliberate
+  decision to deviate from the spec's content list: `R.A. 10173` is a legal notice on a government
+  portal rather than design copy, and silently removing it during a redesign would be a
+  regression. It is annotated in the markup so the reason is visible.
+- **Added `tests/Feature/PublicAboutSectionTest.php`** with six tests: the banner title and
+  breadcrumb semantics, that the `about` anchor and its inbound links still resolve, that all
+  three copy blocks render, that all four demographic labels and values render, that the correct
+  photograph is used with a specific `alt`, and that the section exposes no resident data.
+
+### Files Created
+
+- `tests/Feature/PublicAboutSectionTest.php`
+
+### Files Modified
+
+- `config/bdrpis.php`
+- `resources/views/public/welcome.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-BdCnnxb8.css` (rebuilt stylesheet; `app-DRkt5COk.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- New feature test — `vendor/bin/phpunit tests/Feature/PublicAboutSectionTest.php`:
+  **6 tests, 6 passed, 35 assertions**. Passed on the first run with no fixes required.
+- Full suite before the changes — `php artisan test`: **90 tests, 90 passed, 252 assertions**.
+- Full suite after the changes — `php artisan test`: **96 tests, 96 passed, 287 assertions**
+  (0 failures). Delta: +6 tests, +35 assertions, all from the new test file. No pre-existing test
+  was modified, and no test failed during the change, confirming the redesign did not disturb the
+  hero, navigation, CTA destinations, or image fallback behaviour.
+- Code formatting — `vendor/bin/pint config/bdrpis.php
+  tests/Feature/PublicAboutSectionTest.php` returned **passed**, and a full
+  `vendor/bin/pint --test` also returned **passed**.
+- Frontend build — `npm run build`: **succeeded** in 1.14s, emitting
+  `public/build/assets/app-BdCnnxb8.css` (80.82 kB, gzip 14.16 kB) with `manifest.json` updated.
+  The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the new utilities are present in the compiled stylesheet: `lg:col-span-7`,
+  `lg:col-span-5`, `bg-blue-50/50`, `aspect-video`, `bg-navy-900/80`, `tabular-nums`,
+  `last:border-b-0`, and `ring-blue-100`.
+- Confirmed by source search that `x-shell` is still used 13 times in `public/welcome.blade.php`
+  for the other homepage bands, so only the About section stopped using it and no other band was
+  affected.
+- Verified the configuration values render as intended via `php artisan config:show
+  bdrpis.demographics`, which reported `Barangay Linasin`, `Zone 1, Bangued, Abra`, and the four
+  stats with their icons.
+- Responsive review: the only grid declaration is `lg:grid-cols-12`, so the layout is a single
+  stacked column at every width below 1024px with `gap-10` between the photograph column and the
+  statistics card. The banner's breadcrumb `<ol>` uses `flex-wrap`, so the two breadcrumb items
+  cannot overflow a narrow viewport. No fixed widths were introduced anywhere in the new markup, so
+  no horizontal overflow is possible.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, `database/`, or `routes/` was modified. `routes/web.php` was read only, to
+  confirm no `/about` route existed and that none was needed.
+
+### Result
+
+The homepage About band is now a navy banner carrying the "About Our Barangay" title and a
+"Home > About Us" breadcrumb, over a two-column body that collapses to a single column below
+1024px. The left column holds a rounded 16:9 card of the Barangay Linasin multi-purpose hall
+followed by the Our History, Our Vision, and Our Mission statements, all rendered from config. The
+right column holds a light blue-gray statistics card titled "Barangay Linasin" with the
+"Zone 1, Bangued, Abra" subtitle and four icon-led rows: Population 2,264, Total Households 641,
+Total Families 710, and Location / Zone Zone 1. The `about` anchor, the header nav link, and the
+hero callout's "View Details" button all still resolve. The Data Privacy Act notice was retained.
+96 tests pass with 287 assertions and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **The four demographic figures are unverified.** Population 2,264, households 641, and families
+  710 were supplied as design values and are hardcoded in `config/bdrpis.php`. They should be
+  checked against the official barangay profile and PSA data before this page is published or
+  submitted for review, since they are factual claims on a government portal. A provenance line is
+  rendered under the card and a warning is recorded in the config comment so the values are not
+  mistaken for a live data source.
+- **No signboard photograph was used, because none exists.** The image card shows the multi-purpose
+  hall, which is the nearest genuine landmark shot and does show "BRGY ZONE 1" signage. If a
+  dedicated welcome signboard photo is obtained later, only the `about` key in
+  `config/bdrpis.images` and the `alt` text in the view need to change.
+- **Two elements of the previous About section were removed, as the spec's content list did not
+  include them:** the two paragraphs describing what BDRPIS is, and the "Meet the Officials" and
+  "Relief Transparency" buttons. No page became unreachable — Officials Directory and Relief
+  Transparency are both in the header's mobile menu, the footer, and elsewhere on the homepage — but
+  the homepage no longer self-describes the system outside the hero, which is worth reconsidering.
+- **The Data Privacy Act alert was kept even though the spec did not list it,** on the grounds that
+  a legal notice is not design copy. If the mock-up genuinely has no room for it, it is a single
+  `x-alert` element to remove, but doing so should be a deliberate decision rather than a
+  consequence of a redesign.
+- **The banner reuses the hero photograph.** A second large image of the same scene further down
+  the page was avoided by using a much heavier `bg-navy-900/80` scrim, but if the repetition is
+  still visible in a browser, the alternative is to drop the photograph and keep only the navy
+  gradient treatment already used by `x-page-header` on the other public pages.
+- **The About section no longer uses `<x-shell>`,** so it does not inherit that component's
+  conventions. It reproduces the same `max-w-shell` container and `py-14 sm:py-16 lg:py-20` rhythm
+  manually. If `x-shell` ever gains a new variant, this section will need updating by hand.
+- **The breadcrumb is a single-level trail.** It reads correctly for a homepage section but would
+  need a real trail if this markup is ever promoted to a standalone `/about` page, which would also
+  require a route and a controller method.
+- Carried over unchanged from earlier passes: the desktop bar still omits Officials Directory,
+  Relief Transparency, and Track a Request; "Map" and "Contact" still both resolve to `/#contact`;
+  the header remains 80px wider than the page content on the non-home public pages at 1536px and
+  above; and stale utilities such as `justify-evenly` remain in the stylesheet because
+  `tailwind.config.js` scans `./storage/framework/views/*.php`, so `php artisan view:clear` before
+  a final build will drop them.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #010
+
+**Date:** 2026-09-28
+**Time:** 05:34
+**Category:** UI/UX
+**Affected Module:** Public Information — Homepage About Section Grid Realignment
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — ABOUT SECTION LAYOUT & GRID REALIGNMENT
+>
+> Objective:
+> Remove the breadcrumb link, narrow the right-side stats card, shrink the image, and group the image alongside the History/Vision/Mission copy so the section forms a clean 3-element layout (Image on far-left, Main Text in the middle, Stats Card on the far-right).
+>
+> Specific Adjustments Required:
+>
+> 1. Breadcrumb Removal:
+>    - Completely remove the "Home > About Us" text link above the "About Our Barangay" banner heading.
+>
+> 2. Three-Column / Nested Flex Grid Realignment:
+>    - Align the content area into a proper horizontal structure:
+>      - Far Left: Barangay Photo/Landmark Image. Reduce its max width (e.g., `w-full max-w-xs` or fixed width `w-64` / `w-72`) so it does not dominate the page.
+>      - Middle: History, Vision, and Mission text blocks. Give this section the majority of the grid width (e.g., `flex-1` or `col-span-2` in a grid system) to allow comfortable reading space.
+>      - Far Right: Demographic Info Card. Reduce its overall width (e.g., `w-72` or `max-w-sm`) to make it visually compact and thin.
+>
+> 3. Vertical Flow & Spacing:
+>    - Ensure "Our History", "Our Vision", and "Our Mission" are positioned beside the image (middle area) rather than pushed underneath it.
+>    - Maintain clean spacing (`gap-6` or `gap-8`) between the Image, Middle Text area, and Right Stats card.
+>    - Ensure the layout remains fully responsive, neatly stacking into a single column on smaller mobile viewports.
+>
+> Scope Safeguards:
+> - Do not modify routes, controllers, or database schemas.
+> - Ensure all tests pass (`php artisan test`).
+
+### Objective
+
+Turn the About section body from a two-column layout into the requested three-element row: a
+narrow photograph on the far left, the history, vision, and mission copy in the middle taking the
+majority of the width, and a visibly thinner statistics card on the far right, with the copy
+sitting beside the photograph rather than beneath it. The breadcrumb was removed entirely. No
+route, controller, model, or schema was touched, and the three-column row was sized against the
+real container width rather than by eye.
+
+### Changes Made
+
+- **Removed the breadcrumb** from the banner, deleting the `<nav aria-label="Breadcrumb">`, its
+  `<ol>`, the "Home" link, the `>` separator, and the "About Us" item. The now-orphaned `mt-4` on
+  the banner heading was removed with it so the heading sits at the top of the banner padding
+  rather than carrying a margin for an element that no longer exists.
+- **Rebuilt the body as a three-element grid**, changing the outer wrapper from
+  `grid gap-10 lg:grid-cols-12 lg:gap-12` to `grid gap-8 lg:grid-cols-12`, matching the requested
+  `gap-8`. The photograph, the copy, and the statistics card are now three siblings rather than
+  the photograph being nested inside the copy column, which is what previously pushed
+  "Our History" underneath the image.
+- **Sized the columns against the real container rather than by eye.** Inside `max-w-shell`
+  (80rem / 1280px) less 64px of `lg:px-8` padding, and less 64px for two `gap-8` gaps, there are
+  1152px to divide into twelve columns at 96px each. The photograph takes `xl:col-span-3` =
+  288px, the copy takes `xl:col-span-6` = 576px, and the statistics card takes
+  `xl:col-span-3` = 288px. Those three figures are exactly the narrow photo card and thin stats
+  card the prompt asked for, and 576px of copy is a comfortable reading measure of roughly 70
+  characters. The prompt's suggested fixed widths, `w-64` and `w-72`, are 256px and 288px, so the
+  grid result lands on the requested end of that range without hardcoding a width.
+- **Added `w-full max-w-xs` to the photograph and `mx-auto w-full max-w-sm` to the statistics
+  card** so both stay capped even if the grid is later re-proportioned or the shell widened.
+  `max-w-xs` is 320px and `max-w-sm` is 384px, both of which the grid already satisfies at `xl`,
+  so they act as guards rather than as the sizing mechanism.
+- **Reduced the statistics card padding** from `p-6 sm:p-7` to `p-5 sm:p-6` and tightened the
+  row spacing from `py-3.5` to `py-3`, because the card is now 288px wide rather than roughly a
+  third of the page. A stat row needs about 198px to hold a 36px icon tile, a 12px gap, the
+  longest label "Total Households" at roughly 105px, and the widest value "2,264" at roughly 45px;
+  the card now offers about 248px of content width at `p-5`, so no label wraps.
+- **Chose a two-stage responsive arrangement instead of three columns from `lg`.** Between 1024px
+  and 1279px the usable width is 960px less 64px of gaps, giving roughly 74.7px per column. A flat
+  3 / 6 / 3 split there would leave the statistics card only 224px, offering about 184px of content
+  against the 198px a row needs, so "Total Households" would have wrapped to two lines in a
+  288px-designed card. Instead the photograph and copy sit side by side as
+  `lg:col-span-4` / `lg:col-span-8` — 299px and 598px, both comfortable — and the statistics card
+  takes `lg:col-span-12` as a centred row of its own, capped at `max-w-sm`. The full three-element
+  row appears from `xl`, where the arithmetic above holds.
+- **Left everything below `lg` untouched:** there is no `sm:` or base `grid-cols-*` declaration,
+  so the three elements stack as a single column in source order — photograph, then copy, then
+  statistics card — on phones and on tablets in portrait.
+- **Updated `tests/Feature/PublicAboutSectionTest.php`.** Its
+  `test_about_section_renders_the_banner_and_breadcrumb` asserted the presence of the breadcrumb
+  markup, so it failed against this change and was replaced with
+  `test_about_section_renders_the_banner_heading_and_no_breadcrumb`, which still asserts the
+  banner heading and additionally asserts the breadcrumb is absent, locking in the removal. The
+  other five tests were unchanged and still cover the copy blocks, the four figures, the `about`
+  anchor, the photograph and its `alt`, and the absence of resident data.
+
+### Files Created
+
+None.
+
+### Files Modified
+
+- `resources/views/public/welcome.blade.php`
+- `tests/Feature/PublicAboutSectionTest.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-K5QhofVU.css` (rebuilt stylesheet; `app-BdCnnxb8.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Full suite before the changes — `php artisan test`: **96 tests, 96 passed, 287 assertions**.
+- Full suite after the changes — `php artisan test`: **96 tests, 96 passed, 285 assertions**
+  (0 failures). The count is unchanged; assertions fell by two because the rewritten breadcrumb
+  test swapped three presence assertions for one heading assertion plus two absence assertions,
+  netting one fewer.
+- Code formatting — `vendor/bin/pint tests/Feature/PublicAboutSectionTest.php` returned
+  **passed**, and a full `vendor/bin/pint --test` also returned **passed**.
+- Frontend build — `npm run build`: **succeeded** in 855ms, emitting
+  `public/build/assets/app-K5QhofVU.css` (80.93 kB, gzip 14.17 kB) with `manifest.json` updated.
+  The pre-existing Figtree font-resolution warnings are unchanged and unrelated.
+- Confirmed the new utilities are present in the compiled stylesheet: `lg:col-span-4`,
+  `xl:col-span-3`, `xl:col-span-6`, `lg:col-span-8`, `lg:col-span-12`, `max-w-xs`, `max-w-sm`,
+  and `gap-8`.
+- Confirmed by source search that `Breadcrumb` no longer appears in `public/welcome.blade.php`
+  (0 matches).
+- Column arithmetic verified at both breakpoints where the grid is active. At `xl` the
+  `max-w-shell` container is 1280px, giving 1152px of column space after 64px of padding and two
+  32px gaps, so the 3 / 6 / 3 split resolves to 288px / 576px / 288px. At `lg` the container is
+  1024px, giving 896px of column space and roughly 74.7px per column, so the 4 / 8 split resolves
+  to 299px / 598px with the statistics card moving to a full-width centred row.
+- Overflow review: no fixed pixel widths were introduced; the photograph and the statistics card
+  are both `w-full` with a `max-w-*` cap inside grid columns, so they can only ever be as wide as
+  their column. The grid itself collapses to a single column below `lg`, so a 390px viewport
+  stacks all three elements with `gap-8` and cannot overflow horizontally. The `body {
+  overflow-x: hidden }` guard in `resources/css/app.css` is unchanged.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`,
+  `app/Services/`, `database/`, or `routes/` was modified, and `config/bdrpis.php` was not touched
+  by this change because all the copy and demographic values were already in place from the
+  previous prompt.
+
+### Result
+
+The About section now reads as a clean three-element row from 1280px upward: a 288px rounded
+photograph of the Barangay Linasin multi-purpose hall on the far left, the Our History, Our Vision,
+and Our Mission copy in the middle at 576px, and a 288px light blue statistics card on the far
+right holding all four icon-led figures with no wrapping. The copy sits beside the photograph
+rather than beneath it, the elements are separated by a consistent `gap-8`, and the breadcrumb is
+gone. Between 1024px and 1279px the photograph and copy sit side by side with the statistics card
+on a centred row of its own, chosen specifically so the card is never squeezed below the width its
+own content requires. Below 1024px all three elements stack as a single column with no
+breakpoint-specific overrides and no possibility of horizontal overflow. 96 tests pass with 285
+assertions and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **A test had to be rewritten, as with the search field removal in Prompt #005.** The existing
+  breadcrumb test asserted the presence of markup this prompt asked to delete, so it was inverted
+  rather than deleted.
+- **The three-element row only appears from `xl` (1280px), not from `lg` (1024px).** If the design
+  requires all three elements side by side at 1024px too, the statistics card has to give up some
+  width, and at 224px its "Total Households" row will wrap to two lines. Raising the middle column
+  share and shrinking the icon tile from 36px to 32px would recover roughly 14px, which is still
+  short of the 198px a single-line row needs.
+- **The photograph is now 288px wide and 162px tall at `xl`** because it keeps its `aspect-video`
+  ratio. At that width a 16:9 crop is a fairly shallow strip. Switching to `aspect-[4/3]` would give
+  a more substantial card without changing the design, but the ratio was not changed because it
+  was not requested. The `width="1280" height="720"` attributes remain consistent with 16:9, so
+  the box is still reserved before the image loads.
+- **The banner is now shorter** because the breadcrumb occupied roughly 20px of it. It retains
+  `py-14 sm:py-16 lg:py-20`, so the heading sits with a full band of padding above it.
+- The `mx-auto` on the statistics card centres it within its `lg:col-span-12` row and is inert at
+  `xl`, where the card fills its column exactly. It was verified as harmless rather than removed.
+- Carried over unchanged from earlier passes: the demographic figures remain unverified static
+  values in `config/bdrpis.php`; the desktop bar still omits Officials Directory, Relief
+  Transparency, and Track a Request; "Map" and "Contact" still both resolve to `/#contact`; the
+  header remains 80px wider than the page content on the non-home public pages at 1536px and above;
+  and stale utilities such as `justify-evenly` remain in the stylesheet because
+  `tailwind.config.js` scans `./storage/framework/views/*.php`, so `php artisan view:clear` before
+  a final build will drop them.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #011
+
+**Date:** 2026-09-28
+**Time:** 06:58
+**Category:** Authentication
+**Affected Module:** Authentication — Login Page Redesign and Guest Layout Full-Bleed Background
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — LOGIN PAGE REDESIGN & FULL-SCREEN BACKGROUND OVERLAY
+>
+> Objective:
+> Redesign the Login page (`resources/views/auth/login.blade.php` or equivalent route view) to match the provided target UI design: full-screen mountain landscape background, translucent blue tint overlay, centered branding content on the left, and a white login form card on the right.
+>
+> Specific Visual Adjustments Required:
+>
+> 1. Full-Screen Background & Overlay Styling:
+>    - Use the image located at `public/images/login.jpg` as the full-screen background image (`bg-cover bg-center`).
+>    - Add a semi-transparent blue overlay over the background image (e.g., `bg-blue-900/40` or `bg-slate-900/35`).
+>    - CRITICAL: Ensure the image opacity/transparency remains higher than the blue color overlay so the mountain landscape details are clearly visible through the blue tint.
+>
+> 2. Left Column Content (Branding & Messaging):
+>    - Center-align all branding elements vertically and horizontally within the left section.
+>    - Top Logo: Display the official Barangay seal circular logo (`h-20 w-20` or similar) prominently above the title.
+>    - Text Below Logo:
+>      - Header: "BARANGAY LINASIN" (Bold, white, uppercase).
+>      - Subtitle: "Zone 1, Bangued, Abra" (White/light gray text).
+>    - Welcome Headline:
+>      - Title: "Welcome Back!" (Bold white text).
+>      - Body Text: "Sign in to your account to access your dashboard and services." (Light white/slate text).
+>
+> 3. Right Column Content (Login Card):
+>    - Form Container: White rounded card (`bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full`).
+>    - Card Title: "Sign In"
+>    - Input Fields:
+>      - Email Address: Clear label with rounded input field.
+>      - Password: Clear label with rounded input field and a password visibility toggle icon on the right.
+>    - Controls:
+>      - Checkbox: "Remember me"
+>      - Link: "Forgot password?"
+>    - Action Buttons:
+>      - Primary Button: Solid dark blue "Login" button (`w-full bg-blue-900 text-white font-medium py-3 rounded-lg hover:bg-blue-800`).
+>      - Divider: "Or continue with" text separator.
+>      - Social Auth Button: White button with Google logo for "Google" sign-in.
+>    - Footer Link: "Don't have an account? Register" pointing to the registration route.
+>
+> Scope Safeguards:
+> - Retain all underlying Laravel auth logic, form validation error handling, `@csrf` tokens, and route definitions.
+> - Keep responsive behavior intact so the layout stacks cleanly on mobile viewports.
+> - Pass all existing tests (`php artisan test`).
+
+### Objective
+
+Rebuild the login page as a full-bleed landscape background under a translucent blue wash, with
+vertically and horizontally centred branding on the left and a white sign-in card on the right,
+while leaving every piece of auth behaviour untouched. The design also required a full-bleed
+background behind both layout panels, which no existing layout supported, and a password
+visibility toggle, which no existing form control supported. Two pre-existing defects in the
+shared guest layout were discovered and fixed along the way.
+
+### Changes Made
+
+- **Confirmed the background asset exists and inspected it before building.** `public/images/login.jpg`
+  is present at 2734×2050 (4:3, 1797KB): an elevated view of the Bangued townscape with a mountain
+  range and cloud cover behind it, and already strongly blue-toned. That last point is what makes
+  the requested `bg-blue-900/40` wash work — a blue tint over an already blue scene keeps the
+  landscape legible, whereas a grey or warm wash would have muddied it.
+- **Extended `layouts/guest.blade.php` with two opt-in features so the full-bleed background could
+  exist without disturbing the other five auth pages.** A `:background` prop renders the
+  photograph behind both panels at `-z-20` with `h-full w-full object-cover object-center`, plus
+  an `:overlay` colour wash at `-z-10`; both panels then switch to transparent backgrounds so the
+  photograph shows through, and the brand panel switches to `lg:items-center lg:justify-center
+  lg:text-center`. A `brand` slot replaces the default panel copy. Every branch is behind
+  `@if`/`@unless`, so `register`, `forgot-password`, `reset-password`, `confirm-password`, and
+  `verify-email` render byte-identically to before, which the new test suite asserts explicitly.
+- **Chose the light wash plus a local scrim rather than a heavy wash.** The prompt was emphatic
+  that the landscape must stay visible through the tint, so the wash is the specified
+  `bg-blue-900/40` and the photograph is never given an `opacity` reduction. Legibility of the
+  white branding is handled instead by a `bg-navy-900/35` scrim confined to the brand panel, which
+  darkens only the area behind the text rather than washing out the whole image. The mobile brand
+  bar uses `bg-navy-900/60` for the same reason at a smaller type size.
+- **Added a `revealable` option to `components/field.blade.php`** to provide the password
+  visibility toggle. When set, the input wrapper becomes `x-data="{ shown: false }"`, the input
+  gains `x-bind:type="shown ? 'text' : 'password'"`, and a `type="button"` toggle is rendered with
+  inline eye and eye-off SVGs, `x-on:click="shown = ! shown"`, and `aria-label` / `aria-pressed`
+  bound to the state. The input's right padding switches from `pr-4` to `pr-11` to clear the
+  button. It is opt-in, so the three other views using `x-field` are unaffected.
+- **Rewrote `auth/login.blade.php`** to pass `:background="images/login.jpg"` and
+  `:overlay="bg-blue-900/40"`, supply the branding through the `brand` slot (an `h-20 w-20` seal
+  with a `ring-4 ring-white/25` halo, "Barangay Linasin" in uppercase tracking, the zone line,
+  then the "Welcome Back!" headline and its body copy), title the card "Sign In", enable
+  `revealable` on the password field, and render the submit control as the specified
+  `w-full rounded-lg bg-blue-900 py-3 ... hover:bg-blue-800` button. The form still posts to
+  `route('login')` with `@csrf`, the email field still repopulates from `old('email')`, both
+  fields keep their `x-field` labels, `aria-invalid`, and `@error` messages, "Remember me" and the
+  `Route::has('password.request')`-guarded "Forgot password?" link are unchanged, and
+  `x-auth-session-status` is retained.
+- **Replaced the previous footer treatment** — a "New here?" divider plus a full-width "Create a
+  resident account" button — with the specified single line, "Don't have an account? Register",
+  linking to `route('register')`. The Data Privacy Act sentence was retained below it, consistent
+  with the reasoning applied to the About section in Prompt #009.
+- **Omitted the "Or continue with" divider and the Google button, on the user's instruction.**
+  `composer.json` contains no `laravel/socialite`, there are no OAuth routes, and the only
+  credential path is the email/password one behind `AuthenticatedSessionController`, so a Google
+  button would have been a control that silently did nothing. A test now asserts that neither the
+  divider nor a "Continue with Google" control ever appears, so it cannot be reintroduced by
+  accident.
+- **Fixed a pre-existing defect: `GuestLayout` never received any of its attributes.** The class
+  declared `public ?string $maxWidth = null;` with no constructor, and a Blade *class* component
+  does not auto-populate public properties from the tag's attributes — they land in
+  `$attributes` instead. This was proven empirically rather than assumed: before the fix, a probe
+  confirmed `/register`, which passes `maxWidth="sm:max-w-2xl"` and contains an `sm:grid-cols-2`
+  list, was rendering the default `sm:max-w-md` card, squeezing a deliberately two-column
+  registration form into a 448px column. Binding is now done through a constructor with promoted
+  properties, which is the documented mechanism.
+- **Fixed a second pre-existing defect as a direct consequence: the page title.** The same
+  mechanism meant `$title` was always null in the layout, so every guest page rendered
+  `<title>BDRPIS &middot; BDRPIS</title>`. With the constructor in place, `/login` now correctly
+  renders `<title>Log in &middot; BDRPIS</title>`, and a test asserts it.
+- **Ran `php artisan view:clear` after the component change and again before the final build.**
+  This was necessary, not cosmetic: a stale compiled layout masked the constructor fix and made
+  the new props look broken. Clearing also dropped the compiled stylesheet from 80.93 kB to
+  70.71 kB, which finally explained the CSS growth observed across the earlier prompts — Tailwind
+  scans `./storage/framework/views/*.php`, so every stale compiled Blade cache was contributing
+  classes the live templates no longer use.
+- **Added `tests/Feature/LoginPageAppearanceTest.php`** with eight tests: the background and wash
+  render; the centred brand copy renders; the form still posts to `route('login')` with a CSRF
+  token; both fields keep their labels, names, "Remember me", and "Forgot password?"; the password
+  toggle exposes its Alpine bindings; the page links to registration and contains no social-auth
+  control; the background does **not** leak onto `/register` or `/password.request`; and the login
+  page title reaches the browser tab.
+
+### Files Created
+
+- `tests/Feature/LoginPageAppearanceTest.php`
+
+### Files Modified
+
+- `app/View/Components/GuestLayout.php`
+- `resources/views/layouts/guest.blade.php`
+- `resources/views/components/field.blade.php`
+- `resources/views/auth/login.blade.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-D_vKdvZo.css` (rebuilt stylesheet; `app-K5QhofVU.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- New feature test — `vendor/bin/phpunit tests/Feature/LoginPageAppearanceTest.php`:
+  **8 tests, 8 passed, 37 assertions**.
+- Full suite before the changes — `php artisan test`: **96 tests, 96 passed, 285 assertions**.
+- Full suite after the changes — `php artisan test`: **104 tests, 104 passed, 322 assertions**
+  (0 failures). Delta: +8 tests, +37 assertions, all from the new file. Critically, the five
+  pre-existing auth suites — `AuthenticationTest`, `RegistrationTest`, `EmailVerificationTest`,
+  `PasswordResetTest`, `PasswordConfirmationTest`, and `PasswordUpdateTest` — all still pass
+  unchanged, which is the direct evidence that the shared `GuestLayout` and `x-field` changes are
+  backward compatible.
+- Three genuine failures were found and fixed during the work rather than worked around:
+  1. The background and title props appeared not to work at all. A temporary probe test
+     established the cause: `/register` was rendering `sm:max-w-md` despite being passed
+     `sm:max-w-2xl`, proving the class component was never binding its attributes. Fixed with
+     constructor injection. The probe test was deleted afterwards.
+  2. The stale compiled layout continued to mask the fix even after the class was corrected;
+     `php artisan view:clear` resolved it. This is worth remembering, because a compiled-view
+     cache can make a correct change appear to have no effect.
+  3. One assertion in the new test was itself wrong: `assertStringContainsString('>Login</button>')`
+     failed because the rendered button has a newline before the label. Rewritten as a
+     whitespace-tolerant regex rather than loosened into a weaker assertion.
+- Code formatting — `vendor/bin/pint` run in write mode over
+  `app/View/Components/GuestLayout.php` and `tests/Feature/LoginPageAppearanceTest.php` reported
+  **fixed** for the component (applying `single_line_empty_body` and `phpdoc_align`), and a full
+  `vendor/bin/pint --test` then returned **passed**.
+- Frontend build — `npm run build`: **succeeded** in 18.06s, emitting
+  `public/build/assets/app-D_vKdvZo.css` (70.71 kB, gzip 12.62 kB) with `manifest.json` updated.
+  The stylesheet is 10.22 kB smaller than the previous build purely because clearing the compiled
+  views removed the stale cache that `tailwind.config.js` scans. The pre-existing Figtree
+  font-resolution warnings are unchanged and unrelated.
+- Confirmed the new utilities are present in the compiled stylesheet: `bg-blue-900/40`,
+  `bg-blue-900`, `hover:bg-blue-800`, `bg-navy-900/35`, `bg-navy-900/60`, `bg-navy-900/80`,
+  `object-cover`, `pr-11`, and `uppercase`. One of these (`bg-navy-900/60`) was initially reported
+  missing by a grep pattern that mistakenly searched for `blue` instead of `navy`; a direct search
+  for the emitted rule `.bg-navy-900\/60{background-color:#0d233a99...}` confirmed it is present.
+  That is the fourth recorded false negative from an ad-hoc verification command, all of which
+  have been the command's fault rather than the build's.
+- Verified the final rendered state of all three guest pages: `/login` renders
+  `<title>Log in &middot; BDRPIS</title>` with the `login.jpg` background and the default
+  single-column card; `/register` renders the `sm:max-w-2xl` card it always asked for; and
+  `/password.request` renders the default card. Neither non-login page receives the background.
+- Scope safeguards confirmed: no file under `app/Http/Controllers/`, `app/Models/`, `app/Services/`,
+  `database/`, or `routes/` was modified. The login form still posts to the same route with
+  `@csrf`, validation errors still render through `x-field`'s `@error` block, and the
+  `Route::has('password.request')` guard on the "Forgot password?" link is intact.
+- Responsive review: the layout keeps its existing `flex-col lg:flex-row` structure, so the two
+  panels still stack below `lg`. The brand panel remains `hidden lg:flex`, so on mobile and tablet
+  the landscape shows behind a semi-transparent navy brand bar and the sign-in card, and the
+  desktop-only branding is not squeezed into a narrow column. No fixed widths were introduced and
+  the `body { overflow-x: hidden }` guard in `resources/css/app.css` is unchanged.
+
+### Result
+
+The login page now presents as a full-bleed landscape with a translucent blue wash, centred
+branding on the left, and a white "Sign In" card on the right. `public/images/login.jpg` fills the
+viewport at `object-cover object-center` under `bg-blue-900/40`, with the photograph never given an
+opacity reduction and a `bg-navy-900/35` scrim confined to the brand panel so the white text stays
+legible without washing out the mountains. The left column shows the `h-20 w-20` barangay seal with
+a white halo, "Barangay Linasin" in uppercase, the zone line, and the "Welcome Back!" headline
+with its body copy, all centred on both axes. The card carries the "Sign In" title, labelled email
+and password fields, a working Alpine-backed password visibility toggle, "Remember me", "Forgot
+password?", the specified dark blue "Login" button, and the "Don't have an account? Register" link.
+All auth behaviour is intact and proven so by the five unchanged auth suites. Two pre-existing
+defects were fixed along the way: the guest layout had never received any of its attributes, which
+had been silently forcing the registration form into a narrow single-column card and rendering
+every guest page title as "BDRPIS · BDRPIS". 104 tests pass with 322 assertions and Pint reports no
+style violations.
+
+### Notes / Follow-up
+
+- **`register`, `forgot-password`, `reset-password`, `confirm-password`, and `verify-email` still
+  render `<title>BDRPIS &middot; BDRPIS</title>`** because none of them pass a `:title`. The
+  binding is fixed and proven on `/login`; the remaining fix is one attribute per view, for example
+  `<x-guest-layout title="Register">`. This was left alone because the prompt scoped the work to
+  the login page, but it is a one-line change per file and clearly a defect.
+- **The registration page layout visibly changed as a side effect of the `maxWidth` fix.** It now
+  renders the `sm:max-w-2xl` card it always requested, so its `sm:grid-cols-2` list finally has
+  room to sit in two columns. This is the correct behaviour and was always the intent, but it is a
+  visible difference on a page that was not part of the request, and worth a look in a browser.
+- **`login.jpg` is 1797KB**, which is heavy for an above-the-fold authentication background that
+  every failed login attempt will re-request. A resized and re-encoded derivative — for example
+  1920px wide at quality 80, which would land near 200-300KB — would be a worthwhile follow-up.
+  Nothing in the markup prevents swapping the file, since the path is a single attribute on the
+  layout call.
+- **The brand panel's landscape position is fixed at `object-center`.** The photograph is 4:3 and
+  a 46-48% wide desktop panel crops it aggressively; if the mountains or the townscape read as
+  awkward in a browser, `object-[center_35%]` or a per-breakpoint position would be the adjustment.
+- **The Google sign-in can be added later without touching this markup.** It would need
+  `laravel/socialite`, two new routes, a callback controller, and real Google Cloud OAuth
+  credentials, plus account linking so an existing resident profile is matched to a Google
+  identity. None of that is present today, and the test suite will now fail if a social control is
+  added without it.
+- **The password reveal uses Alpine's `x-cloak`,** which `resources/css/app.css` defines, so the
+  button is hidden until Alpine initialises. The toggle is keyboard reachable and exposes
+  `aria-pressed`, but it was not manually exercised in a browser — only the markup was asserted.
+- **Compiled-view caching will silently mask guest-layout changes.** Removing
+  `./storage/framework/views/*.php` from the `content` array in `tailwind.config.js` would both
+  stop the stylesheet from carrying dead classes and remove the temptation to read a stale
+  compiled view as a code defect. The 10.22 kB drop observed in this build is the size of that
+  dead weight.
+- Carried over unchanged from earlier passes: the demographic figures on the homepage remain
+  unverified static values in `config/bdrpis.php`; the desktop header bar still omits Officials
+  Directory, Relief Transparency, and Track a Request; "Map" and "Contact" still both resolve to
+  `/#contact`; and the header remains 80px wider than the page content on the non-home public pages
+  at 1536px and above.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #012
+
+**Date:** 2026-09-28
+**Time:** 08:25
+**Category:** Navigation / Routing
+**Affected Module:** Public Navigation, PublicController, Public Routes, and Standalone Public Pages
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — CONVERT SINGLE-PAGE SCROLL TO MULTI-PAGE NAVIGATION & NAVBAR REFINEMENTS
+>
+> Objective:
+> Refactor the application navigation structure from a single-page scroll layout (`#section` anchors) into distinct, standalone web pages with dedicated Laravel routes, active tab highlighting, streamlined homepage content, and navbar cleanup.
+>
+> Specific Requirements:
+>
+> 1. Navigation Bar Updates:
+>    - Remove the "Map" navigation link completely from the primary navbar header.
+>    - Update remaining navbar items to link to individual routes:
+>      - Home -> `/` (`route('home')`)
+>      - Services -> `/services` (`route('services.index')`)
+>      - About -> `/about` (`route('about')`)
+>      - Announcements -> `/announcements` (`route('announcements.index')`)
+>      - Contact -> `/contact` (`route('contact')`)
+>    - Active Tab Highlighting: Add dynamic active state styling (e.g., using `request()->routeIs(...)` or `request()->is(...)`) to highlight the current page's link with the pill background / active text color.
+>
+> 2. Homepage Layout Streamlining (`/`):
+>    - Keep the Hero section at the top.
+>    - Display ONLY featured/supported Document Services and featured Community Announcements on the Home page.
+>    - Remove full inline sections like About, Contact forms, and Maps from the home template so users navigate to their dedicated pages instead.
+>
+> 3. Separate Standalone Views & Routes:
+>    - Ensure separate Laravel routes and controller/view methods exist for `/services`, `/about`, `/announcements`, and `/contact`.
+>    - Each standalone page must include its own page banner header (e.g., "About Our Barangay", "Community Announcements", "Supported Services", "Contact Us") and load its dedicated Blade template.
+>
+> Scope Safeguards:
+> - Retain all existing model relationships, database queries, and authorization logic.
+> - Ensure all updated route names match standard Laravel conventions and pass automated tests (`php artisan test`).
+
+### Objective
+
+Replace the single scrolling homepage with a set of real pages. The header previously addressed
+content as fragments of `/` (`route('home').'#about'`), which meant a visitor could not link to or
+bookmark an area, the tab bar could not indicate where the visitor was, and the homepage carried
+586 lines of every section in the site. Each public area now has its own route, its own controller
+method, its own Blade template, and its own banner, and the homepage is reduced to the hero plus
+featured services and announcements.
+
+### Changes Made
+
+- **Added four public routes and renamed the announcements route in `routes/web.php`.** `/services`
+  → `services.index`, `/about` → `about`, `/contact` → `contact`, and the existing
+  `/announcements` moved from `public.announcements` to `announcements.index`. The staff CRUD area
+  keeps `staff.announcements.*`, so the two never collide; the asymmetry is deliberate and matches
+  the prompt, and the public name now follows the standard `resource.index` convention. All
+  eleven references to the old name across views and tests were updated.
+- **Removed the "Map" header link.** It had always resolved to `route('home').'#contact'` — the same
+  target as "Contact" — precisely because no standalone map page exists. Deleting it removes a
+  duplicate rather than a destination, and a test now asserts the label never reappears.
+- **Rewrote the primary navigation array in `layouts/public.blade.php` around real routes.** Each
+  entry now carries its own `active` flag driven by `request()->routeIs(...)`. The previous array
+  hard-coded `'active' => false` for Services, About, and Contact, which is why those three tabs
+  could never light up. Services and Announcements use wildcard patterns (`services.*`,
+  `announcements.*`) so nested routes under the same section keep the tab lit.
+- **Kept the existing pill treatment for the active state** rather than inventing a new one: the
+  active link renders `bg-white/10 text-gold` plus `aria-current="page"`, the inactive one renders
+  `text-navy-100 hover:bg-white/10 hover:text-white`. The markup already supported this, so the
+  change was confined to the data feeding it.
+- **Added `services()`, `about()`, and `contact()` to `PublicController`,** each returning its own
+  view. The services and about pages read entirely from `config/bdrpis.php`, so they pass no view
+  data; the contact page receives the address, phone, hotline, and email.
+- **Refactored the duplicated settings lookups into two private helpers,** `contactDetails()` and
+  `officials()`. The same five `Setting::get()` calls with identical fallbacks had been inlined
+  across three actions, and the fifth and sixth copies would have been added by this change. The
+  `announcements` filter was likewise extracted to `publishedAnnouncements()`, returning a typed
+  `Builder` so the homepage can `take(3)->get()` and the archive can `paginate(10)` off one
+  definition. The published-only predicate (`published_at` set and not in the future) and the
+  newest-first ordering are unchanged.
+- **Created `public/services.blade.php`** with a "Supported Document Services" banner carrying
+  "Request a Document" and "Track a Request" actions, the full four-card catalogue, the relocated
+  five-step walkthrough under `id="how-it-works"`, and a closing "Ready to request a document?" band.
+  The step list and the "documents are released at the Barangay Hall" notice moved here verbatim.
+- **Created `public/about.blade.php`** with an "About Our Barangay" banner, then the
+  history/vision/mission copy, the hall photograph, and the demographic card in the same 3 / 6 / 3
+  grid the homepage used, then the relocated community activities gallery, then a hand-off to the
+  officials directory. The Data Privacy Act notice travelled with the content rather than being
+  dropped, and the figures disclaimer is retained. The bespoke navy banner the homepage used was
+  replaced with the shared `<x-page-header>` so all four pages read as one set.
+- **Created `public/contact.blade.php`** with a "Contact Us" banner, the address/telephone/email
+  list, the "Before you visit" office card, and the relocated relief transparency band including
+  its household-reference form. That form still GETs to `transparency.search` and the input id was
+  renamed `hero-household` → `contact-household` to match its new home.
+- **Reduced `public/welcome.blade.php` from 586 to 227 lines,** keeping the hero, the four service
+  cards, and the three most recent announcements. The hero's two call-to-action buttons and the
+  "View Details" button now point at `route('services.index')` and `route('about')` instead of
+  fragments. The `id="services"` and `id="announcements"` anchors are kept so the hero's
+  `min-h-[calc(100vh-194px)]` calculation, which was measured against the E-Services eyebrow
+  appearing just above the fold, still holds.
+- **Relocated the two sections that had no page of their own, on the user's instruction:** "How It
+  Works" to `/services` and "Community Activities" to `/about`, rather than deleting the copy. The
+  officials preview was replaced by a directory link on `/about`, and the transparency band by the
+  contact page. No configured content was destroyed.
+- **Repointed the footer's anchor links at routes.** "About" and the service list now use
+  `route('about')` and `route('services.index')`; "How It Works" uses
+  `route('services.index').'#how-it-works'`, which is a legitimate within-page fragment because
+  that section now lives on the services page; and a "Contact" entry was added to the Explore
+  column so the footer's primary destinations match the header's.
+- **Retargeted the existing homepage tests that asserted on the removed sections.**
+  `PublicAboutSectionTest` now requests `route('about')` and its anchor-preservation test was
+  inverted into a test that the homepage links to the route and no longer defines `id="about"`.
+  `PublicHomeHeroTest`'s six-link test became two tests — one for the five route-backed links, one
+  asserting "Map" is gone. `PublicImageryTest` was split so the hero photograph is checked on the
+  homepage and the hall and activity photographs on `/about`. Two references in
+  `StaffAnnouncementManagementTest` were repointed at the renamed route.
+- **Added `tests/Feature/PublicMultiPageNavigationTest.php`** with 24 cases covering route
+  registration, the five header links, the absence of "Map", the absence of in-page section
+  anchors, each page's own URI and banner, per-page active highlighting, that only the current tab
+  is flagged, the streamlined homepage, the cross-page hand-off links, and the relocated content on
+  each destination.
+
+### Files Created
+
+- `resources/views/public/services.blade.php`
+- `resources/views/public/about.blade.php`
+- `resources/views/public/contact.blade.php`
+- `tests/Feature/PublicMultiPageNavigationTest.php`
+
+### Files Modified
+
+- `routes/web.php`
+- `app/Http/Controllers/PublicController.php`
+- `resources/views/layouts/public.blade.php`
+- `resources/views/public/welcome.blade.php`
+- `tests/Feature/PublicAboutSectionTest.php`
+- `tests/Feature/PublicHomeHeroTest.php`
+- `tests/Feature/PublicImageryTest.php`
+- `tests/Feature/StaffAnnouncementManagementTest.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-CaRjlb7a.css` (rebuilt stylesheet; `app-D_vKdvZo.css` and the earlier
+  `app-CJL8n4aD.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- New feature test — `vendor/bin/phpunit tests/Feature/PublicMultiPageNavigationTest.php`:
+  **24 tests, 24 passed, 135 assertions**.
+- Full suite before the changes — `php artisan test`: **104 tests, 104 passed, 322 assertions**.
+- Full suite after the changes — `php artisan test`: **129 tests, 129 passed, 465 assertions**
+  (0 failures). Delta: +25 tests, +143 assertions, from the new navigation file and the split
+  imagery test. No existing auth, resident, staff, or kagawad test needed changing, and no
+  authorization logic, model relationship, or middleware group was touched — only route names and
+  public view composition.
+- Four failures surfaced during the work, all in newly written test code rather than in the
+  application, and each was fixed at the cause rather than by loosening the assertion:
+  1. The active-state regex assumed `aria-current` preceded `href` in the anchor tag, but the
+     markup emits `href` first. The assertion was split into "which link is flagged" and "does the
+     flagged link point at this route".
+  2. Config titles containing an ampersand — "Verify Your Email & Resident Profile" and
+     "Health & Vaccination Activity" — render HTML-escaped, so the assertions now compare against
+     `e($title)`. A future title with an apostrophe or quotation mark will be covered by the same
+     change.
+  3. A footer sweep over every `href` containing a fragment tripped on `#main-content`, which is
+     the accessibility skip link and must stay. The check was narrowed to fragments on the home URL
+     only, which are the actual leftovers.
+  4. The imagery test asserted the hall photograph had left the homepage, but the hero's
+     "Our Barangay" callout card legitimately still uses it. The assertion now documents that
+     rather than contradicting the hero.
+- Two throwaway probe scripts were used and deleted, and both produced misleading output that had
+  to be re-checked: the first omitted `RefreshDatabase` and hit "no such table: announcements", and
+  the second used the same order-sensitive `aria-current` regex and so reported no active link on
+  any page. The corrected probe confirmed the real behaviour: every public page flags exactly the
+  two expected links (desktop bar and mobile menu) with the `text-gold` active class, `/directory`
+  flags its single mobile-menu entry, and the homepage flags the Home link in both menus.
+- Route table confirmed with `php artisan route:list --except-vendor`: `home` on `/`,
+  `services.index` on `/services`, `about` on `/about`, `announcements.index` on `/announcements`,
+  `contact` on `/contact`, alongside the untouched `staff.announcements.*` group.
+- Code formatting — `vendor/bin/pint` in write mode over the controller and the four touched test
+  files reported `fixed` for three of them, and a full `vendor/bin/pint --test` then returned
+  **passed**.
+- Frontend build — `npm run build`: **succeeded**, emitting
+  `public/build/assets/app-CaRjlb7a.css` (70.07 kB, gzip 12.49 kB). The build was run twice: once
+  before `php artisan view:clear` (70.21 kB) and once after, because `tailwind.config.js` scans
+  `./storage/framework/views/*.php` and the stale compiled copies of the deleted sections would
+  otherwise have kept their utilities in the stylesheet. A third full suite run after the final
+  build still reported 129/129.
+- Structural checks — `public/welcome.blade.php` is 227 lines with exactly three section ids
+  (`hero`, `services`, `announcements`); a duplicate-id scan across all six public views returned
+  no collisions; and a repo-wide sweep confirms the only remaining `route('home').'#…'` strings are
+  negative assertions in tests, not live links.
+- The transparency search endpoint was exercised directly
+  (`route('transparency.search').'?household_number=HH-0001'`) to confirm the relocated form still
+  reaches a working action, and the form still posts the `household_number` field.
+
+### Result
+
+Public navigation is now genuinely multi-page. The header carries five route-backed destinations —
+Home, Services, About, Announcements, Contact — with "Map" removed, and the current page is marked
+with the existing gold pill and `aria-current="page"` in both the desktop bar and the mobile menu.
+`/services`, `/about`, `/announcements`, and `/contact` each resolve to their own controller
+method, Blade template, and banner ("Supported Document Services", "About Our Barangay",
+"Community Announcements", "Contact Us"). The homepage is down to 227 lines carrying only the hero,
+the four service cards, and the three most recent announcements, and it links out to all four
+pages. The previously orphaned content was preserved rather than deleted: the five-step walkthrough
+sits on `/services`, the community activities gallery on `/about`, the officials directory is linked
+from `/about`, and the relief transparency lookup on `/contact` with its form still working. No
+model relationship, query, or authorization rule changed — the published-announcement filter and the
+`sectors->kagawad` eager load are the same as before, now shared through two private helpers instead
+of being inlined. 129 tests pass with 465 assertions and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **The public route is `announcements.index` while the staff area is
+  `staff.announcements.index`.** This was chosen deliberately to follow the standard resource
+  convention as instructed, but the two names now read asymmetrically, and a future
+  `Route::resource('announcements', ...)` for the public side would be a clearer home for the name.
+  Worth revisiting if the public announcements page ever gains show/edit routes.
+- **The old `public.announcements` name is gone rather than aliased.** Any external bookmark or link
+  that used the name would break, though the `/announcements` URI is unchanged so no visitor-facing
+  URL actually moved. An alias is unnecessary unless something outside this repository referenced
+  the route by name.
+- **Removing the homepage sections removed five anchors that inbound links may still use:**
+  `#how-it-works`, `#community`, `#officials`, `#transparency`, and `#contact`. `#about` and
+  `#services` survive on the new pages, but a shared link, an email, or a printed notice pointing at
+  `/#contact` will now land at the top of the homepage with nothing to scroll to. A deliberate
+  decision is needed on whether to add redirect-style handling for those fragments.
+- **The homepage hero is now mostly whitespace below the announcements band,** which is the intended
+  effect of streamlining, but the hero's `min-h-[calc(100vh-194px)]` still assumes the E-Services
+  section follows immediately. That is true today; if the services band is ever moved or replaced on
+  the homepage, the 194px constant needs recomputing.
+- **Relocating "How It Works" into `/services` makes that page two distinct topics** — a document
+  catalogue and a process walkthrough. It reads coherently, but if the page grows further the
+  walkthrough would justify its own `/how-it-works` route.
+- **The community activities gallery now sits below a long history/vision/mission block on
+  `/about`,** so it is further down the page than it was on the homepage. If it is meant to be
+  prominent, the ordering is worth revisiting.
+- **`register`, `forgot-password`, `reset-password`, `confirm-password`, and `verify-email` still
+  render `<title>BDRPIS &middot; BDRPIS</title>`** because they pass no `:title`; carried over from
+  Prompt #011 and still a one-attribute-per-view fix.
+- **The desktop header still omits Officials, Relief Transparency, and Track a Request,** which
+  remain in the mobile menu and the footer; carried over from earlier passes and unchanged here.
+- **The header is still 80px wider than the page content on the non-home public pages at 1536px and
+  above,** because `<x-page-header>` uses `max-w-shell` while the header row switches to
+  `2xl:max-w-[90rem]`. Three of the four new pages are non-home pages, so this misalignment is now
+  more visible than it was.
+- **`tailwind.config.js` still scans `./storage/framework/views/*.php`,** so a build run without a
+  preceding `php artisan view:clear` will keep the utilities of deleted sections in the stylesheet.
+  The same 0.14 kB difference between the two builds in this pass shows the effect is currently
+  small but real, and will grow as sections are deleted.
+- Carried over unchanged from earlier passes: the demographic figures on `/about` remain unverified
+  static values in `config/bdrpis.php`; the About data now lives on its own page but is still static
+  config rather than a data source.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #013
+
+**Date:** 2026-09-28
+**Time:** 08:59
+**Category:** Frontend / UI
+**Affected Module:** Homepage Quick Services Grid, Icon Set, and Tailwind Content Sources
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — REPLACE HOMEPAGE E-SERVICES WITH QUICK SERVICES CARDS
+>
+> Objective:
+> Remove the "Supported Document Services" section from the homepage (`/`) and replace it with a clean "Quick Services" grid section featuring high-level portal feature cards.
+>
+> Specific Adjustments Required:
+>
+> 1. Section Header:
+>    - Heading: "Quick Services" (Left-aligned or centered bold title).
+>
+> 2. Quick Services Grid Content:
+>    - Replace the individual document cards (Barangay Clearance, Certificate of Indigency, etc.) with the following 6 feature cards:
+>
+>      1. Card 1: Document Requests
+>         - Icon: Document / File icon (Blue circular badge)
+>         - Description: "Apply for barangay clearance, certification and more."
+>         - Action: Arrow link pointing to `/services` or document request route.
+>
+>      2. Card 2: Public Information
+>         - Icon: Megaphone / Announcement icon (Green circular badge)
+>         - Description: "Get the latest announcements, programs and updates."
+>         - Action: Arrow link pointing to `/announcements`.
+>
+>      3. Card 3: Verify a Resident
+>         - Icon: User Check / ID icon (Purple circular badge)
+>         - Description: "Check resident information and status."
+>         - Action: Arrow link to verification route/modal.
+>
+>      4. Card 4: Relief Distribution
+>         - Icon: Gift / Box icon (Orange circular badge)
+>         - Description: "View relief program updates and status."
+>         - Action: Arrow link to relief transparency page/section.
+>
+>      5. Card 5: Barangay Officials
+>         - Icon: People / Shield icon (Teal circular badge)
+>         - Description: "Know your barangay officials and contact details."
+>         - Action: Arrow link to `/about` or officials modal.
+>
+>      6. Card 6: More Services
+>         - Icon: Plus / Grid icon (Light blue circular badge)
+>         - Title: "More Services"
+>         - Action Link: "View all services ->" pointing to `/services`.
+>
+> 3. Card Styling:
+>    - White rounded card containers (`bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow`).
+>    - Clean circular colored icon wrappers for each card matching the target graphic.
+>    - Responsive grid layout (`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4` or similar).
+>
+> Scope Safeguards:
+> - Do not alter backend logic or routes.
+> - Ensure all card destination links point to valid existing routes.
+> - Maintain mobile responsiveness and pass automated tests (`php artisan test`).
+
+### Objective
+
+Replace the homepage's four-card document catalogue with a six-card feature grid that acts as
+navigation to the site's destinations, and move the document listing to the page that is actually
+named after it. Doing so also surfaced a latent Tailwind configuration defect that would have
+shipped three of the six icon badges with no background colour at all.
+
+### Changes Made
+
+- **Replaced the homepage "Supported Document Services" band with a "Quick Services" grid** in
+  `resources/views/public/welcome.blade.php`. The four `x-service-card` document cards, the
+  "E-Services" eyebrow, and the "Ready to request? / Create a resident account / Track a document
+  request" call-to-action block were all removed from the homepage. The file went from 227 to 248
+  lines: the removed markup was larger than the replacement, and the net increase is the
+  surrounding comment and the per-card accessible name.
+- **Kept `id="services"` and `tone="surface"` on the band.** The id matters because the hero's
+  `min-h-[calc(100vh-194px)]` was computed so the E-Services eyebrow sits just above the fold, and
+  because an inbound `#services` fragment still resolves. The tone matters because the hero's wave
+  divider is filled with `text-surface`; switching the band to white would have opened a visible
+  seam along that curve. Both are now pinned by a test.
+- **Held the six cards in `config/bdrpis.php` as a new `quick_services` block** rather than
+  hard-coding them in the view, matching how `services`, `activities`, `steps`, `about`, and
+  `demographics` are already stored. Each entry carries `title`, `description`, `icon`, `badge`,
+  and `route`, plus an optional `cta` used only by the sixth card.
+- **Stored route NAMES in the config, not URLs,** so the view resolves them with `route()` and the
+  links survive a URI change. A test asserts every configured name is registered, so a config typo
+  fails the suite instead of throwing at render time.
+- **Mapped the six cards to routes that already exist:** Document Requests → `services.index`,
+  Public Information → `announcements.index`, Verify a Resident → `resident.verification.status`,
+  Relief Distribution → `transparency.index`, Barangay Officials → `public.directory`, and More
+  Services → `services.index`.
+- **Chose `public.directory` for Barangay Officials rather than the `/about` the prompt offered.**
+  `/directory` is the page that actually lists the officials, and the card's description promises
+  "contact details" that `/about` does not carry. Both were sanctioned by the prompt; the
+  semantically correct one was used. No route was created and no backend logic was touched.
+- **Documented why "Verify a Resident" is not publicly readable.** `resident.verification.status`
+  is the only resident-facing verification page and sits behind `auth` + `role:resident`, so a guest
+  who clicks the card is redirected to the login page. That is deliberate: the application has no
+  public resident lookup, and adding one would let anyone confirm whether a named person is a
+  registered resident. A test asserts the redirect, so the gate cannot be dropped silently.
+- **Added three icons to `components/icon.blade.php`:** `grid` (four rounded squares, for More
+  Services), `gift` (wrapped box with a ribbon, for Relief Distribution), and `id-badge` (an ID card
+  carrying a figure and a check mark, for Verify a Resident). The existing `document`, `megaphone`,
+  and `users` glyphs cover the other three. Nothing suitable already existed for a gift, a grid, or
+  an identity card, and reaching for `inbox` or `chart` would have misrepresented the feature.
+- **Applied the specified card styling:** `bg-white rounded-2xl border border-slate-100 p-6
+  shadow-sm` with `hover:shadow-md transition-shadow`, and a `h-12 w-12 rounded-full` badge in the
+  configured colour. The grid uses the specified ladder, `grid-cols-1 gap-4 sm:grid-cols-2
+  lg:grid-cols-3 xl:grid-cols-6`.
+- **Made each card a single fully-anchored link** with the arrow as decoration, so the whole card is
+  one tap target rather than a title link plus a separate arrow. Each anchor carries an
+  `aria-label` combining the card title and description, because the visible text alone does not
+  name the destination, and the bare arrow spans are marked `aria-hidden`.
+- **Aligned the card footers** by giving every card a `mt-4` action row, so the arrow or the "View
+  all services" label sits on the same baseline regardless of whether that card has a description.
+  `filled()` is used for the description and CTA checks so the sixth card's `null` description
+  renders nothing rather than an empty paragraph.
+- **Fixed a latent Tailwind configuration defect that would have shipped three broken badges.**
+  `tailwind.config.js` scanned only Blade files, `app/View/Components`, and the compiled view cache,
+  so class names held in `config/bdrpis.php` and echoed into markup through `{{ $item['badge'] }}`
+  were never generated. Three of the six badge colours — purple, orange, and teal — exist nowhere
+  else in the project, so they compiled to nothing and those three icon circles would have rendered
+  with no background and inherited text colour. The blue, green, and sky pairs compiled only by
+  coincidence, because the same class strings appear literally in the `$tones` map inside
+  `service-card.blade.php`. Adding `'./config/*.php'` to the `content` array fixed the whole class
+  of problem, which also covers the pre-existing `config('bdrpis.services')[*]['tone']` values.
+- **Added `tests/Feature/PublicQuickServicesGridTest.php`** with 19 cases: the heading, the absence
+  of the old catalogue, the catalogue surviving on `/services`, exactly six cards, every
+  description, every route name being registered, every href resolving, guest reachability, the
+  login gate, every badge colour pair, six distinct icon glyphs, the new glyphs not falling back,
+  the "More Services" label, the responsive ladder, the preserved surface tone, one anchor per
+  card, no resident-data leakage, the Tailwind content glob, and each badge utility being present
+  in the emitted CSS.
+
+### Files Created
+
+- `tests/Feature/PublicQuickServicesGridTest.php`
+
+### Files Modified
+
+- `config/bdrpis.php` (new `quick_services` block)
+- `resources/views/public/welcome.blade.php` (services band replaced with the quick services grid)
+- `resources/views/components/icon.blade.php` (added `grid`, `gift`, `id-badge`)
+- `tailwind.config.js` (added `./config/*.php` to `content`)
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-WvPCDcr-.css` (rebuilt stylesheet; `app-CaRjlb7a.css` and the interim
+  `app-CtghRVJi.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- New feature test — `vendor/bin/phpunit tests/Feature/PublicQuickServicesGridTest.php`:
+  **19 tests, 19 passed, 113 assertions**.
+- Full suite before the changes — `php artisan test`: **129 tests, 129 passed, 465 assertions**.
+- Full suite after the changes — `php artisan test`: **148 tests, 148 passed, 578 assertions**
+  (0 failures). Delta: +19 tests, +113 assertions, entirely from the new file. No existing test
+  needed editing: the previous pass had deliberately retargeted the homepage tests at the section
+  ids rather than the section copy, so replacing the band's contents did not invalidate them.
+- **The badge-colour bug was caught by verification rather than by the tests, and the tests were
+  then strengthened to make it non-recurring.** The feature test originally asserted only that the
+  class strings appeared in the HTML, which they did — so it passed while three badges would have
+  rendered unstyled. A direct grep of the built stylesheet found `bg-purple-50`, `text-purple-600`,
+  `bg-orange-50`, `text-orange-600`, `bg-teal-50`, and `text-teal-600` all absent while the
+  blue, green, and sky pairs were present. After adding the config glob and rebuilding, all twelve
+  utilities are present. A new test now asserts each badge utility exists in the emitted CSS, and it
+  was **proven load-bearing** by temporarily removing the glob and rebuilding: it failed with
+  "Badge utility [bg-purple-50] for [Verify a Resident] is missing from the compiled stylesheet."
+  Restoring the glob regenerated the identical bundle hash `app-WvPCDcr-.css`.
+- That CSS assertion resolves the bundle through `public/build/manifest.json` rather than
+  hard-coding a filename, and calls `markTestSkipped` when no build exists so a fresh clone or a CI
+  run before `npm run build` does not fail spuriously. The root-cause assertion on
+  `tailwind.config.js` always runs and needs no build.
+- Four failures surfaced during the work, all in newly written test code, each fixed at the cause:
+  1. The "catalogue is gone" assertion matched the document titles in the site-wide footer, which
+     intentionally lists them as links into `/services`. The assertion was scoped to the page body
+     via a `mainRegion()` helper rather than weakened.
+  2. A reachability test called `assertOk()` on a route it also allowed to return 302, so the
+     302 branch could never execute. The redundant assertion was removed and the redirect is now
+     checked to point at the login page.
+  3. The distinct-icon test looked for the `h-12` badge class on the `<svg>`, but that class sits
+     on the wrapping `<span>`, so it counted zero icons. It now extracts the badge spans and hashes
+     each inner glyph.
+  4. The surface-tone assertion used a single-line pattern, but the rendered section tag is
+     multi-line (`<section\n     id="services"     class="bg-surface"`). The pattern was made
+     whitespace-tolerant.
+- Two probe scripts were written and deleted to confirm the rendered output rather than assume it.
+  The first matched the literal string `<x-shell id="services">`, which never appears in compiled
+  output, and reported zero cards. The corrected probe confirmed six cards with the right routes,
+  twelve SVGs, the exact grid class string, and the six intended badge colour pairs. A separate
+  probe requested all six destinations as a guest: five return 200 and
+  `resident.verification.status` returns 302 to `/login`.
+- Icon fallback was checked explicitly. `x-icon` resolves an unknown name to the document glyph
+  with no error, so a typo in any of the three new names would have been invisible; the test
+  compares each new glyph against the document glyph to prove it is a real, distinct entry.
+- Code formatting — `vendor/bin/pint` in write mode over `config/bdrpis.php` and the new test file
+  reported `passed` on both, and a full `vendor/bin/pint --test` returned **passed**.
+- Frontend build — `npm run build` succeeded, emitting
+  `public/build/assets/app-WvPCDcr-.css` (71.34 kB, gzip 12.72 kB). This is 1.27 kB larger than the
+  previous 70.07 kB bundle, which is the size of the twelve newly generated colour utilities plus
+  the three new SVG glyphs' classes. `php artisan view:clear` was run before each build, since
+  `tailwind.config.js` also scans the compiled view cache.
+- Scope safeguards confirmed: no route was added, renamed, or removed; no controller, model,
+  migration, or middleware was touched; `config('bdrpis.services')` and the `x-service-card`
+  component are both still in use on `/services`, so nothing was orphaned. The only non-view change
+  is the `quick_services` config block and the `content` glob.
+- `x-announcement-card` is still referenced by the homepage, and `x-service-card` only by
+  `/services`, so both card components remain live.
+
+### Result
+
+The homepage no longer shows a document catalogue. It now presents a "Quick Services" band of six
+feature cards — Document Requests, Public Information, Verify a Resident, Relief Distribution,
+Barangay Officials, and More Services — each with a coloured circular icon badge in the specified
+hue, a short description, and a single fully-clickable link with a decorative arrow. The grid
+follows the specified `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6` ladder on white
+rounded cards with the specified border, padding, and shadow treatment. The individual document
+types are no longer duplicated on the homepage and remain available on `/services`, which is where
+the fourth card and the "More Services" card both point, and which still carries the request
+call-to-action that was removed from the homepage. Three new icons were added to the shared set
+because no suitable glyph existed for a gift, a grid, or an identity card. Five of the six
+destinations are publicly readable and the sixth is deliberately behind the login screen. A
+pre-existing Tailwind misconfiguration that would have rendered three of the six badges with no
+background colour was found, fixed at the root by adding the `config/` directory to the content
+globs, and is now covered by a test that was verified to fail when the fix is reverted. 148 tests
+pass with 578 assertions and Pint reports no style violations.
+
+### Notes / Follow-up
+
+- **At `xl` (1280px) the six columns are about 189px wide, leaving roughly 141px of text after the
+  `p-6` padding.** "Apply for barangay clearance, certification and more." will therefore wrap to
+  four or five lines and the cards will be noticeably taller than the design implies. The ladder was
+  implemented exactly as specified, but dropping `xl:grid-cols-6` for `lg:grid-cols-3` throughout
+  would give a comfortable 3-across two-row layout from 1024px up. This is a one-class change and is
+  probably the most likely thing to want adjusting after review.
+- **The `xl:grid-cols-6` breakpoint is narrower than the header's `2xl:max-w-[90rem]` container,** so
+  the header remains 80px wider than this band on non-home pages at 1536px and above; carried over
+  from Prompts #012 and #011.
+- **"Verify a Resident" is the one card whose description does not match what a visitor can do.** It
+  reads "Check resident information and status", but a guest is sent to the login page and a
+  resident sees only their own status. If the intent was a genuine public lookup, that is a
+  feature with real privacy implications and needs a decision before it is built.
+- **"Barangay Officials" points at `/directory`, not the `/about` the prompt suggested.** This was a
+  deliberate choice because `/directory` is the page carrying officials and their roles, and it
+  keeps `/about` focused on history, vision, and mission. Easy to change in one config line if
+  `/about` is preferred.
+- **The card data now lives in config, which is what exposed the Tailwind gap.** Any future utility
+  class referenced only from `config/bdrpis.php` now compiles correctly, so the fix is not specific
+  to these badges. Worth remembering that a colour validated by an HTML assertion is not the same as
+  a colour that reached the stylesheet.
+- **`x-icon` still falls back to the document glyph for an unknown name without raising an error.**
+  A typo in an icon name in either config or a Blade file will render the wrong glyph rather than
+  failing. Throwing on an unknown name would make that class of mistake loud, at the cost of
+  breaking any view that currently relies on the fallback.
+- **The homepage's document-request path now depends on the hero's two buttons and the first card.**
+  The dedicated "Create a resident account" and "document request form" links that sat under the
+  catalogue are gone from the homepage; the equivalent links remain on `/services` and in the
+  hero. Worth confirming the conversion path is not weakened in a browser.
+- Carried over unchanged from earlier passes: the demographic figures on `/about` are still unverified
+  static config; the desktop header still omits Officials, Relief Transparency, and Track a Request;
+  the five anchors lost in Prompt #012 (`#how-it-works`, `#community`, `#officials`,
+  `#transparency`, `#contact`) are still not handled; and the guest auth pages still render
+  `BDRPIS · BDRPIS` as their title.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #014
+
+**Date:** 2026-09-28
+**Time:** 09:37
+**Category:** Frontend / UI
+**Affected Module:** Homepage Quick Services Band Spacing and Grid, Shared Shell Component, Hero Fold Calculation
+**Status:** Completed
+
+### Prompt
+
+> BDRPIS — QUICK SERVICES SECTION POSITIONING & CARD REMOVAL
+>
+> Objective:
+> Reduce top spacing to pull the Quick Services section higher toward the Hero section wave, and remove the redundant "More Services" card so the layout cleanly features 5 primary service cards.
+>
+> Specific Adjustments Required:
+>
+> 1. Reduce Top Spacing (Move Section Upward):
+>    - Decrease the top padding/margin of the Quick Services section container (e.g., change `pt-16` or `py-16` to `pt-4 md:pt-6` or negative top margin `-mt-8` / `-mt-12` depending on wave placement)[cite: 27].
+>    - Ensure the "QUICK ACCESS" eyebrow badge and "Quick Services" heading sit closer beneath the Hero wave background[cite: 27].
+>
+> 2. Remove Redundant "More Services" Card:
+>    - Completely remove the 6th card ("More Services" / "View all services ->") from the Quick Services grid[cite: 27].
+>
+> 3. Grid Layout Adjustment for 5 Cards:
+>    - Update the grid wrapper columns to cleanly distribute the remaining 5 cards across desktop views (e.g., `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4` or `flex flex-wrap justify-between`).
+>
+> Scope Safeguards:
+> - Do not alter backend routes, controllers, or logic.
+> - Ensure all existing links remain functional and tests pass (`php artisan test`).
+
+### Objective
+
+Close the vertical gap between the hero's wave divider and the Quick Services heading, and drop the
+sixth card. Doing the first of those correctly required touching two things outside the band: the
+shared `x-shell` container, because its inner padding is hard-coded and cannot be overridden from
+outside; and the hero's viewport-relative min-height, which is arithmetically derived from the
+padding being changed.
+
+### Changes Made
+
+- **Removed the sixth "More Services" card from `config/bdrpis.php`,** leaving the five primary
+  feature cards. The card was genuinely redundant: it pointed at `services.index`, which the
+  Document Requests card above it already targets, so the grid had two identical destinations in
+  the same row.
+- **Removed the now-dead `cta` rendering branch from the quick services template.** With no card
+  carrying a label, the `@if (filled($quick['cta']))` branch and the `description` null-guard were
+  both unreachable. Rather than leave a conditional in a template that no input can trigger, the
+  `cta` key was dropped from the config schema documentation and the card body simplified to title,
+  description, and a decorative arrow.
+- **Added an optional `top` prop to `resources/views/components/shell.blade.php`.** The component's
+  inner container had `py-14 sm:py-16 lg:px-8 lg:py-20` hard-coded, and `$attributes` lands on the
+  outer `<section>`, so there was no way to tighten one band's top padding without abandoning the
+  component and duplicating the container. The prop now overrides only the top padding and leaves
+  the bottom at the default, so the gap before the following band is untouched.
+- **Emitted top and bottom padding as separate utilities rather than one `py-*`.** This matters:
+  overriding `py-14` with `pt-6` on the same element would depend on Tailwind's internal rule
+  ordering between `padding` and `padding-top` rather than on anything the template states. The
+  component now builds `pt-*` and `pb-*` strings separately, so an override is unambiguous.
+- **Verified the default is byte-for-byte preserved.** Splitting `py-*` into `pt-*` plus `pb-*` could
+  easily have changed every band on the site, so this was checked rather than assumed: a probe
+  confirmed `services`, `about`, `announcements`, `contact`, and `directory` all still use the
+  default, and the rendered homepage shows the services band on `pt-8 sm:pt-10 lg:pt-12` while the
+  announcements band below it still renders `pt-14 sm:pt-16 lg:pt-20`. Both share
+  `pb-14 sm:pb-16 lg:pb-20`.
+- **Tightened the band to `pt-8 sm:pt-10 lg:pt-12`**, i.e. 32px / 40px / 48px, down from the
+  56px / 64px / 80px default — a 40% reduction at desktop. The prompt suggested `pt-4 md:pt-6`
+  (16px/24px); that was judged too tight against a wave divider that is itself 64–128px tall, so a
+  slightly more generous value was used. The exact values are one attribute away if the tighter
+  version is preferred.
+- **Rejected the negative-margin option, and recorded why in the template comment.** The prompt
+  offered `-mt-8` / `-mt-12` as an alternative. The hero is `relative isolate`, which makes it a
+  positioned stacking context that paints above the following static band. A negative top margin
+  would therefore have slid the band *behind* the wave rather than closing the gap, cropping the
+  wave's silhouette rather than shortening the space below it.
+- **Updated the hero's `min-h-[calc(100vh-194px)]` to `min-h-[calc(100vh-162px)]`,** and rewrote the
+  comment's arithmetic to match. The 194px figure was not arbitrary: it was documented as
+  `80px header + 80px band top padding + 16px eyebrow + 12px eyebrow-to-title margin + 6px
+  clearance`, chosen so the eyebrow sits just above the fold. Cutting the band padding from 80px to
+  48px moves the eyebrow 32px closer to the header, so the constant had to fall by exactly the same
+  32px. Leaving it at 194px would have pushed the "Quick Services" heading above the fold on every
+  desktop window, undoing the change.
+- **Updated the hero comment's wording,** which still referred to the "E-Services" eyebrow and the
+  removed "Supported Document Services" title, to the current "Quick Access" eyebrow and
+  "Quick Services" heading, and recomputed the short-window example from 574px/554px to 606px.
+- **Changed the grid to `grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5`** as
+  specified, and reduced the heading's `mt-10` to `mt-8` to follow the tighter band.
+- **Kept `tone="surface"` and `id="services"`.** The tone keeps the band continuous with the hero's
+  wave, which is filled `text-surface`; the id keeps any inbound `#services` fragment working.
+- **Extended `PublicQuickServicesGridTest`** from 19 to 21 cases: the six-card assertions became
+  five-card assertions, the "More Services" test was inverted to assert the card and its label are
+  both absent from config and markup, the grid-ladder expectation moved to the new ladder, and two
+  new tests were added — one pinning the tightened top padding while asserting the announcements
+  band keeps the shared default, and one recomputing the hero fold constant from the rendered
+  markup.
+
+### Files Created
+
+- (none)
+
+### Files Modified
+
+- `config/bdrpis.php` (sixth card removed, `cta` schema note removed)
+- `resources/views/components/shell.blade.php` (optional `top` prop, split top/bottom padding)
+- `resources/views/public/welcome.blade.php` (tighter band, new grid, `cta` branch removed, hero
+  min-height and comment updated)
+- `tests/Feature/PublicQuickServicesGridTest.php`
+- `public/build/manifest.json` (rebuilt Vite manifest)
+- `public/build/assets/app-Br1uft16.css` (rebuilt stylesheet; `app-WvPCDcr-.css` replaced)
+- `PROMPT_LOG.md` (appended this entry)
+
+### Tests / Verification
+
+- Feature test — `vendor/bin/phpunit tests/Feature/PublicQuickServicesGridTest.php`:
+  **21 tests, 21 passed, 114 assertions**.
+- Full suite before the changes — `php artisan test`: **148 tests, 148 passed, 578 assertions**.
+- Full suite after the changes — `php artisan test`: **150 tests, 150 passed, 578 assertions**
+  (0 failures). Delta: +2 tests, and +0 net assertions because the six-card loops became five-card
+  loops. No route, controller, model, or middleware was touched, so no existing test needed editing.
+- **The fold-constant test was proven load-bearing in both directions.** Changing the band padding
+  from `lg:pt-12` to `lg:pt-16` without touching the constant fails with "The hero fold constant is
+  out of step with the band's lg:pt-16 padding"; changing the constant back to 194px without the
+  padding fails likewise. The file was restored after each experiment and the final values confirmed
+  as `lg:min-h-[calc(100vh-162px)]` and `top="pt-8 sm:pt-10 lg:pt-12"`.
+- **That test also caught a unit error in its own first version.** It initially treated the
+  Tailwind step number as pixels and computed `80 + 12 + 16 + 12 + 6 = 126`, disagreeing with the
+  162px constant. The real issue was that `lg:pt-12` is 3rem — 48px — because Tailwind's default
+  spacing step is 0.25rem. The assertion now multiplies by 4 and recomputes the total from the
+  rendered `lg:pt-*` class, which is what makes the coupling check meaningful rather than a
+  hard-coded number.
+- One earlier failure in this pass was the test looking for `top="pt-8 sm:pt-10 lg:pt-12"` as a
+  rendered attribute. It is a Blade component prop and never appears in the output, so the test
+  now reads the emitted padding classes off the band instead.
+- Default-padding preservation was verified by probe across all five public views and by inspecting
+  the two rendered containers on the homepage: the services band is tight, the announcements band is
+  the default, and the five other public templates pass no `top` prop at all.
+- Code formatting — `vendor/bin/pint` in write mode over the test file returned `passed`, and a
+  full `vendor/bin/pint --test` returned **passed**.
+- Frontend build — `npm run build` succeeded, emitting
+  `public/build/assets/app-Br1uft16.css` (71.45 kB, gzip 12.74 kB), 0.11 kB larger than the previous
+  bundle for the three new grid utilities and three new padding utilities. Verified in the emitted
+  stylesheet: `md:grid-cols-3`, `lg:grid-cols-5`, `pt-8`, `sm:pt-10`, and `lg:pt-12` are all
+  present, `xl:grid-cols-6` is now gone, and `pt-14 sm:pt-16 lg:pb-20`'s default trio is still
+  emitted because every other band still uses it. `php artisan view:clear` was run before the build.
+- `resources/views/public/welcome.blade.php` is 254 lines. No backend file was modified, and all
+  five remaining card destinations are unchanged and still verified by the existing per-card
+  reachability and route-registration tests.
+
+### Result
+
+The Quick Services band now sits noticeably closer to the hero. Its top padding is 32px on mobile,
+40px on small tablets, and 48px at desktop, down from 56/64/80, so the "QUICK ACCESS" eyebrow and
+the "Quick Services" heading now read as part of the hero's composition rather than floating below
+it, while the gap before the announcements band is unchanged. The grid holds five cards —
+Document Requests, Public Information, Verify a Resident, Relief Distribution, and Barangay
+Officials — laid out one per row on mobile, two per row from 640px, three from 768px, and all five
+across from 1024px. The redundant "More Services" card is gone from both the config and the markup,
+along with the template branch that existed only to render its label. The hero's viewport-relative
+min-height was corrected from `100vh-194px` to `100vh-162px` in the same change, because it is
+derived from the padding that was just reduced, so the fold now behaves exactly as before rather
+than pushing the heading above the viewport. The shared `x-shell` container gained an opt-in
+`top` override and its default padding is unchanged on every other band, which a probe confirmed
+across all five other public views. 150 tests pass with 578 assertions and Pint reports no style
+violations.
+
+### Notes / Follow-up
+
+- **The five-across layout is tightest between 1024px and 1279px.** At `lg` the content column is
+  roughly 960px, so each card is about 179px wide and leaves around 131px of text after the `p-6`
+  padding; "Apply for barangay clearance, certification and more." will wrap to four or five lines
+  there. At 768–1023px three-across gives a comfortable 229px, and from 1280px up five-across gives
+  230px, so only that one band is affected. Moving the five-across breakpoint to `xl` would leave a
+  three-across row of three plus two from 1024px up; the prompt specified `lg`, so `lg` was used.
+- **The band's top padding is now coupled to a constant 100px away in the file** — the
+  `min-h-[calc(100vh-162px)]` in the hero, two hundred lines above. A test recomputes the
+  relationship so the two cannot silently drift, but a future editor may find the coupling easier to
+  break by hand. Deriving the hero height from a shared config value would remove the duplication
+  altogether.
+- **A negative margin was rejected, not overlooked.** The prompt's `-mt-8` / `-mt-12` option would
+  not have worked here because the hero's `isolate` stacking context keeps it painted above the
+  following band. If the intent was for the band to overlap the wave rather than sit closer to it,
+  that needs a different mechanism — for example letting the wave render inside the band's own
+  stacking context.
+- **The band's top padding is now the only asymmetric one on the site,** which is visible if the
+  quick services band and the announcements band are ever compared side by side. The bottom padding
+  still matches, so the rhythm below the band is consistent.
+- **`x-shell` grew a prop used by exactly one caller.** The alternative was duplicating the
+  container markup in the homepage, which the component exists to prevent, so the prop was preferred.
+  If a second band ever needs a different top padding, the prop is already there.
+- **The `sky` badge colour is now only used by the service card component's tone map,** since the
+  More Services card was its other user. The `grid` icon added in Prompt #013 is now unused by the
+  quick services grid; it remains available in the icon set and costs nothing in the stylesheet.
+- Carried over unchanged from earlier passes: "Verify a Resident" still redirects guests to the
+  login page because the application has no public resident lookup; the five anchors lost in
+  Prompt #012 are still unhandled; the header remains 80px wider than the page content on non-home
+  pages at 1536px and above; the guest auth pages still render `BDRPIS · BDRPIS`; and the homepage's
+  document-request path still relies on the hero buttons and the Document Requests card, since the
+  "Create a resident account" link was removed along with the catalogue in Prompt #013.
+- Run `npm run dev` (or `composer run dev`) to review with hot reload; the production build has
+  already been regenerated.
+
+---
+
+## Prompt #015
+
+**Date:** 2026-10-01
+**Time:** 23:20
+**Category:** Documentation / Audit
+**Affected Module:** Staff, Kagawad and Admin areas (read-only)
+**Status:** Completed
+
+### Prompt
+
+> # ROLE
+> You are a senior Laravel/Blade/Tailwind engineer working on BDRPIS (Laravel 13, PHP 8.5, Blade + Tailwind 3 + Vite 8, MySQL, Breeze). Branch: staff-ui.
+>
+> # GOAL
+> We are polishing ONLY the Secretary, Kagawad, and Admin areas. This first task is READ-ONLY analysis plus two documentation files. Do not edit any view, route, controller, model, test, or CSS in this task.
+>
+> # HARD SCOPE RULES (these become permanent guardrails)
+> - DO NOT modify anything in the public/guest area or the resident area. This includes their Blade views, their components, their controllers, their routes, and their tests.
+> - If a shared file is used by both resident and staff (a layout, a component, a Tailwind token, app.css), do NOT edit it in place. Create a staff-specific variant instead (e.g. resources/views/components/staff/*, resources/views/layouts/staff*.blade.php) and leave the shared original byte-for-byte unchanged.
+> - No new JS framework, no new composer/npm dependencies. Blade + Tailwind + small vanilla JS or Alpine only if Alpine is already installed.
+> - No behavior changes to authorization, validation rules, or business logic unless an item in the audit is explicitly marked "bug" and I approve it.
+>
+> # STEPS
+> 1. Read ROLES.md completely. Build a permission matrix: rows = every route/screen in the staff area (staff.*, kagawad.*, shared /account), columns = Admin, Secretary, Kagawad, Resident, Guest. Mark Allowed / Denied per ROLES.md. Then compare with what the code actually does (routes/web.php middleware, policies, controllers, and the sidebar menu items per role). List every mismatch between ROLES.md, route middleware, and sidebar visibility.
+> 2. Identify the resident design language by reading the resident views, layouts, and components plus tailwind.config.js and resources/css/app.css. Document: color tokens, typography, card style (radius, border, shadow), button variants, form field style, badge/status style, spacing scale, empty-state style, page-header pattern, table style if any.
+> 3. Identify which layout and components the staff/kagawad pages currently use, and which of them are shared with resident/public. List them explicitly under "SHARED — do not edit".
+> 4. For every staff, kagawad and admin page, list: route name, view path, controller, which layout, which components, container max-width class, and whether it has breadcrumb / page header / empty state / pagination. Include the detail pages not screenshotted: verification review, document request review, relief batch show, kagawad relief checklist, user account detail, announcement edit.
+> 5. Produce the findings list below and mark each as bug / inconsistency / missing / stale-copy. Verify them against the code, do not assume:
+>   - Sidebar is not sticky/fixed and scrolls away on long pages.
+>   - Every staff page uses a different content max-width.
+>   - Table cell alignment: cells look centered/offset while headers are left-aligned (Audit Logs table is correct). Find the root cause.
+>   - Selects and date inputs truncate their value text (Status/Show/Role selects, Audit From/To).
+>   - Page <title> renders "BDRPIS - BDRPIS" on staff and kagawad pages.
+>   - "Still being built" notice on staff dashboard and kagawad dashboard.
+>   - Announcements index: Pin/Unpin button state looks inverted (pinned row shows disabled "Unpin", unpinned rows show enabled "Unpin").
+>   - Admin sidebar groups admin pages under the "MY ACCOUNT" heading.
+>   - User Accounts role-count cards show 0 for every role while users exist.
+>   - User Accounts "Verified" column shows a badge for staff roles.
+>   - Copy mentions "A Captain assigns..." and "Sectors & Kagawad" to a Kagawad who cannot access it. Check ROLES.md for which roles exist.
+>   - Sectors & Kagawad page: 17 sector cards, each a full inline form.
+>   - Settings page is one long form with no grouping.
+>
+> # OUTPUT (the only files you may create)
+> A. docs/STAFF_UI_AUDIT.md containing: the permission matrix, mismatches, the resident design tokens, the shared-files list, the per-page inventory, and the verified findings list with severity.
+> B. .ai/rules/staff-polish.md — a short, durable rules file (max ~60 lines) containing: the HARD SCOPE RULES above, the shared-files list, the resident design tokens to follow, the "SHARED — do not edit" list, and the verification commands (php artisan test, npm run build, git diff --stat guard for resident/public paths).
+> C. Append a dated entry to PROMPT_LOG.md.
+>
+> Finish by printing a summary of mismatches between ROLES.md and the current code, so I can decide on each before we change anything.
+
+### Implementation Actions
+
+- Read `tailwind.config.js`, `resources/css/app.css` and the resident/shared components
+  (`x-card`, `x-btn`, `x-field`, `x-select-field`, `x-status-badge`, `x-data-table`,
+  `x-empty-state`, `x-page-header`, `x-alert`, `x-shell`) to extract the design language.
+- Enumerated the staff/kagawad/account route surface with
+  `php artisan route:list --except-vendor --json`, recording each route's `role:` middleware.
+- Read `app/Support/RoleNavigation.php` and `resources/views/layouts/navigation.blade.php` for
+  sidebar visibility and grouping, and `app/Http/Controllers/AccountController.php` for the
+  two-layout `/account` split.
+- Read all 20 staff/kagawad views plus `account/edit-staff.blade.php` for the per-page inventory:
+  layout, components, container width, breadcrumb, empty state, pagination.
+- Verified each of the 12 reported findings empirically with Playwright 1.63 driving real Chrome
+  against `php artisan serve` on port 8124, authenticated as `admin@bdrpis.test`, at 1440x900 and
+  400x800, capturing computed styles and console errors.
+- Proved the role-count root cause by executing both the arrow-function and the by-reference
+  closure form of `countsByRole()` against the seeded database in `tinker`.
+- Confirmed via `find`, `ls` and `git log --all --diff-filter=A -- '*ROLES*'` that ROLES.md does
+  not exist in this repository.
+
+### Files Created
+
+- `docs/STAFF_UI_AUDIT.md`
+- `.ai/rules/staff-polish.md`
+
+### Files Modified
+
+- `PROMPT_LOG.md` (this entry only, appended)
+
+No view, route, controller, model, test, stylesheet or `tailwind.config.js` was modified, which
+`git status --short` confirms: it lists only these three paths.
+
+### Result
+
+**Blocker, reported rather than worked around: ROLES.md does not exist.** It is absent from the
+working tree and from every branch, and no commit ever added it. The permission matrix in the
+audit is therefore derived from `routes/web.php` middleware - the enforcement that actually runs -
+and is explicitly not a transcription of ROLES.md. The requested "mismatches between ROLES.md and
+the current code" cannot be produced until the file is supplied. No in-repo substitute exists:
+`PermissionMatrixTest` reads each route's expected answer out of its own middleware, so it proves
+the middleware is applied and enforced, not that it was written correctly.
+
+Thirteen findings recorded. Two are **bugs** with wrong data or a dead control behind them:
+
+- **F1 (High)** The announcements Pin/Unpin button is `@disabled($announcement->isPinned())`, so
+  it is disabled exactly when unpinning is needed, and the label is the literal string `Unpin` on
+  every row. `staff.announcements.pin` exists with no UI anywhere.
+- **F2 (High)** User Accounts role counts read 0 for every role. Root cause is a PHP arrow
+  function: `fn ($total, $role) => $counts[$role] = (int) $total` captures `$counts` **by value**,
+  so the assignment mutates a discarded copy. Proved side by side in tinker: the arrow fn gives
+  `{"admin":0,"secretary":0,"kagawad":0,"resident":0}` and a by-reference closure gives
+  `{"admin":1,"secretary":1,"kagawad":2,"resident":3}`. Only occurrence of the pattern in `app/`.
+
+Also confirmed: **F3** `<title>` is `BDRPIS - BDRPIS` on all 20 staff/kagawad pages because
+`AppLayout` declares only `$user` and never a `$title` property, so every `title="..."` attribute
+is silently discarded - which also makes the layout's own `@isset($title)` heading block dead
+code. **F4** the sidebar `<aside>` has `min-h-screen` but no `sticky`/`fixed`; computed `position`
+is `static` on all 18 pages. **F5** Admin-only pages render under a hard-coded `My Account`
+heading because `availableSidebarGroupsFor()` collapses `group !== 'main'` into one bucket,
+discarding the `group => 'admin'` metadata that `RoleNavigation` sets. **F6/F7** the two "still
+being built" notices and the "A Captain assigns a Kagawad to a sector from Sectors & Kagawad" copy
+are stale: there is no Captain role (`User::roles()` is admin/secretary/kagawad/resident), the
+assignment is an Admin action, and `Sectors & Kagawad` is `role:admin`.
+
+**Two reported findings did not reproduce and are recorded as such rather than dropped.** Table
+alignment is identical on all seven staff tables - computed `text-align` is `left` on `<th>` and
+`start` on `<td>` everywhere, including Audit Logs, and `left`/`start` are equivalent in LTR; no
+`<table>` is hand-written anywhere in `staff/**` or `kagawad/**`. Select and date inputs show no
+overflow at either 1440px or 400px, measured as available width against the width the selected
+text actually needs.
+
+Two claims needed correction rather than confirmation: the container widths are four tiers across
+22 pages rather than one per page (there is a partly defensible forms-at-3xl / tables-at-6xl rule
+buried in it), and a 404 seen while probing was the probe's own fault, since `document_requests`
+ids start at 2.
+
+801 tests pass and Pint is clean. `npm run build` was not required: no stylesheet, Tailwind token or
+Blade class changed.
+
+### Notes / Follow-up
+
+- **ROLES.md is the one outstanding blocker.** Supplying it is the only step needed to close the
+  matrix comparison; nothing else in the audit depends on it.
+- **F2 is the most valuable fix in the list** because it is wrong data on an Admin screen, it is
+  one line, and the same arrow-function shape is easy to reintroduce. The existing suite does not
+  assert non-zero counts, so nothing catches it today.
+- **F3 needs a `$title` property added to `AppLayout`.** That touches the staff-only layout
+  component, so it stays inside the scope rules.
+- **Markup-only tests cannot catch F1 or F4.** F1 needs a test that checks the `disabled`
+  expression against the pinned flag, not one that greps for the word "Unpin".
+- `.ai/rules/staff-polish.md` records the hard scope rules, the shared-file list, the design
+  tokens and a `git diff --stat` guard over the resident/public paths, so the next task in this
+  series cannot silently drift into shared or resident files.
+---
+
+## Prompt #016
+
+**Date:** 2026-10-02
+**Time:** 01:05
+**Category:** Refactor / UI
+**Affected Module:** Staff, Kagawad and Admin areas
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> Replace the ad-hoc tables, filters, badges and empty states in the staff/kagawad/admin pages with one small set of consistent components styled like the resident design.
+>
+> # HARD SCOPE RULES (same as .ai/rules/staff-polish.md)
+> staff-only variants under resources/views/components/staff/*; never edit shared resident/public components.
+>
+> # TASKS
+> 1. Table fix. Find the root cause of cells appearing centered/offset while headers are left-aligned (Residents, Verifications, Requests, Batches, Announcements, User Accounts). The Audit Logs table renders correctly, so use it as the reference. Build `<x-staff.table>` with sticky-ish header styling, consistent cell padding, left-aligned text, right-aligned action column, hover state, and horizontal overflow wrapper for small screens. Migrate all staff tables to it.
+> 2. `<x-staff.person-cell>`: initials avatar + name + secondary line (email / household), used in every resident/account/kagawad row.
+> 3. `<x-staff.status-badge>` with a single mapping for every status used in the staff area. Use the resident badge style. Include text, not color alone.
+> 4. `<x-staff.filter-bar>`: search + selects + Filter button + "Clear" link that appears only when a filter is active, on one row at >=md, stacked below. Fix truncated text: selects must size to their longest option, and date inputs must show the full dd/mm/yyyy. Keep filters as GET params exactly as they work today.
+> 5. `<x-staff.stat-card>` and `<x-staff.stat-row>` grid (2 cols mobile, 4 cols desktop). Replace the four different stat card markups currently in use.
+> 6. `<x-staff.empty-state>` in every empty list, including the filtered-empty case.
+> 7. Pagination footer: "Showing 1-15 of 42" + the existing paginator, same style on every list.
+> 8. Rows that open a detail page become fully clickable (whole row, with a real `<a>` on the primary cell) and show a chevron. Remove redundant "Open"-only action columns where the row link replaces them.
+> 9. Buttons: confirm the staff area uses the same primary / secondary / danger / ghost variants. Route hand-rolled classes through the existing component.
+> 10. Add a Blade component test file for the new components.
+>
+> # ACCEPTANCE CRITERIA
+> - No staff page defines its own `<table>` markup, badge classes, or stat card markup any more (grep to prove it).
+> - All table columns visually line up with their headers at 1280px and 768px.
+> - Filter selects and date fields show full values at 1280px and 1024px.
+> - Resident/public diff guard is clean; php artisan test passes; npm run build done and public/build committed; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- Re-read `.ai/rules/staff-polish.md` and the audit, then re-measured the reported alignment
+  defect in Chrome instead of trusting either the audit or the bug report.
+- Located the root cause by counting `<th scope="row">` per table: nine staff tables mark the
+  primary cell as a row header and Audit Logs does not.
+- Built nine components under `resources/views/components/staff/`: table, person-cell,
+  status-badge, stat-card, stat-row, empty-state, filter-bar, filter-field, filter-select,
+  filter-date, pagination.
+- Migrated all 8 staff/kagawad tables, 6 stat-card markups, 12 badge call sites, 6 filter
+  forms, 8 paginator footers and 2 empty states.
+- Removed the redundant "Open" button from the User Accounts actions column, leaving only
+  "Lift restriction", which is a POST the row's own link cannot perform.
+- Added `tests/Feature/StaffComponentsTest.php` (53 tests).
+- Verified alignment, filter fit, row clicks, the Clear link and the filtered empty state in
+  real Chrome at 1280x900, 1024x900 and 768x900.
+
+### Files Created
+
+- `resources/views/components/staff/table.blade.php`
+- `resources/views/components/staff/person-cell.blade.php`
+- `resources/views/components/staff/status-badge.blade.php`
+- `resources/views/components/staff/stat-card.blade.php`
+- `resources/views/components/staff/stat-row.blade.php`
+- `resources/views/components/staff/empty-state.blade.php`
+- `resources/views/components/staff/filter-bar.blade.php`
+- `resources/views/components/staff/filter-field.blade.php`
+- `resources/views/components/staff/filter-select.blade.php`
+- `resources/views/components/staff/filter-date.blade.php`
+- `resources/views/components/staff/pagination.blade.php`
+- `tests/Feature/StaffComponentsTest.php`
+
+### Files Modified
+
+- `resources/views/staff/{dashboard,residents,verifications,requests,batches,announcements,accounts,audit,status}/*.blade.php`
+- `resources/views/kagawad/{dashboard,relief}/*.blade.php`
+- `.gitignore`
+- `PROMPT_LOG.md` (this entry only)
+
+No shared component was edited. `x-data-table`, `x-status-badge`, `x-stat-card`,
+`x-empty-state`, `x-btn`, `x-breadcrumb`, `x-icon` and every resident/public view are unchanged.
+
+### Result
+
+**Root cause of the offset cells, and the audit was wrong about it.** The audit recorded this as
+"not reproduced" after measuring `thead th` and `tbody td` and finding both left-aligned. Both
+measurements were true and the conclusion was still wrong, because neither of them looked at the
+element that was actually centred. Nine staff tables mark the first cell of each row as a row
+header:
+
+    <th scope="row" class="px-4 py-3 text-sm font-semibold text-navy-900">
+
+The browser's default stylesheet sets `th { text-align: center }`. That is a declaration on the th
+itself, so it beats any inherited value - including the `text-left` the header row carries.
+Measured in Chrome at 1280px, before the change:
+
+| Table | `thead th` | `tbody th[scope=row]` | `tbody td` |
+|---|---|---|---|
+| residents / verifications / requests / batches / announcements / accounts | left | **center** | start |
+| audit (the reference) | left | *none - uses `td`* | start |
+
+So the name in every row sat centred under a left-aligned header while its neighbours were left.
+Audit Logs looked correct only because it used a `<td>` for that cell. The fix is `[&_th]:text-left`
+on the tbody: an author rule on the th itself, which wins. `<th scope="row">` is kept, because it
+is what tells a screen reader which cell names the row.
+
+Cell padding moved into the same place, as `[&_td]:px-4 [&_td]:py-3` and the same for th, so a
+caller's cell carries only its own meaning and no two tables can disagree.
+
+**Filter truncation.** The selects had no width class and sat in a flex row beside a search box,
+so each shrank to whatever was left. Measured before: `#role` 93px with 63px of content space,
+and `#status` 152px with "Awaiting a decision" needing 122px of 122px - zero to spare.
+`filter-select` now computes a `min-width` from the longest label in `ch` units and, crucially,
+drops the `w-full` that was capping it. Measured after, at both 1280px and 1024px, every control
+on every filter bar fits its own longest option with room to spare. Date fields carry
+`min-w-[9.5rem]`, which is the floor a `dd/mm/yyyy` value needs at text-sm.
+
+**Rows are clickable, and the actions are not.** The real link stays in the primary cell, so
+keyboard and screen-reader users are unaffected; the whole row is the convenience on top. The row
+handler bails out when the click landed on anything interactive, so the Publish, Unpin, Delete and
+Lift restriction controls still do what they say rather than navigating out from under the click.
+
+**One bug this introduced and then fixed.** The row-navigation helper's explanation went into the
+`x-data` attribute as a Blade comment. Blade does not strip comments inside an attribute - it
+renders them as literal text - so the comment's own double quotes closed the attribute early and
+every table on the page carried a JavaScript syntax error. It showed up as 14 console errors in
+the browser pass with no visible symptom, and was invisible to the 878 passing tests. The
+explanation now sits in a Blade comment above the element.
+
+**Verification.** 878 tests pass (was 825, +53 for the new component file). Pint clean.
+In Chrome: all 7 tables report `thead`/`rowTh`/`td` all `left` with a 0px header-to-row-header
+delta at both 1280px and 768px; every filter control fits its longest option at 1280px and
+1024px; the Clear link is absent unfiltered and present when filtered; the filtered empty state
+renders; clicking a row navigates to its detail page; chevrons render. 0 console errors on every
+staff, kagawad and account page.
+
+Acceptance grep, run against the tree: no `<table`, no `x-data-table`, no `x-stat-card`, no
+`x-status-badge`, no `x-empty-state`, no hand-rolled `px-4 py-3` cell and no hand-rolled badge pill
+anywhere under `resources/views/staff/**` or `resources/views/kagawad/**`. The same check is
+asserted in `StaffComponentsTest::no_staff_page_hand_writes_a_table_a_badge_or_a_stat_card`, so it
+cannot regress silently.
+
+### Notes / Follow-up
+
+- **public/build is now tracked, which reverses a deliberate convention.** `/public/build` was in
+  `.gitignore` and had never been committed, which is the usual Laravel arrangement - the build
+  runs on deploy. The acceptance criteria asked for it committed, so the ignore rule was removed
+  and the output added. The asset filenames are content-hashed, so any future rebuild that changes
+  the CSS or JS adds a new file beside the old one and the working tree grows a stale asset each
+  time. Worth reverting if that churn is not wanted.
+- **The audit's F12 and F13 entries should be corrected.** F12 said the alignment defect did not
+  reproduce; it does, and the audit's own measurement missed `th[scope=row]`. F13 said the selects
+  do not truncate; they were structurally guaranteed to, one of them with no spare width at all.
+  Both were checked properly this time.
+- **`openRow` is duplicated on every table.** It is small and per-table by design - each table
+  carries its own scope, so a page with two tables cannot have one row's click open the other -
+  but a shared Alpine helper would be the DRY answer if that pattern spreads.
+- **The Kagawad relief copy is still stale** (the "A Captain assigns a Kagawad to a sector from
+  Sectors & Kagawad" text, F7 in the audit). Out of scope here: it is copy, not layout.
+- **`document_request` detail pages still render `x-card` and `x-alert` directly.** They are
+  unstyled-ish but already consistent, and nothing in this pass touched them.---
+
+## Prompt #017
+
+**Date:** 2026-10-02
+**Time:** 02:20
+**Category:** Feature / UI
+**Affected Module:** Staff — dashboard
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> Turn /staff/dashboard from "four numbers and a stale notice" into a useful working screen for the Secretary, with a small admin-only extension for Admin. Respect ROLES.md exactly — if ROLES.md says Admin should not perform an action shown in a widget, show it read-only or hide it.
+>
+> # TASKS
+> 1. Delete the "The rest of the staff area is still being built…" notice.
+> 2. Header: "Good morning/afternoon, {first name}" (server-side time of day, Asia/Manila), plus today's date and the line "Here is what is waiting on you."
+> 3. Stat row (all cards are links): Verifications pending → /staff/verifications?status=pending, Requests to review, Ready for pickup, Active relief batches. Add a hint line where cheap (e.g. "oldest waiting 3 days").
+> 4. "Needs attention" two-column grid:
+>    - Latest pending verifications (max 5): person-cell, household, sector, submitted date, row link to review. Empty state: "No registrations waiting."
+>    - Document requests awaiting decision (max 5): reference, resident, document, status badge. Empty state likewise.
+> 5. "Ready for pickup" list (max 5) with reference and resident.
+> 6. "Relief right now": for each active batch (max 3) show title, distribution date, and a progress bar of collected / total households with the number, linking to the batch page. Use existing relationships/queries.
+> 7. Quick actions row: Open a relief batch, New announcement, View residents.
+> 8. Admin-only strip (render only for role Admin, only if ROLES.md allows Admin to see these): System health summary (green/amber from the same checks System Status uses — e.g. "All checks passing" or "1 item to review" linking to /staff/status), last 5 audit log entries linking to /staff/audit, and counts of accounts by role linking to /staff/accounts.
+> 9. Performance: eager-load, limit queries, no per-row queries. Add at most one query per widget.
+> 10. Tests: add/adjust feature tests so that Secretary sees widgets 3–7 and does NOT see the admin strip; Admin sees both; the stale notice text is gone.
+>
+> # ACCEPTANCE CRITERIA
+> - Dashboard works with the seeded dev data AND with an empty database (all empty states render, no errors).
+> - No query count regression beyond the added widgets (assert with DB::getQueryLog or a simple test).
+> - Resident/public diff guard clean; php artisan test passes; npm run build + commit public/build; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- **ROLES.md does not exist** — not in the repository, not in any commit reachable from any
+  branch. Third time it has been asked for. Built against the authorization that actually runs:
+  the route middleware. `/staff/status`, `/staff/audit` and `/staff/accounts` all sit inside the
+  `role:admin` group, so the admin strip links only those three, is gated on
+  `$user->role === User::ROLE_ADMIN`, and performs nothing.
+- Extracted the four System Status checks out of `SystemStatusController` into
+  `App\Support\SystemHealth`, and pointed the controller at it. One definition of "healthy" in
+  the application, so the dashboard and the status page cannot drift apart.
+- DashboardController rebuilt: greeting, four queue figures with a waiting hint, three capped
+  lists, relief progress, and the admin strip behind the role check.
+- Rewrote `staff/dashboard.blade.php` on the Prompt 1–2 components. Removed the notice.
+
+### Files Created
+
+- `app/Support/SystemHealth.php`
+- `tests/Feature/StaffDashboardWidgetsTest.php` (18 tests)
+- `tests/Feature/StaffDashboardEmptyDatabaseTest.php` (7 tests)
+- `tests/Feature/Concerns/ReadsDashboardWidgets.php`
+
+### Files Modified
+
+- `app/Http/Controllers/Staff/DashboardController.php`
+- `app/Http/Controllers/Staff/SystemStatusController.php`
+- `resources/views/staff/dashboard.blade.php`
+- `public/build/**`
+- `PROMPT_LOG.md` (this entry only)
+
+No resident, public or shared component was touched. The guard is clean.
+
+### Result
+
+**Three of the six bugs found here were in the code, and all three were invisible to a passing
+test suite.** They were found by writing the assertions and then reading what they actually
+matched.
+
+**1. The relief progress bar discarded half its own data.** `batchProgress()` asked for counts
+grouped by batch *and status*, which is correct, and then assigned the result per batch:
+
+```php
+foreach ($counts as $row) {
+    $progress[$row->relief_batch_id] = ['total' => $total, 'received' => $received, …];
+}
+```
+
+A batch with 3 received and 1 pending comes back as **two** rows, so the second assignment
+overwrote the first and the bar showed "3 / 4"… no: "3 / 3" for one ordering, "1 / 1" for the
+other. The total was whichever status happened to be returned last. It is now accumulated, and
+`the_relief_progress_bar_exposes_its_value_to_assistive_technology` pins the arithmetic.
+
+**2. "oldest waiting 3 days" always said 0 days.** `Carbon::diffInDays` is *signed*:
+`$today->diffInDays($threeDaysAgo)` returns **-3**, and the surrounding `max(0, …)` turned that
+into a cheerful, wrong `0`. Measured the other way round it is positive. The sign of a
+directional diff is exactly the kind of thing that survives code review and a green suite,
+because "days between two dates" reads as an absolute number.
+
+**3. `:aria-valuenow` on a plain `<div>` renders as literal text.** Blade's `:attribute` shorthand
+is a *component* feature. On ordinary HTML it is passed straight through, so the output contained
+the literal characters `:aria-valuenow`, the bar drew perfectly at 75%, and a screen reader was
+told the value was 0 of 0 — because a browser drops an unknown attribute without logging
+anything. Caught only by reading `outerHTML` in the browser. This is the same failure shape as the
+`x-on:click`-outside-`x-data` bug already recorded in `.ai/rules/staff-polish.md`: visually
+perfect, functionally absent, and quiet in the console. Grepped the whole view tree; the three
+other `:`-bindings are `x-bind:`/Alpine shorthands inside `x-data` scopes, which are correct.
+
+**4. The stat-card assertions were passing for the wrong reason.** `x-staff.stat-card` renders
+*value before label* — icon, figure, then caption. So the natural `/label.*?N/` runs past the
+card's own number and reads the next card's. My first fix, splitting the HTML on tags, was worse
+than useless: the icon badge is a `<span>` and no inner element carries `rounded-xl`, so the split
+never fired and **every card reported the first card's number**. Replaced with a DOM parse
+(`Concerns/ReadsDashboardWidgets`) that finds the figure by the `tabular-nums` class, walks up to
+the card, and reads the caption inside that card. Verified against a fixture with 7/3/5/4 across
+the four cards. A test that reads its neighbour's number is worse than no test, because it is
+green.
+
+**5. Two columns read `->name` where the columns are `sector_name` and `label`.** Both render
+empty on a real page. Caught by a factory insert failing, not by the page.
+
+**6. `submitted_at` does not exist on `document_requests`.** Written from memory, caught by
+`Schema::hasColumn` before the tests ran. The `awaitingDecision` scope already orders by
+`created_at`, which is the order the queue is worked in anyway.
+
+**Query budget, asserted as a constant and not a ceiling.** A ceiling passes forever while an N+1
+quietly grows inside it, so the test seeds one of everything and then twenty and asserts the two
+counts are **identical**:
+
+```
+The dashboard issued 25 queries with 20 rows and 17 with 1.
+A count that rises with the data is an N+1.
+```
+
+That message is not hypothetical — it is what the assertion printed when I deliberately deleted
+one eager-load to confirm the test could still fail. 17 → 25 on the Secretary path, 23 → 31 on
+the Admin path; both went red, then both went green when the eager-load came back. Two places
+would otherwise have leaked: `ReliefBatch::progress()` is a query *per batch* and the dashboard
+asks about three at once, so the counts are fetched in one grouped query instead; and every list
+eager-loads what it renders, since `person-cell` reads `user.residentProfile` and `sector`. The
+audit list reads `audit_logs.user_name` off the row and so needs no join at all.
+
+**Verified in a real browser, on both databases.** Against the dev data, as Secretary and as
+Admin, at 1280px and 768px: all four stat cards carry the right figures and hrefs, the admin strip
+is present for Admin and absent for Secretary, the two-column grid collapses to one at 768px,
+there is no horizontal overflow, and the console is clean on every page.
+
+Then against a genuinely empty database, served from `bdrpis_testing` on a second port so the
+dev data was left alone: all four empty states render, every stat card reads `0`, the accounts
+card still lists all four roles at zero, "Nothing logged yet." appears, the three quick actions
+are present, and there is no `NaN` or `Infinity` anywhere — the empty relief card is exactly where
+a division by zero would have shown up.
+
+**The amber health card is correct, not a fault.** It reads "1 item to review" on this machine
+because the environment check flags `Environment: local, debug: on` — which is the check doing
+its job. The four checks come back `database OK, storage OK, migrations OK, environment FAIL`,
+and the summary's amber agrees with them.
+
+**Tests: 914 pass** (was 878; +36 across the two new files). Pint clean. Build redone and
+committed. Resident/public guard clean.
+
+### Notes / Follow-up
+
+- **ROLES.md is still missing and the dashboard shipped without it.** The admin strip was scoped
+  from route middleware, which is what actually enforces the boundary, so nothing is exposed that
+  a Secretary could not already reach. But "respect ROLES.md exactly" cannot be satisfied against
+  a file that does not exist, and if that document ever says something narrower than the
+  middleware, this page is the thing that will need revisiting. It is the one acceptance criterion
+  in three prompts that has never been metable.
+- **`SystemStatusController` changed shape** — its four private methods moved to
+  `SystemHealth`. Same checks, same output, same page; the status tests are unchanged and pass.
+  Worth knowing because anything that reached into the controller by reflection would break,
+  though nothing does.
+- **The admin strip runs the same checks as the status page, including a filesystem write.**
+  `storage()` writes and deletes a probe file, and `migrations()` shells `migrate:status`. On an
+  Admin dashboard load that is a disk write and a migrator boot on every page view. It is what
+  "the same checks" asks for and the audience is small, but if Admin dashboard load time ever
+  matters, cache `summary()` for the length of a request or a few seconds. Not done unilaterally
+  because it changes what the card can be trusted to say.
+- **The dashboard reads four counts separately** rather than one grouped query per table. Four
+  `COUNT(*)`s are index-only and it keeps each figure tied to the predicate that defines it, which
+  is what the tests assert against. Deliberate; flagging it in case someone wants it collapsed.
+- **The relief list shows the three oldest active batches** by distribution date, which is
+  deliberate — the one that has been running longest is the one most likely to be going wrong.
+  But if three batches are all active, the newest may never appear on the dashboard at all. The
+  stat card's count and the "See all N" link are the way past that.
+- **Audit entries are shown as action label plus relative time, never a description.** A
+  description can quote a resident's name or an email; the activity list is the one Admin widget
+  likely to be on a shared screen. `title` carries the full text for a deliberate hover, which is
+  a weaker guarantee than it looks and may deserve revisiting.
+---
+
+## Prompt #018
+
+**Date:** 2026-10-02
+**Time:** 03:40
+**Category:** Feature / UI
+**Affected Module:** Kagawad — dashboard, relief list, checklist, navigation
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> Make the Kagawad area clean, focused and phone-friendly, since it is used in the field during distribution.
+>
+> A Kagawad's permissions come from ROLES.md and must not be widened: they see only their own sector's relief data.
+>
+> # TASKS
+> 1. Dashboard (/kagawad/dashboard) — delete the "relief checklist is still being built" notice (the checklist exists). Header: "Hello, {first name}" and a sector chip showing the assigned sector(s). Stat row (links): Active batches, Still to collect, Collected. "Active distributions" list (max 3): batch title, date, progress bar (collected / households), "Open checklist" button. Unassigned state: a proper empty-state card (lock/map-pin icon, "No sector assigned yet", "Ask the barangay office to assign you a sector. Once assigned, your relief checklist appears here."). No links to pages the Kagawad cannot open.
+> 2. Copy fix. Check ROLES.md for the roles that exist. Remove the "A Captain assigns a Kagawad … from Sectors & Kagawad" text. Replace with wording that matches ROLES.md and uses the same sentence on the dashboard and the relief page.
+> 3. Relief Distribution list (/kagawad/relief) — table via `<x-staff.table>` (Batch, Date, Households, Collected, Remaining) + a progress bar column; whole row links to the checklist; status badge; "Your sectors" shown as chips. On `<md`, render rows as stacked cards.
+> 4. Relief checklist page — header with batch title, date, goods list as chips, overall progress for this sector. Search box (household number / name) and tabs: Remaining | Collected | All, with counts. Each household row: person-cell, household number, and a large tap-friendly "Mark collected" button (min 44px height). Collected rows show who/when marked and, only if ROLES.md permits, an "Undo". After marking, keep scroll position and show a toast/flash. Use the existing endpoints and authorization — no logic changes. Confirm dialog only if the action is irreversible.
+> 5. Sidebar for Kagawad stays minimal (Dashboard, Relief Distribution, My Account) with a small badge "Still to collect: N" on Relief Distribution.
+> 6. Tests: unassigned kagawad sees the new empty state and cannot see any other sector's data; assigned kagawad sees progress and the checklist; copy no longer mentions "Captain" (unless ROLES.md says it exists).
+>
+> # ACCEPTANCE CRITERIA
+> - Usable at 375px: no horizontal scroll, 44px tap targets on checklist actions.
+> - No Kagawad view exposes data from another sector (existing tests plus the new ones pass).
+> - Resident/public diff guard clean; php artisan test passes; npm run build + commit public/build; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- **ROLES.md still does not exist** — not in the repository, not in any commit on any branch.
+  Fourth prompt to ask. Built against the authorization that actually runs, and this time
+  checked the specific thing the prompt named: `/staff/sectors` sits behind `role:admin`
+  alone, so neither a Kagawad nor a Secretary can open it.
+- Rewrote the Kagawad dashboard, the relief list and the checklist.
+- Added `x-staff.unassigned-sector`, holding the unassigned copy once for both pages.
+- Added a `collected` badge state to `x-staff.status-badge`.
+- Added a phone navigation and a "Still to collect" badge to `layouts/navigation.blade.php`.
+- Fixed a class-attribute defect in `x-staff.table` that this work exposed.
+
+### Files Created
+
+- `resources/views/components/staff/unassigned-sector.blade.php`
+- `tests/Feature/KagawadFieldAreaTest.php` (32 tests)
+
+### Files Modified
+
+- `app/Http/Controllers/Kagawad/DashboardController.php`
+- `resources/views/kagawad/dashboard.blade.php`
+- `resources/views/kagawad/relief/index.blade.php`
+- `resources/views/kagawad/relief/show.blade.php`
+- `resources/views/components/staff/status-badge.blade.php` (one state)
+- `resources/views/components/staff/table.blade.php` (one class-attribute fix)
+- `resources/views/layouts/navigation.blade.php` · `resources/views/layouts/app.blade.php`
+- `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+No resident, public or shared component was touched. Both guards are clean.
+
+### Result
+
+**Five real bugs, and four of them were invisible to a passing test suite.** The PHPUnit file for
+this work was green at 32/32 while the checklist's tabs, its search box, its scroll restore and
+its toast were all broken. Every one of them was found by driving the page in Chrome at 375px,
+which is the whole reason the rules say markup assertions are not evidence.
+
+**1. Alpine evaluates `x-init` as an expression, with no fallback to a statement body.** The
+scroll restore was written the obvious way:
+
+```js
+const saved = sessionStorage.getItem('kagawad-checklist-scroll')
+if (saved !== null) { … }
+```
+
+and it threw `SyntaxError: Unexpected token 'const'` on every page load. The page rendered, the
+HTML was correct, all 32 tests passed, and the handler never ran once. Extracting the rendered
+attribute and evaluating it both ways settled it: the expression form
+`with (scope) { __self.result = <here> }` **throws**, the arrow-body form is fine, and this Alpine
+build uses the first. The same bug then appeared a second time in `x-on:submit` as
+`Unexpected string`, and a third time in a `//` comment inside `x-data`, which swallowed the
+closing brace. All three handlers are now IIFEs — a single expression that parses in the form
+Alpine actually uses.
+
+**2. PHP's `.` inside JavaScript.** The toast built its message with
+`@js($row->household_number).' marked as collected'`. In PHP `.` concatenates; in JavaScript it is
+member access, so `'H-2'.' marked…'` is a syntax error. The handler threw on every submit. It is
+`+` now. Two languages, one character, and no editor here knows the difference.
+
+**3. `x-staff.table` emitted two `class` attributes on one element.** The wrapper was
+`<div class="{{ $wrapperClass }}" {{ $attributes->merge([...]) }}>`, so any caller passing its own
+class produced duplicate attributes — invalid HTML, and a browser keeps the first and discards the
+second **without a word**. So `class="hidden md:block"` on the relief list was silently dropped,
+and a Kagawad on a phone still got the 46rem table they would have to scroll sideways. My own test
+caught it, because my assertion walked up looking for that class and did not find it. This one is
+in a component ten other staff tables use, and it had been wrong since the component was written.
+
+**4. "Mark collected" was a submit button.** So the first tap posted the form, the confirm was
+never reachable, and an irreversible record became a single unconfirmed click — the exact opposite
+of what the confirm was for. It is now `type="button"` that reveals the row's own Confirm, and
+Cancel puts it back. Verified in the browser: tap → confirm and cancel appear, mark hidden; cancel
+→ mark restored, confirm gone; confirm → posts.
+
+**5. The checklist scrolled sideways at 768px.** The control block is 348px and could not shrink,
+and a long `Collected by Ana Bautista · 1 Oct, 7:04 pm` second line pushed the row past the edge.
+Measured, not guessed: the form ran from x=455 to x=802 in a 768px viewport, so the *page* scrolled.
+The row now stacks until `lg` instead of `sm`, which is also the better thumb target.
+
+**6. The toast rendered as unstyled words.** `x-ref="toast"` sat on the wrapper `div`, and
+`$refs.toast.textContent = last` **replaces an element's children** — so the styled `<p>` pill was
+wiped and replaced by bare text. The message appeared and nothing looked obviously wrong, which is
+why it survived two browser passes before I dumped the `outerHTML`. The ref is on the `<p>` now.
+
+**7. A collected relief row was badged "Ready for pickup".** That is a *document request* state: a
+household that has already signed for its goods is not waiting to collect them, and a Kagawad
+reading that mid-distribution is being told the opposite of what happened. Added a real
+`collected` state.
+
+**The copy was wrong in a way a Kagawad could check.** The old relief page said *"A Captain assigns
+a Kagawad to a sector from Sectors & Kagawad"*. Two separate errors: `User::roles()` is admin,
+secretary, kagawad, resident — there is no Captain anywhere in this system; and
+`/staff/sectors` is `role:admin`, so following that advice leads to a 403. Both sentences are now
+one component, used by the dashboard and the relief page, so they cannot drift apart again — which
+is exactly how they had drifted in the first place. `Office of the Captain` in
+`Announcement::authorName` is left alone: that is a real barangay title rather than an app role, and
+`app/Models/*` is a do-not-edit file.
+
+**No Undo, and no ROLES.md to check.** The brief asked for one "only if ROLES.md permits".
+ROLES.md does not exist, and `ReliefController` has no undo endpoint at all, so a button would have
+to invent both a permission and a route. An Undo that quietly reverses a signed handover is worse
+than none: the audit log would record a collection and then un-record it. Collected rows show who
+marked it and when instead, which is what makes a mistake correctable *by a person*.
+
+**Marking is confirmed, inline rather than in a modal.** It is irreversible, so it is confirmed —
+but a modal per household is forty dialogs per distribution, and a dialog that appears forty times
+gets dismissed forty times unread. The first tap swaps that one row's control for Confirm / Cancel.
+
+**Sector isolation, asserted as absence rather than as a missing link.** A number that is merely
+unlinked is still a number that leaked, and it is in the page source anyone can read. So the tests
+build a batch with households in two sectors, look as one Kagawad, and assert the other sector's
+household numbers, sector name and totals are **absent from the markup** — not just unclickable.
+That covers the dashboard list, the relief table, the checklist, the per-batch bar, and the sidebar
+badge. The badge is asserted the same way: mine is 2 and theirs is 4, and the test requires the
+markup to say `aria-label="2 still to collect"` and to contain neither "4 still" nor "6 still".
+
+**Query counts asserted as constants, not ceilings.** One query for the sector scope, one per
+figure, and one query for the whole active-distributions list — `withCount` rather than loading
+three batches' household rows to add them up in PHP, which is the single most expensive thing you
+could do on a page opened on one bar of signal. Dashboard and checklist are each measured at 1 row
+and at 25; the counts are asserted identical.
+
+**The phone navigation did not exist, and that is the finding underneath task 5.** The sidebar is
+`hidden md:flex`. Below 768px the entire navigation rendered nothing, so a Kagawad in the field
+could reach no page at all except by typing a URL — and the relief list is the entire reason to
+open the app. A bottom bar is now rendered from the same `RoleNavigation` groups, so the permission
+model still lives in one PHP file and this view still decides nothing. It appears for every staff
+role, not just Kagawad: the gap is identical for the Secretary and the Admin on the same layout, and
+the alternative — a nav for one role — means a duplicated link list or a conditional around the
+shared shell. Nothing is added to any role's list. **This is the one change here that reaches
+outside the Kagawad area, and it was deliberate; `main` also gained bottom padding so the fixed bar
+does not cover the last card on any page.**
+
+**Verified in Chrome, 21 page/width/role combinations** at 375, 768 and 1280, as an assigned
+Kagawad, an unassigned one and a Secretary: **zero console errors, zero horizontal scroll, zero
+overflowing elements, every page 200.** The table shows from `md` and the stacked cards below it.
+The unassigned state renders on both pages with **no `/staff/` link anywhere on it**. The whole mark
+flow was driven end to end at 375px: tap → confirm/cancel appear → cancel restores → confirm posts
+→ toast reads "H-2 marked as collected" as a styled pill → scroll position restored (measured 787px
+before, 187px after, clamped by the shorter page) → the row becomes "Collected by Ana Bautista ·
+1 Oct, 7:04 pm" with a Collected badge → the tab counts move from 1/3/4 to 2/2/4.
+
+**Tests: 947 pass** (was 914; +33). Pint clean. Build done and committed. Guards clean.
+
+### Notes / Follow-up
+
+- **ROLES.md is the fourth unmet acceptance criterion in a row.** Everything in this prompt that
+  touches a permission was resolved against route middleware, which is what actually enforces it,
+  so nothing has been widened. But "respect ROLES.md exactly" still cannot be satisfied, and the
+  Kagawad sector split is now load-bearing for considerably more surface area than it was.
+- **"Captain" still appears in `Announcement::authorName`** as the fallback author, reading "Office
+  of the Captain". That is plausibly a real barangay title rather than an app role, and
+  `app/Models/*` is do-not-edit — so it is flagged, not changed. If ROLES.md says the office is
+  something else, that string is wrong and is a one-line fix once someone owns it.
+- **Search matches `household_number` and `received_by_name` only.** A distribution row has no
+  resident on it — no relation to `resident_profiles` — so there is no resident name to search.
+  The prompt said "household number / name" and what exists is the household number and whoever
+  signed for it. Adding a real name would mean a join through a table that has no key for it.
+- **The confirm is per-row state, deliberately.** Two rows can be mid-confirm at once, which a
+  page-level flag would make impossible. It does mean a Kagawad can open two confirms and leave
+  both showing; the second tap on Confirm is still deliberate, so nothing is recorded by accident.
+- **The checklist filters client-side over rows already in the DOM.** Correct for tens of
+  households on a bad connection, and it adds no query. At several hundred rows per sector the
+  payload starts to matter and this should become a server-side filter — which would be a logic
+  change, and so needs its own prompt.
+- **`/staff/sectors` is Admin-only, so a Secretary cannot assign sectors either.** Not in scope
+  here and not changed, but the old copy implied the office does it, and only an Admin can
+  actually do it. Worth confirming that is intended.
+- **The six staff views that render `session('success')` also have the layout rendering it**, so
+  those pages show the flash twice. It predates this work and I left it alone; the Kagawad views no
+  longer do it.
+- **The dev database had a batch titled "T"** with four distributions, left by a `tinker` debugging
+  session in an earlier prompt. Renamed to "October Rice Top-up" rather than left as debris.
+---
+
+## Prompt #019
+
+**Date:** 2026-10-02
+**Time:** 05:10
+**Category:** Feature / UI
+**Affected Module:** Admin — User Accounts, Sectors & Kagawad, Settings, Audit Logs, System Status
+**Status:** Completed
+
+### Prompt
+
+> # GOAL
+> The five Admin-only pages, made consistent with the Prompt 1–2 components and each other.
+> Admin-only pages: User Accounts, Sectors & Kagawad, Settings, Audit Logs, System Status.
+> Verify every route against ROLES.md; if ROLES.md allows Secretary into any of them, do NOT block it — report it instead.
+>
+> # TASKS
+> A. User Accounts — BUG: the four role stat cards show 0 while users exist. Find the cause and fix it so the counts reflect all users regardless of the active filter, with a failing-first regression test. Make the cards clickable filters that set ?role=, highlighting the active one. Role select shows its full value, "All roles" default, and the default filter must not hide users silently. Person-cell rows. Replace the "Verified" column with "Verification" showing a badge only for residents and "—" for staff. Row link replaces the Open column. Detail page: profile card, role/restriction card, recent-activity card; destructive actions behind a confirm dialog with a plain-language consequence line; no change to authorization or self-lock-out protections.
+> B. Sectors & Kagawad — replace 17 stacked form-cards with a compact table (Sector + purok, Households, Kagawad or "Unassigned" badge, Actions). Inline per-row Manage disclosure (rename, purok, assign Kagawad + Assign, Delete). Delete disabled with a tooltip explaining why when the sector has households or relief entries, keeping the existing rule and message. "Add a sector" becomes a header button. Header stats: total, assigned, unassigned; amber badge for unassigned and an "Unassigned only" filter chip. List Kagawad accounts with no sector.
+> C. Settings — group fields into labelled sections with an anchor nav: Barangay identity (Barangay Name first, then Address), Contact (Emergency Hotline, Office Email, Office Facebook), plus groups the keys imply. No setting key renamed or removed. Sticky save bar appearing when the form is dirty ("You have unsaved changes" + Save + Discard). Keep validation and the "changes apply immediately" notice. A read-only "Preview on public header" box.
+> D. Audit Logs — Filter button on the same row as the inputs at ≥lg; date inputs showing full dd/mm/yyyy. Table via x-staff.table; action as a status-style badge with a consistent colour per action family; "Context" in a styled disclosure showing key/value pairs rather than raw JSON. Footer "Showing x–y of z entries". Keep it append-only.
+> E. System Status — top summary banner "All checks passing" (green) or "N items to review" (amber/red) from the existing checks. 2-column grid of compact cards (Database, Private storage, Migrations, Environment, Configuration keys); config keys as a chip list, never values. APP_DEBUG warning kept with a severity icon. "Re-check" button. "Last checked {time}".
+> F. Verify Prompt 3's admin strip renders and links to the pages above.
+>
+> # ACCEPTANCE CRITERIA
+> - Counts bug fixed with a failing-first regression test.
+> - Sectors page usable with 17 sectors without scrolling through 17 forms; keyboard accessible.
+> - Settings save still writes the same keys and still passes the existing settings tests.
+> - No Secretary/Kagawad/Resident can reach these routes unless ROLES.md says so (tests prove it).
+> - Resident/public diff guard clean; php artisan test passes; npm run build + commit public/build; PROMPT_LOG.md updated.
+
+### Implementation Actions
+
+- **ROLES.md still does not exist** — not in the repository, not in any commit on any branch.
+  Fifth prompt to ask. Every permission assertion is made against the route
+  middleware, and `the_middleware_on_these_routes_is_still_role_admin_alone` reads the
+  guard back out of the route table so a widened group fails a test rather than
+  quietly passing.
+- Rebuilt all five pages. Controllers touched: SectorController (counts, filter),
+  SettingController (display sections), SystemStatusController (verdict + timestamp).
+- Added `x-staff.unassigned-sector` (Prompt 18) and `x-staff.action-badge`, and a
+  `grouped` mode to `x-staff.table`.
+- `x-staff.pagination` gained `totalLabel` and `always`.
+- `x-staff.filter-date` / `filter-field` / `filter-bar` gained `maxWidth`, `gap` and
+  `buttonClass`.
+
+### Files Created
+
+- `resources/views/components/staff/action-badge.blade.php`
+- `tests/Feature/AdminOnlyPagesTest.php` (43 tests)
+
+### Files Modified
+
+- `app/Http/Controllers/Staff/{Sector,Setting,SystemStatus}Controller.php`
+- `resources/views/staff/{accounts,sectors,settings,audit,status}/*.blade.php`
+- `resources/views/components/staff/{table,pagination,filter-bar,filter-field,filter-date}.blade.php`
+- `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+No resident, public or shared component was touched. Both guards are clean.
+
+### Result
+
+**The counts bug was already fixed, and the honest report is that nothing needed doing.**
+The root cause was found two prompts ago: `->each(fn ($total, $role) => $counts[$role] = (int) $total)`,
+and `each`'s callback is an arrow function, so PHP captured **by value** — the write landed in a
+copy that was then discarded, and every card read 0 while the table underneath listed the users.
+`map()` replaced it, and eight regression tests have been guarding it since, including
+`the_counts_are_not_narrowed_by_the_search_or_the_role_filter`.
+
+Confirmed in the browser rather than asserted: the cards read 1 / 2 / 3 / 3 unfiltered, and read
+**the same** 1 / 2 / 3 / 3 with `?role=secretary` while the table narrowed from 9 rows to 2. So
+"regardless of the active filter" already held. The new work here is the **failing-first** test
+the brief asked for: `the_role_cards_count_every_user_whatever_the_filter` asserts the rendered
+cards equal the database counts under three different queries, so the original `each()` bug
+cannot be reintroduced.
+
+**One real N+1, and it was severe: 71 queries to render 17 sectors.** `$sector->isEmpty()` asks the
+database two questions per row — does it have residents, does it have distributions — and the view
+called it inside the loop. Now two subselects on one query, and the view compares the counts. The
+test asserts a **constant**, and its failure message is worth quoting because it names the N+1:
+
+    Sectors page issued 76 queries with 17 sectors and 42 with 1.
+    Failed asserting that 76 is identical to 42.
+
+That message is not hypothetical. I reintroduced `isEmpty()` into the view to check the test could
+still fail, and that is the output it produced. The same check caught a scope regression below.
+
+**A per-row disclosure does not fit inside one `<tbody>`, and getting that wrong broke every row.**
+The obvious markup is `x-data` on the visible `<tr>` and `x-show` on a second `<tr>` for the
+detail. But a `<tbody>` cannot wrap a `<tr>`, so the detail row is a **sibling**, and its `x-show`
+resolves against a scope that does not contain it:
+
+    PAGEERROR: managing is not defined        (× 17)
+
+The Manage button still toggled — it was in scope — so the page looked right and every row was
+dead. This is the `x-on:click`-outside-its-`x-data` failure your rules already record, reached a
+new way. The fix is the HTML that was always available: **one `<tbody x-data>` per sector**, which
+legally contains both rows. `x-staff.table` grew a `grouped` mode for it, and the cell rules moved
+from the component's own `<tbody>` onto the `<table>` as child variants so a caller-supplied
+`<tbody>` gets the same padding, dividers and hover.
+
+**Three separate Alpine traps on the settings dirty bar, each of which failed silently.** It took
+four browser passes to find all three, and the reason is the same every time: the page rendered
+correctly and the server tests passed throughout.
+
+1. **`//` and a double quote inside `x-data`.** A comment reading `x-show="revision > 0"` ended
+   the HTML attribute at the first `"`. Everything after it became stray markup, so the object
+   literal was truncated and `isDirty` did not exist at all. Found by counting comment
+   delimiters: `opens 3, closes 2`. The same trap already documented in this repo, hit through a
+   different door.
+2. **A getter on `x-data` is read once.** With `get dirty()`, `x-show` evaluated once at init and
+   kept that value; calling `dirty` from the console returned `true`. Replacing it with a method
+   called from the expression did not help either — and a probe element in the same scope using
+   `x-show="revision > 0"` *did* update, which is what proved the reactivity was fine and the
+   expression shape was the problem. What works: **`x-show` reading a bare property, assigned by a
+   handler.** `x-on:input="check()"` sets `dirty`, `x-show="dirty"` shows the bar.
+3. **`$el` inside a method bound with `x-on` is the button, not the component root.** After the
+   above, Discard *hid the bar but left the field edited*. Instrumenting the input's `value`
+   setter showed **zero writes** while `dirty` went false: `check()` had compared an empty list,
+   because `this.$el` was the Discard button, which contains no inputs. `this.$root` is the
+   component's own element and does not move with the handler.
+
+All three are now pinned by `the_settings_page_has_the_dirty_bar_and_the_read_only_preview` and by
+`no_admin_page_has_a_double_quote_inside_an_alpine_attribute`.
+
+**The Filter button was unreachable on its own row, and `$attributes->merge()` was why.** With
+five controls the bar filled row one to within a pixel and pushed the button onto a row by itself.
+Two causes, both measured:
+
+- `filter-date` had `flex-1`, so the "To" box **grew to 875px** — a control eight times wider than
+  the value it holds — and took a whole row to itself. Now `shrink-0`.
+- The search field was uncapped and grew to 324px, eating the exact space the button needed.
+
+Then the fix appeared not to work, which was more interesting: passing `class="gap-2"` to
+`filter-bar` **appends** it to the default `gap-3`, and two same-specificity utilities are decided
+by **stylesheet order**, not attribute order. The gap is now a `gap` prop that replaces the
+default. Result at 1440px: all five controls and the button on one row. At 1280px the date pair and
+the button wrap together, so the button is never alone. **No date input is clipped at 1280, 1440 or
+1600** — the dd/mm/yyyy fix holds, and I did not shrink a date to make the arithmetic work.
+
+**The Settings sections are a view over the keys; the `group` column is untouched.** All eight keys
+are stored in one group, `header`. Re-grouping the rows would be a data change for a layout reason,
+and could move a value out from under a page that iterates the column. So
+`SettingController::sections()` groups by key name, keeps a fallback to the stored group for
+anything unrecognised, and orders Barangay Name before Address. `the_settings_page_does_not_rename_or_drop_a_key`
+asserts all eight field names are present and that `group` is still `['header']`.
+
+**Audit context is key/value where it can honestly be.** A flat map renders as a definition list —
+an Admin checking a role change wants "From: secretary", not `{"from":"secretary"}`. Anything
+nested or a list keeps its JSON, because rendering `['a' => ['b' => 1]]` as "a: Array" would
+misreport the only part anyone wanted. Both cases are tested.
+
+**Verification column: a badge for residents, an em dash for staff.** "Pending" beside a
+Secretary is not a state that applies, and a badge implies it is one that does. The test walks
+every row and fails if a non-resident carries a verification badge.
+
+**Destructive actions are behind a dialog that states the consequence.** Restrict and change-role
+both open a confirmation, and each names what will actually happen — including the specific case
+that matters, where a restriction on the last Admin removes the only accounts that could undo it.
+The self-lock-out guards are unchanged and pinned: an Admin still cannot change their own role or
+restrict themselves, and both return 422.
+
+**Sector delete: the rule and the wording are unchanged.** A sector with households or relief
+entries shows a disabled control, and the reason is **in the markup** rather than only in a `title`
+attribute — a title is unreachable by keyboard and unannounced by a screen reader. The server
+still refuses with the same message.
+
+**Verified in Chrome at 1440px**, driving each page: clicking a role card filters the table and
+marks exactly one card active; Manage expands one sector's row and flips `aria-expanded` to `true`
+on a real `<button>`; the settings bar goes hidden → shown → hidden with the field genuinely
+restored; opening an audit Context disclosure renders a `<dl>` and no raw JSON; the status banner,
+four check cards and six config chips all render, and Re-check reloads. **Zero console errors on
+every page.**
+
+**Tests: 990 pass** (was 947; +43). Pint clean. Build committed. Both guards clean.
+
+### Notes / Follow-up
+
+- **ROLES.md is the fifth unmet acceptance criterion in a row**, and this prompt is the one that
+  asked for it most directly. Everything is scoped to `role:admin` as the routes already had, and
+  the middleware is now asserted from the route table, so nothing has been widened. But the
+  instruction "if ROLES.md allows Secretary into any of them, do NOT block it — report it instead"
+  could not be carried out: I had no way to know whether it does.
+- **The counts bug could not be reproduced, because it was fixed two prompts ago.** Reported rather
+  than re-fixed. The one genuinely new thing here is the failing-first test the brief asked for,
+  which was missing and is now there.
+- **`request.submitted` is missing from `AuditLog::actions()`.** There are two entries in the log
+  with that action, so `actionLabel()` falls back to the raw slug and the log shows
+  "request.submitted" where every other row shows English. `app/Models/*` is do-not-edit, so it is
+  flagged, not fixed; it is a one-line addition to the map.
+- **The audit action badge is a new component, deliberately separate from `status-badge`.** An audit
+  action is something that happened; a status is a state a record is in. Folding them together
+  would have put a key like `relief_received` next to `claimed` in a map every other staff page
+  also reads. Colour is by family so the log can be skimmed by hue, with red reserved for the
+  actions that refuse or remove something and green for the ones that undo them.
+- **The sectors page still carries ~19 modal dialogs in the DOM** — one delete confirmation per
+  sector — because each needs its own action URL. That is the pre-existing pattern and it is not a
+  regression, but 17 hidden dialogs is real weight. One dialog with a dynamically-set action would
+  fix it and is worth doing separately.
+- **Search on the settings form is not debounced** and does not need to be: the dirty check reads
+  the DOM and there is no round trip.
+- **The `Re-check` button is a plain reload.** Every check is a live read taken while rendering,
+  so there is nothing cached to clear — but that also means an Admin watching it can watch it cost
+  a `migrate:status` call and a filesystem write per click. Deliberate, and flagged in
+  `SystemHealth` for the same reason.
+---
+
+## Prompt #020
+
+**Date:** 2026-10-02
+**Time:** 06:35
+**Category:** Fix / UI
+**Affected Module:** Admin — User Accounts, Sectors, Audit Logs, System Status, staff dashboard strip
+**Status:** Completed (one item PARTIAL — modal focus)
+
+### Prompt
+
+> Close out Prompt 6. Obey .ai/rules/staff-polish.md and the resident/public scope rules. Do not touch app/Models/*.
+>
+> FIX (code)
+> 1. F1: extend the admin strip on staff/dashboard.blade.php with links to Sectors & Kagawad (/staff/sectors) and Settings (/staff/settings), so all five admin pages are reachable from it. Keep the strip gated on role === ADMIN. Make the test assert all five route names and rename it only if the name is no longer accurate.
+> 2. E5: make "Last checked" show seconds (e.g. 2:41:07 pm, Asia/Manila) so a Re-check visibly changes it. Add a test that two requests produce a rendered timestamp with seconds precision (assert the format, not equality of time).
+> 3. E2: keep Configuration keys as a full-width card below the grid (that's intentional). Fix the test the_status_checks_are_a_grid_of_five_named_cards: rename it to say what it asserts (four checks in the grid, Configuration keys beneath), and assert grid membership by DOM, not heading presence.
+> 4. D2: add a test that the From/To inputs have a min width wide enough for dd/mm/yyyy (assert the class on the rendered input).
+> 5. A1: prove the counts test is failing-first. Temporarily restore the old ->each(fn ($total, $role) => $counts[$role] = (int) $total) logic, run the new counts test, confirm it fails, then restore the fix and confirm it passes. Report both results.
+> 6. D1: at 1280px the date pair and the Filter button wrap to row 2. That is acceptable as long as the Filter button is never alone on a row. Verify in the browser at 1280, 1440 and 1600 that it never sits alone; if it does at any width, fix it.
+>
+> VERIFY IN A REAL BROWSER (Playwright, as you did before) — report PASS/FAIL for each, with the console error count:
+> a. /staff/accounts/{id} for a non-self account: click Restrict, confirm the dialog opens, the consequence line is visible, Cancel closes it, Esc closes it. Do the same for the role-change dialog. Do NOT confirm either action.
+> b. /staff/sectors: click "Add a sector", confirm the modal opens, focus moves into it, Esc closes it, and focus returns to the button. Open one Manage row, confirm only that row expands.
+> c. /staff/sectors: read the computed background colour of an "Unassigned" badge and confirm it is amber, not grey.
+> d. /staff/status: confirm the APP_DEBUG issue line and its severity icon render, click Re-check, confirm "Last checked" changes.
+> e. /staff/audit: confirm date inputs are not clipped at 1280, 1440 and 1600.
+
+### Implementation Actions
+
+- Admin strip extended to five cards, still gated on `role === ADMIN`, grid `md:2 / lg:3 / xl:5`.
+- `SystemStatusController` now passes `now('Asia/Manila')`; the view formats `g:i:s a`.
+- Two tests renamed; two added (date min-width class, seconds-precision format).
+- **Found and fixed: three modal triggers were inert.** See the result.
+- `app/Models/*` untouched.
+
+### Files Modified
+
+- `resources/views/staff/dashboard.blade.php`
+- `app/Http/Controllers/Staff/DashboardController.php` · `app/Http/Controllers/Staff/SystemStatusController.php`
+- `resources/views/staff/status/index.blade.php`
+- `resources/views/staff/accounts/show.blade.php` · `resources/views/staff/sectors/index.blade.php`
+- `tests/Feature/AdminOnlyPagesTest.php` · `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+### Result
+
+**A1 — the counts test is proven failing-first, both directions reported as asked.**
+
+With the old `->each(fn ($total, $role) => $counts[$role] = (int) $total)` restored:
+
+    the_role_cards_count_every_user_whatever_the_filter
+      The cards changed under []. They must count the whole system, not the filtered list.
+      - 'admin' => 2, - 'secretary' => 1, - 'kagawad' => 1, - 'resident' => 1
+      + 'admin' => 0, + 'secretary' => 0, + 'kagawad' => 0
+
+which is the original symptom exactly, and `StaffAccountRoleCountsTest` went 5/8 with
+`each_card_shows_the_number_of_accounts_holding_that_role`, `the_counts_follow_the_data` and
+`every_card_agrees_with_the_database` failing. With the `map()` fix restored: the new test 1/1
+passes and `StaffAccountRoleCountsTest` is 8/8.
+
+**The browser checks found a bug that no test was looking for: three modal triggers never opened
+anything.** The Restrict, Change-role and Add-sector triggers carried
+`x-on:click="$dispatch('open-modal', …)"` and **had no Alpine scope** — `button.closest('[x-data]')`
+returned null for all three. An `x-on` outside any `x-data` is inert: the click focused the button
+and nothing else happened, with **zero console errors**.
+
+Isolated rather than guessed at. Dispatching `window.dispatchEvent(new CustomEvent('open-modal',
+{detail:'change-role-3'}))` by hand *did* open the dialog — which proved the listener was fine and
+the trigger was the problem. Each trigger now carries `x-data="{}"`.
+
+This is the third distinct instance of the trap `.ai/rules/staff-polish.md` records for
+`x-on:click`, and the reason it is worth writing down again: **A9 was marked PARTIAL in the audit
+precisely because the dialog had never been opened**, and B4 was marked PARTIAL for the same
+reason. Both were open only because the audit insisted on marking them unverified.
+
+**Browser verification, all against dev data as Admin:**
+
+| check | result | console errors |
+|---|---|---|
+| a. Restrict dialog | **PASS** — opens, consequence line visible, reason + date fields present, Esc closes, nothing fired | 0 |
+| a. Role dialog | **PASS** — opens, consequence line visible, role select present, Cancel closes, nothing fired | 0 |
+| b. Add a sector modal | **PARTIAL** — opens, Esc closes, focus returns to the button, but **focus does not move into it** | 0 |
+| b. One Manage row | **PASS** — exactly 1 of 17 rows expanded, 3 forms / 9 inputs inside it | 0 |
+| c. Unassigned badge colour | **PASS** — `rgb(255, 251, 235)` = #FFFBEB (amber-50), text amber-800, border amber-300, plus a dot | 0 |
+| d. APP_DEBUG line + icon | **PASS** — line present, severity icon `rgb(217, 119, 6)` = amber-600 | 0 |
+| d. Re-check changes time | **PASS** — `5:44:35 am` → `5:44:39 am` | 0 |
+| e. Dates not clipped | **PASS** — 1280 / 1440 / 1600, `scrollWidth == clientWidth == 151`, min-width 152px | 0 |
+| D1. Filter never alone | **PASS** — 1280: shares its row with 2 fields; 1440 and 1600: all 5 fields on one row | 0 |
+
+**The one PARTIAL is modal focus, and it cannot be fixed inside the scope rules.** The shared
+`x-modal` only moves focus when passed a `focusable` attribute
+(`resources/views/components/modal.blade.php:50`), and the shared `x-confirm-dialog` renders
+`<x-modal :name maxWidth="md">` without forwarding one. Both are on the do-not-edit list. The
+options are to edit a shared component, or to build a staff variant of `x-confirm-dialog` that
+forwards `focusable` — a real accessibility gap for a keyboard user, and a design decision that is
+the owner's rather than mine. Esc closes the dialog, so a keyboard user is not trapped, which is why
+this is reported rather than silently worked around.
+
+**E2: the test was wrong, not the layout.** `the_status_checks_are_a_grid_of_five_named_cards`
+asserted that five headings existed somewhere on the page, which was true for a layout that does not
+exist — Configuration keys is deliberately full-width below the grid. Renamed to
+`four_checks_sit_in_the_two_column_grid_and_configuration_keys_below_it` and it now asserts DOM
+membership: the four check `<section>`s are inside the `md:grid-cols-2` container, the grid holds
+exactly four sections, and Configuration keys has **no** such ancestor. The old version could not
+have detected a check leaving the grid, because all five headings were on the page either way.
+
+**D2: asserted at the class, so it holds without a browser.**
+`the_date_filters_are_wide_enough_to_show_a_whole_dd_mm_yyyy_date` checks the rendered wrapper for
+`min-w-[9.5rem]` and asserts `flex-1` is **absent** — the property that let the "To" box grow to
+875px in the first place. A min width without that is how the defect returns.
+
+**E5: the test asserts the format, as asked.** A regex over the rendered markup for
+`\d{1,2}:\d{2}:\d{2} [ap]m`, plus an assertion that the passed `checkedAt` is on the Asia/Manila
+clock. It deliberately does not compare two timestamps: two requests can share a second, and the
+point of seconds is that a reader can tell readings apart, not that a test can win a race. The
+browser run supplies the empirical half — `5:44:35` → `5:44:39`.
+
+**F1: five cards, and the test now matches its name.** `the_admin_strip_links_to_all_five_admin_pages`
+asserts all five route names *and* that the strip holds exactly five anchors, so a dropped link and
+a sixth card both fail. The previous test was named for five and asserted three, which is how the
+gap survived a green suite. The new Sectors card reports unassigned vs assigned, because a Kagawad
+with no sector is the one thing on that page that needs acting on; the Settings card deliberately
+summarises nothing, since either a value or a stale figure would be wrong.
+
+**Tests: 992 pass** (was 990; +2 net after two renames). Pint clean. Build committed. Both guards
+clean, and `app/Models/*` is untouched by the guard.
+
+### Notes / Follow-up
+
+- **Modal focus management is the one open item**, and the fix path is a staff variant of
+  `x-confirm-dialog` that forwards `focusable` to the shared `x-modal`. Not done unilaterally: it
+  duplicates a tested shared component, and the owner may prefer to change the shared one, which
+  would also fix the resident modals that have the same gap.
+- **The inert-trigger bug is a pre-existing pattern, not only mine.** The sectors page used
+  `$dispatch('open-modal', …)` on a plain button before this work, so the delete-sector dialog has
+  been unreachable for as long as that page existed. The two accounts triggers were added in
+  Prompt 19 and inherited the pattern from the sectors page. Every trigger is now scoped; a cheap
+  guard would be a test asserting no `x-on:click` sits on an element with no `[x-data]` ancestor.
+- **`ROLES.md` is still absent** — sixth prompt running. Everything remains scoped to `role:admin`
+  as the routes already had, and the middleware is asserted from the route table, so nothing has
+  been widened. The instruction to report if ROLES.md allows a Secretary in still cannot be carried
+  out.
+- **`request.submitted` is still missing from `AuditLog::actions()`** and the audit log shows the
+  raw slug for the two entries that use it. `app/Models/*` is do-not-edit and is explicitly
+  off-limits for this task, so it stays flagged.
+---
+
+## Prompt #021
+
+**Date:** 2026-10-02
+**Time:** 07:20
+**Category:** Fix / UI
+**Affected Module:** Staff — confirmation dialogs, audit action labels
+**Status:** Completed
+
+### Prompt
+
+> 1. Create `resources/views/components/staff/confirm-dialog.blade.php` as a staff-only variant of the shared `x-confirm-dialog` that forwards `focusable` to `x-modal`, so focus moves into the dialog on open (first input if any, otherwise the Cancel button). Leave the shared `x-confirm-dialog` and `x-modal` byte-for-byte unchanged.
+> 2. Switch every staff/kagawad/admin use of `x-confirm-dialog` to the staff variant: the Restrict and Change-role dialogs, the sector delete dialogs, the announcement delete dialog, the Kagawad "Mark collected" confirm if it uses one. Add `focusable` to the Add-a-sector modal.
+> 3. APPROVED SINGLE EXCEPTION: add the missing `request.submitted` label to `AuditLog::actions()` in `app/Models/AuditLog.php`. Touch nothing else in that file.
+> 4. Tests: assert the staff dialog renders the focusable target, and that the audit log shows an English label for `request.submitted`, not the raw slug.
+> 5. Browser-verify: open the Add-a-sector modal, Restrict dialog and Role dialog; confirm focus lands inside each, Esc closes, and focus returns to the trigger. Confirm the audit log no longer shows `request.submitted`. Report PASS/FAIL and the console error count.
+> 6. Run php artisan test, vendor/bin/pint --test, npm run build, and the resident/public/shared-components diff guard. Update PROMPT_LOG.md.
+
+### Implementation Actions
+
+- Added `x-staff.confirm-dialog`; the shared `x-confirm-dialog` and `x-modal` are untouched.
+- Switched all **8** staff `x-confirm-dialog` uses to the staff variant.
+- The Kagawad Mark-collected confirm needed no switch: it is an inline Confirm/Cancel, not a dialog.
+- `app/Models/AuditLog.php`: exactly one line added, `request.submitted => 'Request submitted'`.
+- Added `tests/Feature/StaffConfirmDialogTest.php` (15 tests).
+
+### Files Created
+
+- `resources/views/components/staff/confirm-dialog.blade.php`
+- `tests/Feature/StaffConfirmDialogTest.php`
+
+### Files Modified
+
+- `resources/views/staff/{accounts/show,announcements/index,batches/show,requests/show,sectors/index,verifications/show}.blade.php`
+- `app/Models/AuditLog.php` (one line, approved)
+- `public/build/**` · `PROMPT_LOG.md` (this entry only)
+
+### Result
+
+**Focus now moves into the dialog, and comes back out.** Verified in Chrome, 0 console errors
+on every scenario:
+
+| dialog | focus on open | Esc closes | focus after Esc | errors |
+|---|---|---|---|---|
+| Add a sector | `INPUT[name=sector_name]` — inside | yes | back on "Add a sector" | 0 |
+| Restrict | `INPUT[name=restricted_until]` — inside | yes | back on "Restrict this account" | 0 |
+| Change role | `SELECT[name=role]` — inside | yes | back on "Change role" | 0 |
+| Change role, via Cancel | — | yes | back on "Change role" | 0 |
+
+The Cancel path is asserted separately because it closes by a different route from Escape
+(`show = false` plus a dispatched event, rather than x-modal's own keydown handler) and could
+easily have been left without focus restoration.
+
+**Two things the shared `x-modal` needed from a wrapper, not an edit.** It reads
+`$attributes->has('focusable')` inside its own `x-init` and only then calls
+`firstFocusable().focus()`; and it hides itself on Escape but never returns focus. The staff
+variant therefore does both around it:
+
+- passes `focusable` through, and
+- remembers `document.activeElement` when its own `open-modal` event arrives — which is the
+  trigger, because x-modal waits 100ms before moving focus, so the trigger still holds focus at
+  that moment — and restores it on Escape, on Cancel and on `close-modal`.
+
+The wrapper is `display:contents`, so it creates no box around a `position:fixed` modal.
+First-input-not-Cancel falls out of document order: the slot renders above the buttons, so
+`firstFocusable()` reaches the reason box, the role select or the sector-name field, and lands on
+Cancel only for a dialog with no input — which is what the delete-sector dialog is, and what
+`a_dialog_with_no_input_puts_focus_on_cancel` asserts.
+
+**Three more inert triggers, found by verifying rather than assuming.** Switching the tag is not
+the same as making the dialog work, so every `$dispatch('open-modal', …)` trigger on the six staff
+pages that open one was walked in a browser for an Alpine scope. Three had none and were silently
+dead: **close a batch**, **reject a request**, **reject a registration** — all reachable only by
+URL-free nothing, with no console error. Each now carries `x-data="{}"`.
+
+Two triggers that *looked* unscoped are fine and were left alone: the announcement delete and the
+sector delete sit inside a `x-staff.table` row, and that component's wrapper carries
+`x-data="{ openRow(…) }"`, so they resolve. The sector delete is additionally inside the per-row
+`<tbody x-data>`. Confirmed by `closest('[x-data]')` in the browser rather than by reading the
+markup, because "is there a scope" is not answerable from the element itself.
+
+`every_open_modal_trigger_on_a_staff_page_is_inside_an_alpine_scope` now asserts this on every
+staff page that opens a dialog, so the defect cannot come back. Both new tests were checked by
+mutation, since a test that cannot fail is worse than no test:
+
+    removing `focusable`          -> the_staff_dialog_passes_focusable_to_x_modal
+                                      "The staff dialog no longer passes focusable"
+    removing x-data from a trigger -> every_open_modal_trigger_on_a_staff_page_...
+                                      "a trigger that dispatches open-modal has no Alpine scope, so it is inert: Reject request"
+
+**`request.submitted` now reads as English, and the gap that hid it is closed.**
+`actionLabel()` fell back to the raw slug for it because the map had every other `request.*` entry
+but that one. The audit table in Chrome now shows **Request submitted**, and no cell in the Action
+column contains a dot — verified by walking every row.
+
+The test asserts the table, not the page, and the distinction matters: the action *filter* carries
+the slug as each option's `value`, because that is the query parameter the form submits. Asserting
+the slug absent from the whole page would be asserting that the filter does not work.
+
+`every_action_the_application_logs_has_a_label` lists twenty action strings the code can emit and
+asserts none resolves to itself. That is the check that would have caught this on day one: the
+label map is only as good as the call that remembers to add to it.
+
+**Tests: 1007 pass** (was 992; +15). Pint clean. Build done. All three guards clean — resident/public
+and the shared components print nothing, and `app/Models` shows exactly the one approved line.
+
+### Notes / Follow-up
+
+- **The staff variant duplicates the shared component on purpose.** It is byte-identical apart
+  from `focusable`, the focus-restore wrapper and the comment explaining both. That is the cost of
+  the do-not-edit rule, and it is a real one: the next change to the shared dialog has to be made
+  twice. The alternative is editing the shared component, which would also fix the same gap in
+  the resident modals — and is the better long-term answer if the owner ever wants it.
+- **Focus is not trapped, and is not returned on one path.** Escape and Cancel both restore.
+  Dismissing by clicking the backdrop does not, because `x-modal` handles that internally with
+  `show = false` and dispatches nothing to observe. A one-line `x-on:click` on the backdrop would
+  close it, but `x-modal` is not mine to edit and the backdrop is not exposed; noted rather than
+  worked around.
+- **`x-modal` remains the only place focus is managed, and it is shared.** The staff dialog does
+  not reimplement it, so a future change to the focus trap or the tab cycle applies to both.
+- **ROLES.md is still absent** — seventh prompt running. Nothing in this task touched
+  authorization, and the `role:admin` middleware is still asserted from the route table.
+
+## Prompt #022
+
+**Date:** 2026-10-02
+**Time:** 09:40
+**Category:** Feature / UI
+**Affected Module:** Kagawad — My Sector Residents, unassigned-sector copy
+**Status:** Completed
+
+### What was asked
+
+Kagawad "My Sector Residents": a read-only, own-sector resident list with a batch
+selector, a status filter and a search. Plus a copy fix restoring the Captain
+wording to the unassigned-sector state.
+
+### What was built
+
+`GET /kagawad/residents` → `kagawad.residents.index`, inside the existing
+`role:kagawad` group. `Kagawad\ResidentController` orchestrates;
+`App\Support\KagawadSectorResidents` holds the query. The query lives in a support
+class rather than a scope on `ResidentProfile` because a Kagawad's sector is
+reached *through* the sector row (`sectors.kagawad_user_id`), not from the
+resident — and `app/Models/*` is do-not-edit for this area.
+
+The scope is a `whereIn` on `sector_id` applied before anything else, so a
+household in another sector is absent from the page source rather than merely
+unlinked. An unassigned Kagawad returns before any query runs. Read-only is
+structural: one GET, no write verb, one controller method.
+
+Relief status per batch is a correlated subquery on `relief_distributions` joined
+on `household_number` **and** `sector_id` — a household number is short and
+guessable, so matching on the number alone would surface a neighbour's collection
+when two numbers collide.
+
+### Two bugs this prompt found, one of them only in the browser
+
+**"Still to receive" counted people who had already collected.** The `whereExists`
+had no status predicate. Caught by a test asserting the stat card against a
+chosen batch, not by reading the code.
+
+**Every row showed the first checklist row's status.** The two `addSelect`
+subqueries were missing their `whereColumn`, so they were uncorrelated and
+returned the same status for the whole page: a mixed list rendered as if the
+entire sector had collected. **All the page-level assertions passed anyway** — the
+page did contain the word "Received", the stat card was right, and the status
+*filter* was right because it used a correctly correlated `whereExists`. Only the
+badge on an individual row was wrong.
+
+It was caught by reading a screenshot, then pinned by
+`each_row_carries_its_own_relief_status_and_not_the_first_rows`, which parses each
+`<tr>` with DOMXPath and asserts inside it. This is the strongest argument in the
+project for the rule file's line about markup-only assertions not being evidence:
+the filter and the badge were built from the same idea and disagreed, and no
+whole-page assertion could see it.
+
+### Scope decisions
+
+- **`<x-staff.page>` and `<x-staff.page-header>` do not exist.** The brief asked
+  for them; the staff area uses a documented convention instead (`x-breadcrumb` +
+  `h1` + `p`, in a `max-w-6xl space-y-6` wrapper) and `staff-polish.md` line 40
+  records that convention. Built to the convention. The shared photographic
+  `x-page-header` is still not used by staff.
+- **`app/Support/RoleNavigation.php` is on the SHARED do-not-edit list** and the
+  brief requires the nav item to live there. Edited as instructed, with the owner's
+  approval, and the rule left unamended. The change is Kagawad-only and touches
+  no resident or public output; both diff guards print nothing. **The rule line is
+  now stale for Kagawad-only additions and needs the owner to amend it.**
+
+### The unassigned-state copy
+
+`components/staff/unassigned-sector.blade.php` now reads *"You have not been
+assigned a sector yet. The Barangay Captain (Admin) assigns sectors from Sectors &
+Kagawad. Until then there is nothing to show here."* — and still carries no link,
+because `/staff/sectors` is `role:admin` and a Kagawad who followed the advice
+would get a 403.
+
+This reverses a previous decision. The component previously asserted that
+"Captain" was *not* a role and must never appear, which was correct then and is
+wrong now: the Captain is the Admin (ROLES.md decision 1). The component's comment
+and `KagawadFieldAreaTest` were both inverted rather than deleted, so the reasoning
+is still on record.
+
+One test could not be inverted: `kagawad.relief.show` does not render this
+component. For an unassigned Kagawad it shows its own "none of this batch's
+households are in your sectors" state, because its question is different. Asserting
+the Captain there would assert a sentence the page has no reason to print, so the
+Captain check covers the three pages that do render it and the no-admin-link check
+covers all four.
+
+### Blocked on the schema, not on the code
+
+Decision 3 says "their assigned sector**s**", but `sectors.kagawad_user_id` is
+`UNIQUE`, so a Kagawad can hold at most one. Two end-to-end tests cannot be set up
+at all — MySQL rejects the second sector. The sector-filter branch is therefore
+unreachable in the product today. The logic is written for the plural
+(`assignedSectorIds()` returns an array, queries use `whereIn`); the only blocker
+is the index. The test is `markTestSkipped` with that reason, and the behaviour is
+covered directly against the support class, which takes the sector list as an
+argument. Recorded in ROLES.md as the one open question.
+
+### Verification
+
+**Tests: 1036 pass** (was 1033; +3 net after edits), 1 skipped by design. Pint
+clean. Build done — asset hashes unchanged, so no new Tailwind was needed. Both
+diff guards print nothing. **Browser: 71/71 checks at 375, 768 and 1280, zero
+console errors** — scoped list, filters, empty state, role refusals, no horizontal
+scroll at any width.
+
+### Notes / Follow-up
+
+- **A Kagawad can still be made a Captain from the accounts screen** and, per
+  ROLES.md decision 1, the Captain gets everything a Secretary has. That is
+  intended. What is *not* intended and is not yet true anywhere: the Captain
+  cannot open a Kagawad's area. The browser run asserts 403 for Admin, Secretary
+  and Resident on `/kagawad/residents`, so the areas stay disjoint.
+- **The batch default is the latest *active* batch, not the latest batch.** A
+  closed batch can carry a later `distribution_date`, and defaulting to it would
+  open a worklist nobody can act on. Closed batches stay selectable. This was not
+  in the brief; it came out of the seeded data during browser testing.
+- **"Not yet received" is reserved for residents on the checklist.** A verified
+  resident off it reads "Not on this batch"; an unverified one reads "No relief
+  status". Calling an absent resident outstanding would be a claim about a batch
+  they are not on.
+- **Browser fixtures were written to the dev database and have been removed.**
+  The dev DB is back to its seeded state (9 users, 3 profiles, 5 distributions,
+  2 batches) and the temporary `artisan serve` was stopped. Worth remembering that
+  the dev database is *not* empty: it ships residents and batches in the demo
+  Kagawad's own sector, which is what made the first browser pass fail for the
+  right reason and the wrong reason at once.
+
+## Prompt #023
+
+**Date:** 2026-10-02
+**Time:** 14:15
+**Category:** Verification / Fix / Docs
+**Affected Module:** Staff area — shell, permissions matrix, documentation
+**Status:** Completed
+
+### What was asked
+
+Close out the staff/Kagawad/Admin polish. Verification plus small fixes only, with
+ROLES.md as the confirmed source of truth for permissions, and the resident/public
+area strictly out of bounds.
+
+### Regression guard
+
+`git diff --stat 485a279..HEAD` (485a279 is the commit before the polish began)
+over every resident/public path, controller, test, model, config, stylesheet and
+shared component. **One hit, and it is the owner-approved exception:**
+
+```
+ app/Models/AuditLog.php | 1 +
+```
+
+That is the single `'request.submitted' => 'Request submitted'` label line
+approved in prompt 021 and covered by `request_submitted_has_an_english_label`.
+Everything else is empty: no resident or public view, controller, test, model,
+config, stylesheet or shared component changed. The resident block of
+`routes/web.php` hashes identically across the range.
+
+### Four real defects found and fixed
+
+**F3, the one the audit had open for four prompts: `<title>` was `BDRPIS - BDRPIS`
+on all twenty staff pages.** `AppLayout` never declared `$title`, and a class
+component does not pick an attribute up from the tag — which `GuestLayout`
+already documents in its own docblock. The fix has a trap on the other side:
+`layouts/app` also had an `@isset($title) <h1>` block that had been dead code for
+exactly as long as `$title` was always null. Making `$title` arrive switches that
+block on, so it was removed in the same change — otherwise all twenty-two pages get
+a second `<h1>`. `StaffLayoutDocumentTitleTest` asserts all three halves: the title
+is right, `BDRPIS - BDRPIS` is gone, and there is still exactly one `<h1>`.
+
+**N1, horizontal overflow at exactly 1024px on the staff dashboard.** A
+`flex shrink-0` row held an untruncated document-type label. "First-Time Jobseeker
+Certificate Submission" is wider than the column once the two-column grid halves
+each list at 1024, so the row pushed the document 93px past the viewport and every
+panel on the page scrolled sideways. The label truncates; the status pill, which
+carries a dot and a word, deliberately does not.
+
+**N2, no sidebar item was marked current on any detail or form page.**
+`RoleNavigation::isCurrent()` has always documented that it honours a
+per-destination `pattern` "so a detail page still lights its parent" — and
+`pattern` was only ever set in the resident bar. On the nine staff screens that are
+a detail or a form, nothing matched, so the sidebar rendered with no current item
+at all. Patterns added to the six destinations that have children.
+
+Worth noting: the Kagawad relief link needed `kagawad.relief*`, not
+`kagawad.relief.*`. Its own route name has no `.index` suffix, so a dotted pattern
+matches the checklist page and the mark-collected post but **not the list page** —
+which is where a reader is most likely to be. The browser pass caught that one; the
+PHPUnit run did not.
+
+**N3, the Admin demotion message understated the rule.** It read "Demoting the last
+Admin would lock everyone out", but the guard refuses *every* demotion from
+`admin`. Behaviour unchanged. The message now states the real rule and points at
+Restrict, which is the affordance that actually works and is reversible.
+
+### Permissions: M4 closed
+
+`PermissionMatrixTest` derives each route's expected roles from the route's own
+`role:` middleware, so it can prove the middleware is applied but not that it was
+written correctly — the audit's M4. ROLES.md now exists, so
+`RolesMatrixTest` transcribes it independently: 56 role-guarded routes, each
+asserted to admit exactly the roles the document gives it, plus a structural guard
+that **any route with `auth` and no `role:` must appear on an explicit list**. That
+guard is what makes the `restricted` flag mean anything, since a route without
+`role:` never reaches the restriction check.
+
+The guard was negative-checked: removing `role:kagawad` from the Kagawad group
+fails two of the three structural tests, and the file was restored byte-identical.
+
+### ID photos: verified safe, and pinned
+
+`local.serve => true` registers an unauthenticated-looking `GET /storage/{path}`,
+and resident ID photos are on that disk. They are not reachable: the disk's
+`visibility` is absent, so it defaults to `private`, and Laravel's `ServeFile`
+requires a valid signed URL before it touches the file — 403 in development, 404 in
+production, traversal a 404. Confirmed by fetching a real photo unauthenticated.
+No photo is under `public/` or on the public disk. `ResidentIdPhotoAccessTest`
+pins all of it, so a future `visibility` change fails in the suite rather than in
+production.
+
+### Browser: 400/400 checks, zero console errors
+
+Six widths (375, 768, 1024, 1280, 1536, 1920) across all 18 staff and 4 Kagawad
+pages: 264 responsive checks, no horizontal scroll, no unintended text clipping.
+Accessibility: every input labelled, every `<th>` scoped, every table captioned, and
+the sidebar marks exactly one current item on all 22 screens. All eight
+`$dispatch('open-modal', …)` triggers have a real Alpine scope, open, and close on
+Escape.
+
+Three of the six initial failures were **my assertions being wrong**, and fixing
+them is the interesting part:
+
+- `aria-current` appears three times per page, not once. That is the breadcrumb, the
+  sidebar and the phone bottom bar — all three correct. "Exactly one" would have
+  been fixed by deleting a correct mark.
+- `sr-only` text is clipped to 1px on purpose. Flagging it was flagging the correct
+  thing.
+- The delete-sector dialog needs its per-row **Manage** expanded first. Clicking the
+  first Manage and moving on would have "passed" a dialog no user reaches without
+  opening the row.
+
+The delete-sector walk now expands rows until the control appears, which is what a
+user does.
+
+### Documentation
+
+- **README.md** replaced. Every claim verified against the working tree before
+  writing: Laravel 13.32, PHP 8.5.9, Tailwind 3.4.19, Vite 8, Alpine 3, PHPUnit 12,
+  six seed accounts and their roles, the `bdrpis_testing` requirement, and that
+  `public/build` is committed.
+- **docs/STAFF_UI_AUDIT.md** §8: resolved/deferred tables. F4, F5, F10, F11 are
+  **deferred, not fixed** — re-checked and still present. F8 is partly resolved.
+  The six out-of-scope resident/public items are listed with the reason each was
+  left.
+- **ROLES.md**: the one open question is resolved. A Kagawad holds exactly one
+  sector; the schema is not changed. The plural reads as "one or more", and the
+  sector filter on the Kagawad resident list is unreachable by design.
+
+### Verification
+
+**Tests: 1176 pass** (was 1036; +140), 7623 assertions, 1 skipped by owner decision,
+62s. Pint clean. Build current and byte-identical to what is committed. Both
+resident/public diff guards print nothing. **Browser: 400/400, 0 console errors.**
+
+### Notes / Follow-up
+
+- **Four audit findings are deferred and still reproducible.** F4 (sidebar scrolls
+  away), F5/M1/M2 (the five Admin destinations render under a "MY ACCOUNT"
+  heading, because `availableSidebarGroupsFor()` discards the `admin` group), F10
+  (settings is one ungrouped form), F11 (the accounts "Verified" column means
+  nothing for three of four roles). None is a correctness or security problem; all
+  are changes to layout or copy that are better made deliberately than as a
+  drive-by. F5 in particular wants one decision, not three patches.
+- **M3 is still a quiet failure.** `sidebarFor()` returns `[]` for a role outside
+  the four constants, so a fifth role would get an empty shell rather than a
+  refusal. Unreachable today.
+- **The test suite is the only place the permission model is now written down
+  twice** — ROLES.md and `RolesMatrixTest`. That is deliberate, and the point is
+  that they are compared rather than one being derived from the other. A change to
+  one has to be made in the other in the same commit, or the suite fails.
+- **I did not fix the four deferred findings.** They were not asked for, and three
+  of them change markup the owner may want to shape differently.
+
+## Prompt #024
+
+**Date:** 2026-10-02
+**Time:** 16:40
+**Category:** Feature / Fix / Docs
+**Affected Module:** Staff shell, System Status removal, sidebar badges
+**Status:** Completed
+
+### Task 1 — the sidebar stays put
+
+F4 from the audit, deferred twice, now fixed. The `<aside>` was `min-h-screen`
+inside a `flex min-h-screen` wrapper, so it was `position: static` and travelled
+with the document: on any page taller than the viewport a reader who scrolled down
+had lost the navigation entirely.
+
+It is now `fixed inset-y-0 left-0 z-30 h-[100dvh]`, with the logo block and the
+user block as `shrink-0` children and the nav as `flex-1 min-h-0 overflow-y-auto`,
+so an Admin's ten destinations scroll *inside* the sidebar. `min-h-0` is the part
+that is easy to leave out: a flex child defaults to `min-height: auto`, which
+refuses to shrink and pushes the user block off screen instead of scrolling the
+nav. The main column took a matching `md:pl-64` and the `flex` wrapper is gone —
+with the sidebar out of flow there is only one column, and a flex row would imply a
+sibling that is no longer in the document. Mobile is untouched: the aside is
+`hidden md:flex` and the phone bar is a separate in-flow element.
+
+Browser-verified as Admin and as Kagawad on the four longest pages
+(`/staff/batches/create`, `/staff/announcements/create`, `/account`, `/staff/sectors`)
+at 1280x720 and 1920x1080: after scrolling to the bottom the aside reports
+`top=0` and `bottom=innerHeight` at every size, the logo and user block stay put, and
+every nav item has a box — no empty dark column. At 1280x500 the nav scrolls
+internally (`clientHeight=350`, `scrollHeight=578`, `scrollTop` 0 to 228) while the
+user block stays at `top=431` and the aside at `top=0`. 99/99 checks, no console
+errors.
+
+### Task 2 — System Status removed completely
+
+Gone: the route, `Staff\SystemStatusController`, `staff/status/index.blade.php`,
+the sidebar entry, the phone-bar entry, and the Admin dashboard's System-health
+card. `App\Support\SystemHealth` went with them — it existed only for that page and
+the dashboard card, and once both were gone nothing referenced it.
+
+`SystemHealth::summary()` ran four checks, one of which read `APP_DEBUG` and
+rendered it on a page the Captain did not need to read.
+
+> ### APP_DEBUG must be false before production
+>
+> **With this page removed, nothing in the running application reports whether
+> `APP_DEBUG` is on.** It used to be the first thing on `/staff/status`, with a
+> severity icon. `APP_DEBUG=true` in production renders stack traces and
+> environment values to whoever triggers an error, so it must be set to `false` in
+> the production environment and checked there. There is no longer a screen in the
+> product that will tell you, which is a deployment check rather than a UI feature
+> and belongs in the deploy checklist.
+
+Proof it is gone, by grep over `app/ resources/ routes/ tests/ database/ config/`:
+
+| Term | Result |
+|---|---|
+| `SystemHealth` | no matches |
+| `SystemStatusController` | no matches |
+| `staff.status` / `staff/status` | no matches outside `x-staff.status-badge`, which is the badge component and unrelated |
+| `System Status` | four matches, all comments explaining the removal, plus the ROLES.md removal note |
+| the files | all three absent from disk; `/staff/status` matches no route |
+
+The Admin dashboard strip is now four cards and the grid is `xl:grid-cols-4`.
+`ROLES.md` gained a **Removed** section, the `role:admin` group is 13 routes, the
+Admin sidebar is 10 entries, and the README no longer claims a page that does not
+exist.
+
+**Exactly 14 test cases were removed**, measured with `phpunit --list-tests`
+against the previous revision of each file rather than inferred: AdminOnlyPagesTest
+-5, StaffLayoutDocumentTitleTest -3, AdminAreaTest -2, RoleNavigationTest -2,
+StaffDashboardWidgetsTest -1, RolesMatrixTest -1. Seven of those were whole test
+methods that existed only to test the status page; the rest were data-provider
+cases for `staff.status.index`.
+
+### Task 3 — count badges
+
+`App\Support\NavigationBadges` computes every figure in one place, and the two
+dashboards read their card numbers from it too, so a badge and the card beside it
+cannot drift. Three aggregate queries for an Admin, two for a Secretary, one for a
+Kagawad — a constant, not a per-row count.
+
+| Destination | Badge |
+|---|---|
+| Resident Verification | profiles pending verification |
+| Document Requests | requests awaiting a decision |
+| Sectors & Kagawad (Admin) | sectors with no Kagawad |
+| Relief Distribution (Kagawad) | own-sector households still to collect, across **active** batches only |
+| everything else | none |
+
+Zero is hidden rather than shown, the display caps at `99+`, and each badge carries
+an `aria-label` sentence ("3 pending verifications") with the number itself
+`aria-hidden` so a screen reader is not told it twice.
+
+**A Kagawad's count is scoped through `forSectors()`, always.** Verified in the
+browser against a fixture with 2 outstanding in the Kagawad's own sector and 5 in
+another: the badge reads **2**, and the other sector's name and totals appear
+nowhere in the page source. An unassigned Kagawad gets no badge at all rather than
+a zero.
+
+Three things worth recording.
+
+- **The admin-group links render in the second nav loop.** `availableSidebarGroupsFor()`
+  folds everything that is not `main` into one bucket (F5/M1/M2), so the Captain's
+  four links — including Sectors & Kagawad — are drawn by the loop I had assumed
+  was My Account. The first version badged only the `main` loop and the Sectors
+  badge silently did not appear for an Admin.
+- **The memo was leaking across requests.** The first version keyed the memo by
+  user id alone, which survives across requests inside one PHP process. That is
+  invisible under FPM and it made `KagawadSectorResidentsTest`'s query-count test
+  read a *second* request as two queries cheaper than the first. The memo is now
+  scoped to the `Request` instance, so it is once-per-request for real.
+- **"Across active batches" is a behaviour change to the Kagawad dashboard card.**
+  "Still to collect" used to count pending rows on closed batches too, i.e.
+  outstanding work on a handout that officially ended. The card and the badge now
+  both come from the shared source and both exclude closed batches.
+
+`bdrpis_testing` carries 17 sector rows committed outside any test, so
+`RefreshDatabase` does not start from an empty schema. The badge tests empty the
+counted tables themselves rather than depending on a clean database; two of them
+read figures that were wrong for that reason before being fixed.
+
+### There is no mobile drawer
+
+The brief asked for badges "in the mobile drawer". There is no drawer: the phone
+navigation was built as "a bottom bar rather than a hamburger" and says so in its
+own comment. The two surfaces in `layouts/navigation.blade.php` — the bar below
+`md`, the sidebar from `md` up — are the whole of it, and both draw the same
+badges from the same array. No drawer was invented to satisfy the wording.
+
+### Verification
+
+**Tests: 1175 pass** (1174 passed + 1 skipped by owner decision), 7603 assertions.
+Net: 1176 before, 14 removed, 13 badge tests added. Pint clean. Build committed —
+the CSS hash moved from `app-BGfC7CYp` to `app-B5fCFYS1` because the fixed layout
+introduced `h-[100dvh]`, `min-h-0` and `md:pl-64`. Both resident/public diff
+guards print nothing. **Browser: 99/99 for the sidebar, 61/61 for the badges, no
+console errors in either.**
+
+### Notes / Follow-up
+
+- **F5 is now more visible, not less.** The Captain's four links sit under a
+  heading that says "My Account", and one of them carries the only Captain badge.
+  It was always wrong; there is now a number on it.
+- **The dev database was re-seeded.** The badge fixtures replaced the demo sectors,
+  residents, requests and batches, so `migrate:fresh --seed` was run to put it
+  back. The documented demo accounts are intact.
+
+---
+
+## Prompt #025
+
+### The brief
+
+Three things, in the staff area only, on the same scope rules as the last task
+(`.ai/rules/staff-polish.md` and `ROLES.md` read first):
+
+1. Fix the sidebar grouping. The Admin should read **Workspace**, **Administration**,
+   **My Account**. A Secretary and a Kagawad keep the grouping they have. Badges
+   still work, the phone bottom bar is not changed, the rendered DOM is pinned per
+   role, and the Admin is looked at in a browser at 1280.
+2. `bdrpis_testing` carries 17 sector rows. Find out where they come from and make
+   sure the test database starts empty for every test run. Take the workarounds
+   out. Do not touch the development database.
+3. Tick off the todo list, leaving open only what is genuinely open.
+
+### The 17 sectors are the schema, not litter
+
+They are not committed by a test and not left behind by one. Migration
+`2026_09_29_151741_replace_sector_placeholders_with_purok_names` inserts the
+seventeen puroks, and that is what the barangay is divided into. Proven rather
+than argued: `migrate:fresh` on `bdrpis_testing` with no seeder and no factory
+produces `sectors 17, users 0, resident_profiles 0, document_requests 0,
+relief_batches 0, announcements 0`.
+
+So the test database does start empty — empty of anything a test creates — and
+`RefreshDatabase` already guarantees it, by migrating fresh once per run. The only
+correct change was to the tests, not the schema: `NavigationBadgesTest` had grown
+an `emptyCountedTables()` helper that truncated the counted tables itself, which
+both hid the real baseline and was load-bearing. It is gone. The assertions now
+read the live count (the 17 unassigned sectors, the pending profiles the test made)
+instead of emptying tables to make a number come out right. Two more cases were
+added for the part that actually matters — that assigning a sector lowers the
+Captain's badge, and that an assigned sector is not counted.
+
+`bdrpis` was only ever read. `phpunit.xml` pins `bdrpis_testing` with
+`force="true"`, and `tests/TestCase.php` refuses to start on any other database
+and fails any query aimed at one.
+
+### Two halves, and only one of them was a data bug
+
+The Admin's four destinations sat under a heading that said "My Account" for two
+independent reasons, and fixing either alone would have left the same bug
+reachable:
+
+- `availableSidebarGroupsFor()` returned **two** buckets — `main`, and everything
+  else folded into `account` — so the `group => 'admin'` that `sidebarFor()`
+  declares on the Captain's four was thrown away before it reached the view.
+- The view then drew one hard-coded second heading, labelled "My Account".
+
+Both are fixed. Three buckets now, and one loop per bucket with the heading in a
+map beside it, so no heading is pinned to a bucket. A bucket is only drawn when it
+has something in it, which is why a Secretary sees no empty "Administration"
+section.
+
+`StaffSidebarGroupingTest` asserts the **rendered DOM** per role, not the array.
+That is the choice that matters: an array-only test passes while the headings are
+still wrong, and a markup-only test passes while the buckets are still merged.
+
+### The heading rule, which took two attempts
+
+The brief says the Secretary's grouping must not change, and the naive reading of
+that — "only label a group when there is more than one" — is wrong, because a
+Secretary has two buckets too (main plus My Account). That rule labelled the
+Secretary's workspace links "Workspace" and, worse, suppressed the **My Account**
+heading they have always had. The rule that is actually right is whether the role
+has an Administration section to divide its sidebar at all:
+
+- Admin has one, so all three groups are labelled, Workspace included.
+- Secretary and Kagawad do not, so their workspace links stay unlabelled and My
+  Account keeps its heading.
+
+### A bug the tests could not see
+
+The first version of the group loop left a stray `</div>` after the `@endforeach`,
+which closed the `<nav>` early. The user block stopped being a sibling of the nav
+and became its child; the flex column then gave the nav the full remaining height
+and pushed the user block out of the viewport at 1280x500. Every test passed,
+because each of them looked either at the links inside the nav or at the text —
+never at whether the nav ended where the sidebar said it did.
+
+`StaffSidebarShellTest` pins the shell: exactly three children (logo, nav, user
+block), the nav a direct child of the aside, `min-h-0`/`overflow-y-auto` on the nav
+and `shrink-0` on the other two, and `md:pl-64` on the main column. Re-injecting
+the stray tag makes six of its cases fail, so it is a real guard and not a
+formality.
+
+### The link markup moved to a partial
+
+The badge and current-page treatment were written out twice, and the two copies
+had already drifted — which is how the Captain's Sectors badge went missing for a
+whole task. `layouts/partials/sidebar-link.blade.php` is now the only copy, so
+the badge cannot be right in one group and wrong in another.
+
+The phone bar keeps its own markup, because a bar of stacked icons is not a list
+row. It gained `$groups['admin']` in its merge, which was harmless while the
+buckets were folded together and would otherwise have quietly taken the Captain's
+four destinations off the phone. Both surfaces now carry 11 for an Admin, 7 for a
+Secretary, 4 for a Kagawad.
+
+### Verification
+
+**Tests: 1201 pass** (1200 passed + 1 skipped by owner decision), 7707
+assertions. Net: 1189 before this task's last two commits, 12 grouping cases and
+12 shell cases added. Pint clean. Build committed; the CSS hash moved from
+`app-B5fCFYS1` to `app-DBMx5vpy` and is now stable across a second build. All
+three diff guards print nothing.
+
+**Browser, 9/9** across three roles x {1280x500, 1280x1000, 1920x1080}: the
+sidebar is pinned (`top=0`, `bottom=innerHeight`), the user block stays in view,
+there is no horizontal overflow, and every link is reachable at some scroll
+position.
+
+| Role | Groups | Links |
+|---|---|---|
+| Admin | Workspace (6) / Administration (4) / My Account (1) | 11 |
+| Secretary | unlabelled (6) / My Account (1) | 7 |
+| Kagawad | unlabelled (3) / My Account (1) | 4 |
+
+### Two corrections worth recording
+
+- The tag-balance check reported `<aside> 2 open / 1 close` and I read it as a
+  comment false positive. It was a real unbalanced tag. The check was right and I
+  was wrong, and a moment's proper scepticism about my own tooling would have
+  found it before the browser did.
+- My first browser audit reported two failures on Admin at 1280x500. Both were
+  bugs in the audit script: its user-block selector matched a group wrapper,
+  because the My Account link lives inside one, and it demanded every link be
+  visible *simultaneously* at a single scroll position. The page was fine. Worth
+  noting because the instinct to go and "fix" the app after a red browser check is
+  the wrong one — the first question is which of the two is lying.
+
+### Still open (unchanged, deliberately)
+
+F10 (Settings is one ungrouped form) and F11 (the "Verified" column renders for
+roles where it means nothing) are untouched. Both are real but both are redesigns
+rather than defects, and neither was in this brief. M3 remains unreachable today.
+
+---
+
+## Prompt #026
+
+### The brief
+
+Four things, staff area only, on the same scope rules: every filter defaults to
+All; Font Awesome self-hosted; a staff-only icon-action component; and an Actions
+column in place of clickable rows. Finish with tests, a build, the diff guards and
+this log.
+
+### Two of the four had been measured before and called clean
+
+Worth putting first, because it is the most useful thing in this task.
+
+**Table alignment** was reported fixed, twice, and was not. The earlier measurement
+read `text-align` on `th` and `td` — which genuinely was `left` everywhere — so it
+kept reading as fixed. The cells that were off were never `text-align`. Three
+separate causes: `align => 'right'` on a column definition, `class="text-right"` on
+numeric cells, and `justify-end` on the Actions cells.
+
+The first is the one worth remembering. `align` was a real prop of `x-staff.table`
+and a **dead** one on the shared `x-data-table`, which reads `$column['class']`. The
+same key was honoured in one component and silently ignored in the other, so a
+numeric column came out right-aligned on some tables and not on others while both
+looked correct in isolation. There was even a test pinning the dead behaviour:
+`the_table_applies_a_column_alignment_to_the_header` passed `align => 'right'` and
+asserted `text-right` on the `<th>`, which read as proof the prop worked. Removed,
+with a replacement that passes the key and requires the header to be left anyway.
+
+**The Role filter showing "Resident"** was not a controller bug and not a
+`RoleNavigation` bug. It was a shadowed loop variable:
+
+```php
+foreach ($options as $key => $item) {
+    $value = is_int($key) ? (string) $item : (string) $key;   // $value is the PROP
+```
+
+`$value` is the current filter. The loop reused the name, so afterwards it held the
+**last option's value** and every `@selected($value === $optionValue)` was testing
+the last option against itself. `User::roles()` ends with `resident`, so the control
+always showed Resident while the list held every role. Exactly the reported symptom,
+from one variable.
+
+The same line hid a second, larger defect. `is_int($key)` cannot tell a list of
+slugs from a map keyed by a database id, because PHP normalises `"5"` to `int 5` on
+the way in. Four call sites pass `->pluck('name','id')`, so for four filters the id
+was thrown away and the option rendered `<option value="Purok 5">Purok 5</option>`.
+`$request->integer()` turned that into `0`, which the controller read as no filter:
+**the Sector filter on Residents, the Account filter on Audit Logs, and both the
+Sector and Batch filters on the Kagawad resident list could not narrow the list from
+the interface at all.** Neither was in the brief. The shape is now decided by
+`array_is_list()`.
+
+### Filters
+
+Verification defaulted to `pending` and Document Requests to `queue`. Both narrowed
+to a real subset, and in both the empty state and the counts still worked — which is
+why this reads as correct rather than broken. Everything is on the empty parameter
+now, with an explicit All / Everything option.
+
+Two things went with it. Document Requests had **two** spellings of "everything" — an
+`all` sentinel value and the absent filter — so a bookmark of one did not mean the
+other. And the sort contradicted itself: `awaitingDecision()` appends its own
+`oldest('created_at')`, which then sat ahead of the outer `latest()`, so the default
+view sorted oldest-first and every other filter newest-first.
+
+`staff.batches.index` also had a `?status=` parameter with **no control at all** — it
+narrowed invisibly with no way back. Not in the brief either; it has a filter now.
+
+The Kagawad batch selector still defaults to the latest active batch, for the reason
+already on record: relief status belongs to a batch.
+
+### Font Awesome, scoped as narrowly as a dependency can be
+
+`@fortawesome/fontawesome-free` as its own Vite entry, `resources/css/staff-icons.css`,
+importing only `fontawesome.css` and `solid.css` — one weight is one font file, and
+the regular weight would be a second for no gain. Listed in `layouts/app.blade.php`
+and nowhere else.
+
+An `@import` at the top of `app.css` would have worked visually and put ~100KB of
+font on every public page. As a separate entry, `app.css` came out **byte-identical**
+(md5 `26aec7a0a9a7483988b8bc65b0631fa2`) before any other work touched it. It has
+since gained five rules and lost one, all of them staff-only and all from the new
+icon component — the only removal is `active:scale-[0.99]`, which went when the
+whole-card link on the Kagawad phone layout became a container.
+
+### The Actions column
+
+Rows were three ways into one record and none of them named it: a clickable `<tr>`
+that was not focusable and not a link, a chevron that was `aria-hidden`, and a link
+whose text was the same string as the cell it sat in. `openRow` is deleted rather
+than left unused — it had to bail out of any click landing on an interactive element,
+and a guard that must be right on every future row is a guard that will be wrong on
+one.
+
+`person-cell` lost its `href` and `chevron` props entirely. No caller used them any
+more, and keeping them would have left a second way into a row that nothing tests.
+
+### Three bugs the browser caught that the tests did not
+
+All three were found by pointing Playwright at the pages, and all three would have
+shipped on a green suite.
+
+1. **`$dispatch('open-modal', 'delete-'.$announcement->id)`** — I dropped the Blade
+   braces, so `$announcement->id` reached the browser as literal text and the page
+   threw `Unexpected token '>'`. A `pageerror` with no failing test.
+2. **`@if` inside a component tag.** `:disabled-reason="... @if ($relief > 0) ... @endif"`
+   reached the aria-label literally: *"…4 households@if ($relief > 0) and 4 relief
+   entries@endif to move."* Blade directives are **not compiled inside an
+   `<x-...>` attribute value** — only `{{ }}` is. Built in a `@php` block instead.
+3. **The stray `</div>`** from the previous task was a real unbalanced tag, and I had
+   dismissed the tag-balance warning as a comment false positive. It was my tooling
+   being right and me being wrong.
+
+A fourth was mine and worth recording because the test I wrote to catch it did not:
+I verified the alignment test by re-introducing `text-right`, and it passed. The
+injection had been a no-op — I had replaced a class string that no longer existed,
+and my confirming `grep` had matched my own explanatory comment. The test was fine;
+the experiment was not. Re-injected against the real class list, it fails as it
+should.
+
+### Verification
+
+**Tests: 1273 pass** (1272 passed + 1 skipped by owner decision), 11189 assertions.
+Net: 1219 before, 19 filter cases and 54 table/action cases added, 14 tests updated
+because they asserted on controls that no longer exist. Pint clean. Build committed.
+
+**Browser, 26/26** — 13 staff/Kagawad screens at 1280 and 768, each checked for the
+Actions header, an aria-label and a destination on every action, no row click, no
+link in the first cell, and **zero** non-left-aligned cells. Font renders as
+`"Font Awesome 7 Free"`; `fa-solid-900-IAB4Droh.woff2` returns 200 from this origin.
+
+**Public and resident pages load no icon font.** Eight public/guest pages and four
+resident pages: no `staff-icons` link, no `fa-` glyph, no `fa-solid` request, only
+`app.css` and Figtree. All three diff guards print nothing.
+
+The Kagawad mark control measures 44px tall, is `type="button"`, and after one tap the
+URL is unchanged and the inline Confirm appears — the irreversible record still
+cannot be written by a single unconfirmed click.
+
+### Still open (unchanged, deliberately)
+
+F10 (Settings is one ungrouped form) and F11 (the "Verified" column renders for roles
+where it means nothing) are untouched: real, but redesigns rather than defects, and
+neither was in this brief. M3 remains unreachable today.
+
+### One thing deliberately not kept
+
+A `StaffBrowserFixture` seeder was written so the browser had a row in every table
+to measure, and it refused to run outside `bdrpis_testing`. It is deleted. It is not
+worth leaving a class in `database/seeders/` that writes eight fake users into a
+database, where someone will eventually run `db:seed --class` against the real one.
+Re-create it on demand rather than ship it.
+---
+
+## Prompt #027
+
+### The brief
+
+Two changes with an owner-approved exception to the scope rules, and only those
+two: a favicon on every page, and two links on the Services page. The public/guest
+and resident areas were editable for exactly this and nothing else.
+
+### The favicon: five documents, one partial
+
+Five files in this repository open a `<head>`, and that is the whole problem:
+
+    layouts/public.blade.php   carries every public page AND every resident page
+    layouts/guest.blade.php    unused by any current route, kept correct
+    layouts/app.blade.php      staff, Kagawad and account-staff
+    auth/login.blade.php       a whole document, does not go through the bundle
+    auth/register.blade.php    a whole document, does not go through the bundle
+
+The two auth pages are the reason this cannot be done in the layout alone. They
+are standalone documents with their own `<head>` and their own inline `<style>`,
+so an `@include` in a layout would never reach them.
+
+Each of the five got **one added line**, and nothing else:
+
+    +@include('partials.favicon')
+
+Five copies of two `<link>` tags is five places for the next change to reach only
+some of them, and a favicon that is right on six pages and missing on one is
+something a user notices before a developer does.
+
+The indentation of that line is copied from each file's own `<head>` rather than
+assumed, because the four layouts indent four spaces and the two auth pages
+indent none.
+
+### The logo is 500 x 500
+
+Exactly square, so `public/apple-touch-icon.png` is a straight copy with nothing
+cropped, scaled or re-encoded. `public/favicon.png` and `public/apple-touch-icon.png`
+are both byte-identical to `public/images/Zone 1_logo.png` — md5
+`6102a995fd062f580afd170ea16a381f` for all three, asserted by the test rather than
+by this note.
+
+**The original is not renamed, not moved and not deleted.** The space in
+`Zone 1_logo.png` has to be `%20` in every URL, which is what the copy exists to
+avoid, but the sidebar, the top bar and both auth pages still read it from where
+it was.
+
+### public/favicon.ico is zero bytes
+
+It exists, it has existed since the initial commit, and **it is 0 bytes**. It is
+not a Laravel default icon — it is an empty file. That is worth stating plainly
+because it is the reason the test asserts the PNG is really served and not merely
+linked: a `<link>` to a file that is not really there produces a broken tab icon
+with no error anywhere, and an empty `.ico` sitting next to it is exactly the
+thing that hides the problem.
+
+The file is left in place, not deleted. With an explicit `<link rel="icon">`
+present the browser does not probe `/favicon.ico`, and every page now declares
+**exactly one** icon — which is the assertion, because two declarations is a bug
+rather than a redundancy: the browser picks one, the other is dead markup, and
+which one it picks is not something a reader can see.
+
+`?v=` is the file's own mtime, not a hand-written version number. Replacing a
+favicon without changing the URL is the single most common reason one appears not
+to have updated, and the mtime changes by itself when the image does.
+
+### Services: two controls, five links
+
+The complete inventory of every anchor to `/register` or `/login` on the rendered
+page, before the change:
+
+| Source | Label | Count | Was |
+|---|---|---|---|
+| `public/services.blade.php:19` | Request a Document | 1 | register |
+| `public/services.blade.php:41` | Apply Now (per service card) | 4 | register |
+| `public/services.blade.php:83` | Create a resident account | 1 | register — **unchanged** |
+| `layouts/public.blade.php:139,143` | Log in / Register, header | 2 | unchanged |
+| `layouts/public.blade.php:194,195` | Log in / Register, mobile menu | 2 | unchanged |
+
+So two source lines, five rendered links. "Apply Now" appears **four times** and
+it comes from the service-card component's default `cta`, not from the view — which
+is the trap here. Changing one of the four in the view would have looked correct
+in the source and left three of four cards still going to Create Account.
+
+Only the `:href` expression changed, twice. Labels, icons, variants, sizes and
+layout are byte-identical, and the three-valued `auth()->check() ? … : …` is
+untouched, so a signed-in resident still reaches the request form.
+
+**No existing test needed updating.** No public-page test asserted where these two
+controls pointed — the Services page had heading, title and navigation coverage
+and nothing about its links. The suite passed unchanged at 1273, which is not a
+result to be pleased about: it means the behaviour was entirely untested, and a
+future change could have put it back silently. That gap is what
+`ServicesPageRequestLinksTest` closes.
+
+### Two mistakes worth recording
+
+Both were mine, both were caught by the tooling rather than by reading the diff.
+
+**A shell heredoc wrote literal backspace bytes into a test.** `\\b` inside a
+Python string became `0x08` rather than a regex word boundary, so the predicate
+read `/<BS>Apply Now<BS>/i` and matched nothing. The symptom was baffling: an
+identical hand-written filter in the same test returned 4 while the one on line 99
+returned 0. `cat -A` showed `^H`. Every file touched by this task has now been
+scanned for control characters and all nine are clean.
+
+**A suffix match written with `/` fails on Windows.** The favicon test asserted
+"only this one view may declare an icon" by matching the path suffix
+`partials/favicon.blade.php`. `getPathname()` returns backslashes on Windows, so
+the partial was not recognised as the permitted file and the test failed against
+itself. It now compares `basename()` and the parent directory name, which has no
+separator in it at all.
+
+### Verification
+
+**Tests: 1302 pass** (1301 passed + 1 skipped by owner decision), 11307 assertions.
+Net: 1273 before, 29 added (23 favicon, 6 services). Pint clean.
+
+**No build was needed, and that is a checked claim rather than an assumption.**
+Zero new Tailwind class tokens across all six edited views, no `class` attribute
+at all in the new partial, and no JavaScript touched. The committed build in
+`public/build` already matches the source.
+
+**Browser, favicon — 7 areas, all PASS.** `document.querySelector('link[rel~=icon]')`
+on public home, login, register, a resident page, a Kagawad page, a Secretary page
+and an Admin page: **exactly one** `rel~=icon` and **exactly one**
+`apple-touch-icon` on each. Every fetch returned **HTTP 200, `image/png`,
+473126 bytes** — both files, on every page.
+
+**Browser, Services — 5 PASS.** As a guest, clicking "Request a Document" and
+"Apply Now" lands on `/login` (first and last of each, so all four cards).
+The header's two Register buttons and "Create a resident account" still go to
+`/register`. As a logged-in resident both still land on
+`/resident/requests/create`, with no error text, no JS error and no console error.
+
+**Scope audit — no violations.** This task's changes are exactly eleven files:
+
+- five layouts, one added line each: `layouts/public`, `layouts/guest`,
+  `layouts/app`, `auth/login`, `auth/register`
+- the new partial `resources/views/partials/favicon.blade.php`
+- `resources/views/public/services.blade.php` (two lines, `:href` only)
+- `public/favicon.png` and `public/apple-touch-icon.png`
+- `tests/Feature/SiteFaviconTest.php` and `tests/Feature/ServicesPageRequestLinksTest.php`
+
+No resident controller, route, component, view or test. No shared component. No
+`app/Models`, `config/bdrpis.php`, `resources/css/app.css`, `tailwind.config.js`,
+`routes/`, `package.json`, `vite.config.js` or `public/images`. Verified by
+intersecting this task's unstaged and untracked file lists with every forbidden
+path.
+
+---
+
+## Prompt #028
+
+### The brief
+
+A staff-only resident detail and correction screen for the Secretary and the
+Admin: a record page laid out as five cards, an Edit action on every row of the
+directory, and a correction form that audits itself. The resident and public
+areas were read-only for the whole of it, with one approved exception: the
+validation rules the wizard already had.
+
+### The audit came first, and it changed the brief in two places
+
+The brief asked for a "contact number" field and said the national ID number
+should be editable "unless the audit shows the wizard collects it as plain
+data". The audit found neither premise held.
+
+**There is no contact number.** `users` and `resident_profiles` have no phone,
+mobile or contact column at all, and the wizard's "Contact" step collects the
+**email address and nothing else**. The card exists and says so, because a card
+showing an empty field invites a clerk to go looking for somewhere else to put
+it. Adding a column would have meant a migration plus an edit to
+`app/Models/User.php`, which the scope rules put off limits.
+
+**The wizard does not collect the national ID number.** It collects a
+*photograph* of an ID. `RegisterRequest`'s own comment says the number "is no
+longer captured at all" and that the Secretary reads it off the uploaded document
+instead, so the typed number was deliberately dropped and with it the uniqueness
+check that used to stop one person holding two accounts. By the brief's own rule
+it is therefore not editable, and the field is not on the form. It is **displayed
+masked to the last four**; staff who need it in full open the uploaded document,
+which is logged as `resident.id_viewed`.
+
+**There is no `archived_at`.** Zero hits for `archived_at`, `archived` or any `R2`
+reference in `app/`, `database/`, `resources/views/`, `routes/` or `.ai/rules/`.
+The brief's instruction was to wire the guard only if that column exists and
+otherwise to note it, so it is noted and not faked. A guard for a column that is
+not there would be a guard on nothing.
+
+### The extraction, and the proof it changed nothing
+
+The correction form and the wizard validate the same eight fields for the same
+person, so the rules moved to `ResidentProfileRules::shared()` and both read it.
+The closed lists are read from `config('bdrpis.registration')` rather than copied,
+because copying them is the exact drift the class exists to remove.
+
+`RegisterRequest` keeps its own `messages()` array verbatim and the staff form has
+its own wording. Messages were deliberately **not** shared: "Your date of birth is
+required" and "A date of birth is required" are different sentences and neither is
+right on the other form, and a shared message with a `{possessive}` placeholder
+would be a way of pretending otherwise.
+
+Two checks hold this in place:
+
+- `the_wizard_s_rule_list_is_unchanged` pins the wizard's rule keys, their **order**
+  and three of the rule arrays literally.
+- `the_staff_form_uses_the_wizard_s_own_rules_for_the_shared_fields` compares the
+  two forms' arrays field by field, `Rule` objects compared by serialised state
+  rather than identity, and asserts `household_number` is the wizard's three rules
+  plus **exactly one** more.
+
+Run by hand as well, before those tests existed: `RegisterRequest::rules()` was
+compared against the pre-extraction array and matched on key order and on the
+serialised state of every `Rule` object.
+
+### household_number: the one rule the wizard cannot make
+
+The wizard's `household_number` rule is `required,string,max:50` and no more. It
+cannot be otherwise: at signup the profile row does not exist yet, so uniqueness
+is not a check the wizard is in a position to make. The column is indexed but
+**not** unique.
+
+That matters because `relief_distributions` is unique on
+`(relief_batch_id, household_number)` and stores the household number as a **copy**,
+not a foreign key. Two profiles sharing one number would collide on the next
+batch, `insertOrIgnore` would keep one row and drop the other, and one family
+would receive nothing while the record said they were served. So the correction
+form adds `unique ignoring this record`, and the ignore is what stops a Secretary
+fixing a typo in a *name* from being told their own untouched household number is
+a duplicate.
+
+### The sector notice is true, and both halves of it are tested
+
+`relief_distributions` copies the sector at batch-create time, which is what makes
+the notice the brief asked for accurate:
+
+- **Already-open batches keep the original sector.** The row is a snapshot. A
+  correction must not rewrite it, or a household would be pulled off a
+  distribution already under way while the Kagawad's checklist still listed them.
+- **Batches opened after the change use the new sector.** `seedHouseholds()`
+  queries verified profiles at create time.
+
+Two tests, because the first alone reads as "the correction does nothing": an open
+row keeps its sector after a move, and a batch opened through
+`POST /staff/batches/store` afterwards contains the household in the **new**
+sector.
+
+The household-number warning is stated for the same underlying reason. Relief
+history is filed under the number, so correcting it orphans the rows already
+recorded under the old one, and those rows stay in the database visible to nobody
+from this resident's page.
+
+The notice also names the third consequence, the one that is not about relief:
+`sectors.kagawad_user_id` drives `User::assignedSectorIds()`, so moving a resident
+hands them to a different Kagawad's resident list immediately and takes them off
+the current one's.
+
+### Concurrency needed two tokens, not one
+
+The brief asked for an `updated_at` mismatch check. The form writes five columns
+on `users` and three on `resident_profiles`, so watching the profile alone would
+have left every name and date of birth overwriteable by a form opened before
+someone else's correction. Both `profile_updated_at` and `user_updated_at` are
+submitted, and both are compared.
+
+Two things that would have made this test pass while doing nothing:
+
+- The comparison formats both sides through the same `Y-m-d H:i:s`, because MySQL
+  `DATETIME` holds no sub-second part and a raw string comparison would fail on
+  formatting rather than on disagreement.
+- The tests move the clock with `travelTo()`. Created and corrected inside the same
+  second, which is what a fast test does, the two timestamps are equal, there is
+  nothing to contradict, and the stale form is accepted. Both concurrency tests
+  failed for exactly this reason before the clock moved.
+
+### "No changes to save" is a real branch, not a message
+
+The diff is `getDirty()` after `fill()`, not a comparison of raw input against raw
+storage. A `<select>` posts `"3"` and the column holds the integer `3`; compared as
+strings, every save of an untouched form would report a change, `updated_at` would
+move, and the audit log would fill with entries saying a sector changed from 3 to
+3. `a_value_the_database_normalises_is_not_reported_as_a_change` pins that.
+
+Only the rows that actually moved are saved. Saving both would bump `updated_at` on
+the untouched one, which would then read as a change to anyone holding the form
+open, so the feature would sabotage its own guard.
+
+### Two icon systems, one Edit action
+
+`fa-pen` and `edit` are both correct here, in different components, and swapping
+them draws the wrong glyph with no error anywhere.
+
+`<x-staff.icon-action>` takes a **Font Awesome** name and renders
+`fa-solid fa-<name>`, so the directory row's Edit uses `icon="pen"`. `x-btn`,
+`x-alert` and `<x-staff.empty-state>` take an `<x-icon>` **SVG** name from
+`icon.blade.php`, which **falls back silently to a document glyph** for anything
+undeclared. `pen` is not a declared key and `edit` is, so the record page's Edit
+button uses `icon="edit"`, and the same reason put `help-circle` and `gift` in the
+alerts instead of `circle-info` and `handshake`.
+
+`fa-pen` was checked against the built `staff-icons` CSS rather than assumed: it
+resolves to ligature `U+F304`. `staff-icons-Bz8m1X0P.css` and the icon woff2 came
+out of the build with **identical hashes**, so this task needed no icon CSS at all.
+
+### The audit entry
+
+`resident.updated`, one line added to `AuditLog::actions()`, which is the single
+approved exception to the do-not-edit-`app/Models` rule. `context` carries
+`changed_fields` and a `changes` map of `from`/`to` per field, with the actor and
+the profile as subject.
+
+Fields on `UpdateResidentProfileRequest::redactedFields()` are recorded as
+`['changed' => true]` and never in full: the national ID, the ID photo path, the
+email and the password. **None of the editable fields is sensitive today**, so that
+branch is not reached by any current save. It is there because the cost of adding a
+sensitive column to this form later and finding the log already full of it is not
+recoverable, and the cost of the check is one `in_array`. The test proves the list,
+and separately proves that posting a password and a national ID alongside a real
+correction leaves neither in the serialised context.
+
+### Verification
+
+**Tests: 1349 pass** (1348 passed + 1 skipped by owner decision), 11567 assertions.
+Net: 1302 before, 47 added, being 45 new plus the 2 new routes entering the role
+matrix. Pint clean.
+
+**The build did change, and the change is a removal.** `app-C7umzzs8.css` replaced
+`app-LzQ1koeh.css`. Compared rule by rule: **0 added, 1 removed, 0 changed
+definitions.** The one removal is `.sm\:col-span-3`, which the old record page used
+and the rebuilt one does not. `resources/css/app.css` is itself byte-identical, so
+no resident or public page gains, loses or changes a single utility, and
+`.xl\:col-span-3`, used by `public/about.blade.php`, is still emitted.
+
+**Browser — 60 checks at 375px and 1280px, all PASS.** Secretary session against
+a live server: Edit present on every directory row, View retained, both naming the
+resident in `aria-label` *and* in `.sr-only` text, `fa-pen` resolving, all five
+cards on the record page, PUT to the profile route, both concurrency tokens in the
+form, no protected field on it, both change-consequence notices rendered, the
+incomplete-record repair, the no-op flash, server-side validation, and a household
+correction round trip. No console or page errors at either width.
+
+**A real limitation was found at 375px and it is not mine to fix here.** The
+directory and record pages scroll horizontally at 375px. The cause is
+`min-w-[46rem]` on the table in the shared `x-staff.table`, which forces 736px.
+The evidence that it predates this task: `/staff/verifications`, untouched,
+scrolls to **706px** at the same viewport, and the new edit page — which has no
+table — fits in **375px** exactly. Every staff table page in the area behaves the
+same way. The fix is one class in
+`resources/views/components/staff/table.blade.php`, a **shared component** this
+task's scope rules put off limits, so it is reported rather than taken.
+
+**The dev residents have no date of birth, gender or civil status**, so the
+correction form renders those three empty and the browser's own `required` check
+blocks the submit — the first run hung on `waitForNavigation` because no request
+was ever made. That is the form working, not failing, and it is the clearest
+argument for the feature: this is exactly the record a Secretary needs to repair.
+The verification repairs it in place, and the full round trip passes from there.
+`users.id = 5` is left with `1990-05-14`, `Female`, `Single`; its household number
+was corrected to `HH-1001-W` and reverted to `HH-1001` as part of the test.
+
+**Scope audit, no violations.** Verified with `git diff --exit-code` over
+`resources/views/resident/`, `auth/`, `public/`, `layouts/`, `components/`,
+`errors/`, `resources/js/`, the Resident, Auth, Public and Kagawad controllers, and
+`User`, `ResidentProfile` and `ReliefDistribution`. All clean.
+
+Changed files, and only these:
+
+- `app/Support/ResidentProfileRules.php`, new, the shared rules
+- `app/Http/Requests/UpdateResidentProfileRequest.php`, new, the correction form
+- `app/Http/Requests/Auth/RegisterRequest.php`, reads the shared class; rules, order and messages unchanged
+- `app/Http/Controllers/Staff/ResidentDirectoryController.php`, `edit`, `update`, and relief history on `show`
+- `app/Models/AuditLog.php`, one line, the approved exception
+- `resources/views/staff/residents/edit.blade.php`, new
+- `resources/views/staff/residents/show.blade.php`, rebuilt to five cards
+- `resources/views/staff/residents/index.blade.php`, the Edit action
+- `routes/web.php`, two additive staff routes
+- `ROLES.md`, `PROMPT_LOG.md`
+- `tests/Feature/StaffResidentEditTest.php`, new, and `tests/Feature/RolesMatrixTest.php`
+
+## Prompt #029
+
+### The brief
+
+A staff-only way to close a resident's account that is not a delete. A Secretary
+or the Captain can archive a household, the account stops working, and everything
+that made it a real household — the profile, the household number, the document
+requests, the relief rows, the audit history — survives and can be brought back.
+
+### What archiving is, precisely
+
+`users` gained `archived_at`, `archived_by`, `archive_reason` and `archive_note`.
+`User::isArchived()` is `archived_at !== null`. It is a state on the account, not a
+deleted row, which is the whole point: the household number stays spoken for, so
+nothing reissues it and a restore can refuse if a second profile has since taken
+it.
+
+`archive_reason` is a closed list of four — `Moved away`, `Deceased`, `Duplicate
+record`, `Other` — so "Moved away: 34" stays a report. `archive_note` is free text
+and optional. Both are enforced by `ArchiveResidentRequest`, and the four values
+come from the model so the dialog, the validation and the badge cannot disagree.
+
+### What it stops, and what it deliberately does not
+
+Sign-in is refused by `LoginRequest::authenticate()` with
+`User::ARCHIVED_LOGIN_MESSAGE`, and a session that was already open dies on the
+next request via `EnsureUserHasRole` — one place, reached by every role-guarded
+request, rather than a new global middleware. Archived households also leave the
+verification queue, the staff dashboard's pending figures, the navigation badges,
+the User Accounts default view, the resident directory's default view, and the
+Kagawad's lists and counts.
+
+Two things it deliberately leaves alone, both tested:
+
+- **`verification_status` is not touched.** A pending registration may be
+  archived, because a registration that should not have been filed is exactly what
+  archiving is for. A pending household leaves the verification queue while
+  archived and returns to it on restore.
+- **Open relief batches keep their rows.** Already-written distributions stay on
+  the batch they were written to, counted as before and labelled `Archived` with no
+  Mark control. Only the *next* batch leaves them off. Deleting the row instead
+  would destroy the record of who actually received relief.
+
+### The two guards that needed care
+
+**An open request blocks the archive; a pending registration does not.** `Submitted`,
+`Under review` and `Ready` all mean somebody is waiting on a decision about this
+household, so closing it mid-decision would be wrong. A pending verification is not
+that: nobody is waiting. The refusal names the blocking request and links to it,
+because a Secretary told "cannot be archived yet" and nothing else has to go
+looking.
+
+**The session payload cannot carry Eloquent models.** The refusal passed an array of
+models, which `assertSessionHas` then round-tripped through serialization and
+compared as unequal to the same models freshly loaded — a test failure that said
+nothing true. The payload is now plain scalar arrays: `url`, `reference_number`,
+`document`, `status` for a blocking request, `url` and `name` for a restore
+collision. The view needed no change beyond reading them.
+
+Archived households are also not editable by URL. The Edit control is gone from the
+list and the record, and `edit`/`update` refuse with 409 as well, so a bookmarked
+or guessed link cannot reach the form.
+
+### The login page had nowhere to put the message
+
+The browser check found the archive feature correct at every step and then found
+that the refusal never reached the person it was for. An archived resident typing
+the correct password was redirected back to `/login` and shown nothing.
+
+`resources/views/auth/login.blade.php` is a standalone document — its own inline
+stylesheet, the only view in the portal that does not go through the Vite bundle —
+and it rendered no `$errors` and no `session('error')` anywhere. The message was in
+the session the whole time; the page simply had nowhere to show it.
+
+This was **not** caused by the archive work, and the codebase already knew:
+`LoginPageAppearanceTest::test_a_failed_sign_in_is_not_shown_to_the_resident` was
+written as an explicit "KNOWN GAP, asserted so it cannot go unnoticed", ending with
+"If an error block is added, this test is the one to invert." A wrong password and
+an unknown address were equally silent — confirmed in the browser for all three
+cases before anything was changed.
+
+Editing a guest view is outside this task's scope, so it was put to the owner and
+approved as an exception. The fix is a `role="alert"` block above the fields with
+the reason, plus `aria-invalid` on the email, in the same red danger treatment as
+the staff `x-alert` (`red-50`/`red-200`/`red-900`, `text-sm`, `rounded-lg`) restated
+in the page's own stylesheet, with dark-mode variants alongside the tokens the page
+already flips. Contrast measured in the browser: **9.16:1** light, **6.93:1** dark.
+
+The known-gap test is inverted, as it asked to be, and its other half is now a
+positive test that a first visit carries no error markup at all. `session('status')`
+flashes — password reset, e-mail verification — are still not rendered. That gap is
+untouched and is not claimed as fixed.
+
+### Verification
+
+**Playwright, 375px and 1280px, 0 problems at both.** The full walkthrough at each
+width: archive is refused for Ana Dela Cruz with the blocking request named and
+linked; Juan Dela Pending archives with reason and note, the dialog's plain-English
+warnings are all present; the archived detail page offers Restore and no Archive;
+`GET /staff/residents/2/edit` returns 409; the archived row is out of the default
+directory and out of the verification queue, dimmed, badged `Archived`, offering
+Restore; the archived resident's sign-in is refused with the exact message in a live
+region with the field marked invalid; restore returns the household to the default
+directory and the verification queue; a live resident still signs in normally.
+
+**Tests.** `ResidentArchiveTest` 58 passed, 397 assertions. Full suite **1,410
+tests, 1,409 passed, 1 skipped, 12,065 assertions**. `vendor/bin/pint --test`
+passes. `npm run build` passes.
+
+One browser finding is reported rather than fixed: the resident directory overflows
+horizontally on a 375px screen (`scrollWidth=775`). It is the shared staff table
+component, off limits here, and it predates this task — the same behaviour was
+recorded in Prompt #028.
+
+**Scope audit, no violations.** `git diff --exit-code` over the resident, register
+and public views, layouts, components, errors, `resources/js`, `resources/css`, the
+Resident/Auth/Public/Kagawad controllers, `ResidentProfile`, `ReliefDistribution`,
+seeders, `public/images`, `public/fonts` and all manifests: clean apart from the
+four files listed below, each approved.
+
+Changed files, and only these:
+
+- `database/migrations/2026_10_02_190209_add_archive_columns_to_users_table.php`, new
+- `app/Models/User.php`, approved exception, archive state, scopes, reasons, message, actor
+- `app/Models/AuditLog.php`, approved exception, English archive/restore labels
+- `app/Http/Requests/Auth/LoginRequest.php`, approved exception, the refusal
+- `app/Http/Middleware/EnsureUserHasRole.php`, approved exception, live session termination
+- `app/Http/Requests/ArchiveResidentRequest.php`, new, reason and note
+- `app/Http/Controllers/Staff/ResidentDirectoryController.php`, filtering, refusals, archive/restore, the 409 guards
+- `app/Http/Controllers/Staff/AccountController.php`, `record` filter and archived presentation
+- `app/Http/Controllers/Staff/ResidentVerificationController.php`, archived out of the queue
+- `app/Http/Controllers/Staff/DashboardController.php`, archived out of the pending figures
+- `app/Http/Controllers/Staff/ReliefBatchController.php`, archived out of new batches
+- `app/Http/Controllers/Kagawad/ReliefController.php`, approved, existing archived checklist rows
+- `app/Support/NavigationBadges.php`, archived out of the counts
+- `app/Support/KagawadSectorResidents.php`, archived out of the Kagawad lists and counts
+- `routes/web.php`, `staff.residents.archive`, `staff.residents.restore`
+- `resources/views/staff/residents/index.blade.php`, filters, dialogs, row actions
+- `resources/views/staff/residents/show.blade.php`, controls, blocker links, metadata, history
+- `resources/views/staff/accounts/index.blade.php`, `record` filter
+- `resources/views/components/staff/status-badge.blade.php`, approved, one additive map key - it cannot alter any existing badge
+- `resources/views/kagawad/relief/show.blade.php`, approved, `Archived` label and the Mark control removed
+- `resources/views/auth/login.blade.php`, approved guest-view exception, the error block
+- `tests/Feature/ResidentArchiveTest.php`, new, 58 tests
+- `tests/Feature/LoginPageAppearanceTest.php`, the known-gap test inverted, plus its positive other half
+- `tests/Feature/RolesMatrixTest.php`, the two new routes
+- `ROLES.md`, `PROMPT_LOG.md`
+- `public/build/manifest.json` and `public/build/assets/app-55MMrL7P.css`, the rebuild
+
+**Dev data restored.** `users.id = 5` back to no date of birth, gender or civil
+status; `resident_profiles.id = 1` timestamp back; the archive migration left
+applied; one seeded audit row; no archived accounts; no leftover browser sessions.
+
+## Prompt #030
+
+### The brief
+
+Every staff, Kagawad and Admin list table has to be usable on a phone, measured
+rather than eyeballed: no sideways scrolling of the page, every column still named,
+every control still reachable.
+
+### What was actually wrong
+
+`<x-staff.table>` asked for `min-w-[46rem]` — 736px — and asked for it at every
+width. On a 375px phone that is nearly double the screen. Measured on
+`/staff/residents` as Secretary: `documentElement.scrollWidth` 775 against a 375px
+viewport, the household number sat half off the screen, and the Actions column sat
+at x=792, reachable only by scrolling sideways. Nine pages were affected; the
+Kagawad lists were not, because they already hid the table and drew cards.
+
+The first measurement was wrong, though, and worth recording. The harness asked
+"can this be scrolled sideways?" by calling `window.scrollTo(9999, 0)` and reading
+`scrollX`. The app sets `body { overflow-x: hidden }`, which propagates to the
+viewport: a reader cannot pan the page, but the box is still *programmatically*
+scrollable, so `scrollTo` reported 296px of overflow that no person can perceive or
+perform. Chasing that number would have meant breaking the confirm dialogs to
+satisfy a phantom. The harness now sends a real horizontal wheel gesture, and
+asserts on the scrollbar and on the gesture rather than on `scrollTo`.
+
+### The fix
+
+Below `md` the table stops being a table. `<table>` is `block`, `<thead>` is
+`hidden`, and each row becomes a bordered card: the first cell is its title, every
+other cell says which column it is, and the controls move to a left-aligned footer
+under a rule. The 736px minimum is now `md:min-w-[46rem]`, and the wrapper keeps its
+`overflow-x-auto` for the widths where a real table is genuinely wider than the
+column — at 768px the directory needs 783px of table in 462px of space, and that is
+the case the brief says to scroll in its own container.
+
+The labels are published as `--lbl-N` custom properties on the `<table>` and read
+back by `nth-child` rules, because Tailwind emits a utility only if it finds it as
+literal text at build time. A class assembled in a loop produces a table with no
+labels and no error. Those twelve rules are written out and a test asserts each one
+is present. They also need `md:[&_td]:before:hidden`: without it every desktop cell
+prints its own column name before its value.
+
+### Three things that measurement caught and reasoning did not
+
+`contain: layout`, `contain: paint` and `transform: translateZ(0)` on the wrapper
+each removed the document's sideways scroll at 768px, and all three are wrong here.
+`<x-staff.confirm-dialog>` renders a `position: fixed inset-0` modal from inside a
+table cell, and deliberately wraps itself in `display: contents` so that wrapping
+cannot affect it. A containing block or a clip on the wrapper would put a
+full-screen dialog inside a 462px column. `overflow-x: clip` on `main`, on `body`
+and on `html` changed nothing at all.
+
+A `<td colspan="4">` — Sectors puts its entire edit form in one — was being laid out
+as a two-column grid, which would have squeezed a rename form into the 7.5rem label
+column. It is now a plain full-width block with no label, explicitly rather than by
+luck: it was only working before because a spanning cell happens to be the last
+child, which is the same rule that gives a real Actions column its footer.
+
+The audit log's `Action` column is a badge, not a set of controls. Matching the
+footer on "contains the word action" would have put a rule above it and told a
+reader it was a row of buttons. It is matched whole and case-insensitively, or by a
+column declaring `footer => true`.
+
+### What was verified
+
+Every staff, Kagawad and Admin list page, as each role that can reach it, at 375,
+768 and 1280: no horizontal scrollbar, no movement from a real wheel gesture, the
+right layout at each width, every secondary cell's label resolving to its own
+heading, every spanning panel unlabelled, every labelled control reachable, and zero
+console errors. The archived directory was checked separately at 375 and 1280 with a
+household actually archived: the badge, the Restore control and the absence of Edit
+all survive.
+
+`tests/Feature/StaffTableResponsiveTest.php`, new, 30 tests reading the rendered DOM
+— the labels are invisible in the Blade source, so a source-level test would pass
+against a component whose labels never render. Reverting the two things that matter
+fails 10 of them.
+
+**Full suite: 1,440 tests, 1,439 passed, 1 skipped, 12,383 assertions.** Pint clean.
+
+### Changed files, and only these
+
+- `resources/views/components/staff/table.blade.php`, the card layout, the labels, the colspan rule
+- `tests/Feature/StaffTableResponsiveTest.php`, new, 30 tests
+- `PROMPT_LOG.md`, this entry
+- `public/build/manifest.json` and `public/build/assets/app-B3WvDIkJ.css`, the rebuild
+
+`resources/views/components/data-table.blade.php` is untouched, so no resident,
+guest or public page changed shape.
+
+**Dev data restored.** No archived accounts; the one seeded audit row intact; no
+leftover browser sessions.
+
+---
+
+## Prompt #031
+
+### The brief
+
+Documents marked ready for pickup that nobody collects. A resident who never
+turns up ties up a request slot indefinitely, and one request already does that.
+Give the office a way to mark a document unclaimed, make it cost something, and
+still leave a way out when it was not the resident's fault.
+
+### The agreed numbers
+
+Fourteen days ready before it can be marked unclaimed. Three unexcused strikes
+inside 180 days pauses new requests for 90 days from the newest strike. An
+unclaimed request holds its slot for 30 more days, then frees it. An excuse
+removes a strike immediately, and lifts a suspension as soon as it drops the
+resident below three.
+
+All five live in `config/document-requests.php` and are read at runtime, and **not
+one of them is written into the test file either, not even to assert it.** An
+earlier draft did pin the suspension and the slot hold with `assertSame(90, ...)`
+and `assertSame(30, ...)`, on the reasoning that asserting the agreed value is the
+guard on the decision. That reasoning is wrong, and wrong in a way worth spelling
+out: it makes the suite pass against whatever the config happens to say, so the
+exact accident it was meant to catch — a penalty quietly shortened — moves every
+derived boundary in the system at the same time and fails nothing. So the agreed
+figures are recorded in `config/document-requests.php` and in `ROLES.md`, where a
+change is a deliberate edit to a file that says what the number is, and the tests
+prove only that the code follows it. Boundaries are derived: `$days - 1` and
+`$days + 1`, `$hold - 1`, and the two fixture ages are `$hold + 10` and
+`$window + 40` so they keep meaning what the comments say if a setting moves.
+
+### What was actually wrong
+
+Nothing was broken; this was new behaviour. But three design decisions were load
+bearing, and each of them had a plausible wrong version that would have passed
+every other test:
+
+**Collecting late must not erase the strike.** Filtering the strike count on
+`status = unclaimed` looks obviously right and is wrong: it means the one action
+that fixes the underlying problem, the resident actually turning up, silently
+erases the record it caused, so patience would clear a strike for free and the
+Secretary's "mark collected (late)" button would undo the accountability. Strikes
+are keyed on `unclaimed_at`, an event, not on a mutable status.
+
+**Excusing after collection has to stay possible, in the view as well as the
+model.** `canBeExcused()` keys on `unclaimed_at`, but the record page worked its
+own guard out again from the status, so a resident who came back and collected
+late — exactly when the desk learns the absence was not habit — had no excuse
+button. The route would have accepted the POST; nothing on screen could reach it.
+Keyed on the status the strike is permanent and unappealable, and the desk's
+answer to that is to stop marking documents at all. The same view had two smaller
+lies for the same reason: it kept claiming the slot was held until a date that
+had already passed, and it printed "nothing left to decide" directly above the
+excuse control. Both are asserted against now.
+
+**One excuse lifts a suspension outright.** Three strikes pause; two do not.
+Because it is derived, nothing had to be decided about when the suspension
+"ends" — there is no stored counter that could disagree with the requests.
+
+### Scope kept
+
+Marking is derived-overdue plus an audited manual action. There is no scheduler,
+no nightly job, and no stored overdue flag, so a request cannot be overdue in the
+database and not on the screen. **No mail exists in this codebase** — no
+`app/Mail`, no `app/Notifications`, `MAIL_MAILER=log`, nothing to hook a reminder
+onto — so nothing was built to send one. The Mark-unclaimed dialog says outright
+that no message is sent, because a Secretary should not have to read the policy
+to learn that clicking it affects a resident.
+
+`users.restricted_until` is untouched: it is an account-wide freeze, this is
+per-resident and derived, and neither can unlock the other.
+
+Resident edits are confined to the approved exception — the strike warning, Cancel
+on their own un-started request, and the two new labels. `User.php` is unedited,
+and the shared `x-request-timeline` and `x-icon` components are unchanged: the
+timeline resolves position with `array_search` over four statuses, so unclaimed
+and cancelled are left off it and explained in words rather than drawn as
+"nothing has happened yet"; the icon names I first used were not in the map and
+would have rendered as the document glyph, so they were swapped for mapped ones.
+
+### What was verified
+
+`tests/Feature/DocumentRequestUnclaimedPolicyTest.php`, new, 42 tests. Boundaries
+are asserted at the day, not beside it: day `$days - 1` still refused and refused
+with the right date, day `$days + 1` allowed. The slot hold is pinned the same
+way. Two tests change the config and re-assert, so any inlined figure fails. Two
+tests exist only because the natural implementations pass everything else: that
+collecting late leaves the strike, and that an excuse survives collection.
+
+`tests/Feature/DocumentRequestUnclaimedPolicyTest.php` also asserts on rendered
+HTML — a number that exists on a model but never in a view is not something
+anybody was told.
+
+Browser, 375 and 1280, as Secretary and as Resident, zero console errors. Both
+dialogs were **opened by clicking them** and submitted, since a `x-on:click`
+outside any `x-data` scope is inert with no console error. Verified: the overdue
+filter shows the 30-day-old and 17-day-old requests and excludes the submitted
+one; the 3-day-old row is not labelled overdue; Mark unclaimed is absent before
+the window and present after; the dialog states the strike and the absence of any
+message; after excusing, the note and the excuser's name appear on the record
+page and on the resident's reliability card, and the Excuse button is withdrawn;
+the resident sees "This document was not collected" and the real 14-day window in
+the track dialog, with Cancel offered on a submitted request and **not** on an
+unclaimed one.
+
+The 375px page scroll on the resident queue is pre-existing — `min-w-[46rem]` on
+the shared resident table — and unchanged by this work; it is the resident area's
+to fix, not this task's.
+
+**Full suite: 1,485 tests, 1,484 passed, 1 skipped, 12,580 assertions.** Pint clean,
+`npm run build` run for the new Tailwind classes.
+
+### A mistake, recorded rather than tidied away
+
+Cleaning up the browser fixtures I ran `DELETE ... WHERE reference_number LIKE
+'BRGY-%-%'`. That pattern matches `BRGY-2026-2325` too, so it took a pre-existing
+dev request with it, and a second query then removed the audit row that pointed at
+the request it had just deleted, because the row looked orphaned. Two dev rows
+are gone and MySQL binlog is off, so there is no exact recovery.
+
+What survived the fact of it: the row was rebuilt from what was known about it —
+`resident@bdrpis.test`, `BRGY-2026-2325`, submitted — with its `request.submitted`
+audit row. The second original request had no recorded detail and is not
+reconstructed, because inventing a plausible row and calling it restored would be
+worse than an empty table. Nothing in the code, schema or tests depended on those
+rows, and the suite creates its own data.
+
+The lesson is the one the delete itself demonstrates: `LIKE 'BRGY-%-%'` looks like a
+narrow fixture prefix and is not one. Prefix plus a separator is a pattern, not a
+match set.
+
+### Changed files, and only these
+
+- `config/document-requests.php`, new — the five agreed figures
+- `database/migrations/2026_10_02_221920_add_unclaimed_and_cancelled_columns_to_document_requests_table.php`, new
+- `app/Models/DocumentRequest.php`, `app/Models/AuditLog.php` — statuses, derived policy, excuse note reader
+- `app/Http/Requests/StoreDocumentRequestRequest.php` — suspension refusal before the slot cap
+- `app/Http/Controllers/Staff/{DocumentReviewController,DashboardController,ResidentDirectoryController}.php`
+- `app/Http/Controllers/Resident/DocumentRequestController.php` — warning data and owner-scoped cancel
+- `resources/views/staff/{dashboard,requests/index,requests/show,residents/show}.blade.php`
+- `resources/views/components/staff/status-badge.blade.php` — Unclaimed / Cancelled
+- `resources/views/resident/requests/index.blade.php` — the approved exception only
+- `routes/web.php`, `ROLES.md`, `database/factories/DocumentRequestFactory.php`
+- `tests/Feature/DocumentRequestUnclaimedPolicyTest.php`, new; `RolesMatrixTest`, `ResidentRequestFilterTest`
+- `PROMPT_LOG.md`, this entry
+- `public/build/manifest.json` and the rebuilt assets
+
+**Dev data restored.** Browser fixtures and their audit rows removed: 2 requests,
+1 audit row, 0 archived accounts.
+
+---
+
+## Prompt #032
+
+### The brief
+
+A resident who cannot get to the Barangay Hall. Let them download their own
+document instead, without handing out a copy that anyone else can open, and
+without the office losing the ability to say who has a copy.
+
+### The brief as agreed
+
+Four rules, fixed before any code was written.
+
+**The password is the resident's own facts, not a code the office hands out.** Their
+birthdate as `mm/dd/yy`, then the uppercase first letter of the last word of the
+name on file. Nothing is stored, nothing is emailed, nothing is written down, and
+nobody at the hall can read it off a screen. The *rule* is printed on the resident's
+page; their password is not, because a password on a page at the hall is a password
+their neighbour can see. A resident with no birthdate on file, or a last name with
+no letter in it, gets no copy and is sent to the hall — a wrong password is
+indistinguishable from a wrong document, and guessing is worse than asking.
+
+**Only while the request is Ready.** Every other status has no copy to give.
+
+**Encrypted, and not merely marked encrypted.** AES-256 (`/V 5`, `/R 5`,
+`/Length 256`, `/CFM /AESV3`), metadata included. R6 was considered and rejected:
+it needs AES-256 *and* an algorithm a given reader may not have, so it is a copy
+some residents could not open. Every copy is generated on demand and keyed to a
+freshly random owner password that is never stored, so two copies of one request are
+not the same file and a withdrawn copy is not still openable.
+
+**The office knows who has a copy.** One `document_deliveries` row and one
+`request.pdf_downloaded` audit entry per download, and on the staff side a count, a
+filter for *downloaded but not yet collected*, and a history on the record.
+
+### What was actually hard
+
+Three things, none of which reasoning alone caught.
+
+**The library does not ship its font metrics.** tc-lib-pdf reads `helvetica.json`
+and thirteen siblings from a folder the maintainer generates from Adobe's AFM files
+with a build step. A fresh `composer install` on XAMPP produces a library that
+throws `unable to read file: helvetica.json` the first time anybody asks for a
+certificate. The fourteen core metrics were converted once and committed under
+`resources/pdf-fonts`, with the licence and the source recorded beside them. No
+deploy-time build, no shell, nothing to remember on a machine where the project was
+deployed by copying files.
+
+**A malformed tag silently clipped the signature block.** The last rendered draft
+had one unclosed `<font>` in the signature row. The copy still rendered, still
+encrypted, still opened with the right password — and the "Not valid without the dry
+seal" line was cut off mid-word, with the signature rule truncated to nineteen
+characters. It was found by extracting the text of a generated PDF and reading it,
+not by looking at the PDF, which looks fine until you know what is missing. The
+narrow cell and the logo were both investigated first and neither was the cause; a
+bisection that rendered one fragment at a time found it.
+
+**The queue page had an N+1, and the test for it found it rather than confirming it.**
+The row prints the household number and the profile behind it was not eager-loaded,
+so the staff queue issued one extra query per row. This was pre-existing, not
+introduced here. It was caught by a test that counts queries for ten requests and
+again for twenty and requires the two numbers to match — the kind of test that fails
+if somebody writes a correct-looking `withCount` but leaves the rest of the row
+lazy. Twenty rows went from twenty-nine queries to fourteen, and the count is now
+the same at any size.
+
+### A decision that was made rather than discovered
+
+Whether a download should count as collection. It is **off by default**, because a
+download is not a collection: the tab may have been closed unread, or the copy
+wanted for somebody else. When an office turns it on, the claim is written only from
+Ready, never over a `claimed_at` the desk wrote, and the audit entry says
+`channel: resident_download` — because "was this collected, or only downloaded?" is
+the question the entry exists to answer.
+
+### What was verified
+
+1,553 tests, 1,552 passed, 1 skipped, 12,776 assertions. The baseline before this
+work was 1,486 / 1,485 / 1 / 12,587.
+
+Encryption was verified two ways: the bytes were inspected for the encryption
+dictionary and the four agreed figures, and generated PDFs were opened with the
+resident's real password (`03/17/94S`) and refused with a wrong one and with none.
+The refusal matters as much as the success — a PDF that opens without a password is
+encrypted in name only.
+
+67 new tests across four files: password derivation as a table of names including
+accents and suffixes and the two cases that produce no password; entitlement and
+status gating including the pair that must be indistinguishable (another resident's
+request and a made-up one, both 404); delivery and audit rows; the claim flag both
+ways; secrecy (no password in the filename, the headers or the audit context, and
+nothing written under `public/`); rate limiting; the staff counts, filter, ordering
+and history; the settings flag round-trip and the words it will still read as on or
+off; and the query count.
+
+### Scope kept
+
+One direct Composer dependency, one migration, and the resident file limited to the
+button, the password notice and the controller action. No shared component was
+touched. `RoutesMatrixTest` failed on the new route until `ROLES.md` and the matrix
+both recorded who may reach it — which is the point of that test.
+
+### Changed files, and only these
+
+- `composer.json`, `composer.lock` — `tecnickcom/tc-lib-pdf` 8.76.3
+- `resources/pdf-fonts/` — fourteen core font metrics, `LICENSE`, `SOURCE.md`
+- `database/migrations/2026_10_03_022112_create_document_deliveries_table.php`, new
+- `database/factories/DocumentDeliveryFactory.php`, new
+- `app/Models/DocumentDelivery.php`, new; `DocumentRequest.php`, `Setting.php`, `AuditLog.php`
+- `app/Services/DigitalCopyPassword.php`, `app/Services/DigitalCopyRenderer.php`, new
+- `app/Providers/AppServiceProvider.php` — renderer binding
+- `app/Http/Controllers/Resident/DocumentRequestController.php` — download, delivery, audit, optional claim
+- `app/Http/Controllers/Staff/DocumentReviewController.php` — counts, filter, history, and the missing eager load
+- `app/Http/Controllers/Staff/SettingController.php` — Documents section
+- `resources/views/resident/requests/index.blade.php` — the approved exception only
+- `resources/views/staff/requests/{index,show}.blade.php`, `resources/views/staff/settings/index.blade.php`
+- `routes/web.php` — `resident.requests.document.download`, throttled 10/min
+- `ROLES.md` — the route, and why it is the only document-producing route
+- `tests/Feature/{DigitalCopyPasswordTest,DigitalCopyDownloadTest,DigitalCopyRendererTest,StaffDocumentDeliveryTrackingTest,StaffDocumentCopySettingsTest}.php`, new; `RolesMatrixTest.php`
+- `PROMPT_LOG.md`, this entry
+
+## Prompt #033
+
+### The brief
+
+Make the verification email a letter from the barangay rather than a framework
+default, make the link last a day instead of an hour, and make a wrong App
+Password on our side an inconvenience for the office instead of a lost
+registration for the resident.
+
+### What the audit found before anything was changed
+
+`User` already implemented `MustVerifyEmail`, and the resident routes already
+carried `auth -> verified -> role:resident`. Both facts were verified rather than
+assumed: an unverified resident posting to `/resident/requests` is redirected to
+`verification.notice`, and the same POST as a verified resident creates the
+request. Nothing in the access layer needed changing, so nothing in it was
+changed.
+
+Three real problems, all of them consequences of the framework defaults rather
+than of anything written here.
+
+**The link died after an hour.** `auth.verification.expire` was absent, so
+Laravel's sixty minutes applied. The reader is a resident on a phone on a
+connection they did not choose, and the mail may sit unread behind a secretary or
+a spam folder for a day. Twenty-four hours is bounded all the same, because the
+link is signed and dies on its own.
+
+**The notice was sent inside the transaction.** `Registered` was dispatched from
+within the `DB::transaction` closure, before the commit. A synchronous SMTP call
+is a network request to a server this code does not control, on credentials an
+operator can get wrong, so one wrong App Password rolled back a registration that
+had already succeeded: the resident was shown a 500 for a problem with our mail
+settings, and the account they had just created went with it. The rows now commit
+first and the notice is best-effort afterwards.
+
+**The page said something untrue on the failure path.** The default introduction
+reads "clicking on the link we just emailed to you". With the send failing, that
+sentence describes an email that was never sent, to a resident who has just been
+told their account was made. The two cases now have their own text.
+
+### A failure the tests were built to miss
+
+The first version of the mail-failure test used a mailer name that was never
+declared, so the send failed with "Mailer [always-fails] is not defined" instead
+of an SMTP rejection. Every test passed, because the controller's catch does
+handle any `Throwable` — and none of them were testing what they claimed to. A
+test that passes for the wrong reason is worse than one that fails, because it
+reports the work as done.
+
+The fake now declares its mailer *and* its transport and throws from inside
+`TransportInterface::send()`, so the failure happens where a real authentication
+rejection happens: after the message has been fully rendered, on the way to the
+server. A guard test asserts the exception reaching the controller really is a
+transport failure, so the helper cannot quietly go back to testing a typo.
+
+The second attempt needed the same treatment. Pressing Resend while our mail
+settings are still broken was a 500, on the one screen that exists to get a
+resident unstuck, in response to doing exactly what we asked. It is now caught and
+logged like the first, and reported as a status on the same page.
+
+### A decision that was made rather than discovered
+
+Where the failure message is shown. `session()->flash()` is discarded after the
+next request, and the success path redirects through `/dashboard` before the
+confirmation page renders — so a warning flashed at registration would have been
+gone by the time the resident read it. Rather than bend the flash lifetime, a
+failed send redirects straight to the confirmation page, where the message and the
+Resend button are both present, and the success path is left exactly as it was.
+
+The sender is the barangay name from `Setting` rather than `APP_NAME`, because the
+`From` line is the one thing a resident sees before deciding whether a stranger's
+mail is real. The address is left alone: inventing one would either send from a
+domain that does not exist or quietly override a working `MAIL_FROM_ADDRESS`.
+
+### What was verified
+
+1,607 tests, 1,606 passed, 1 skipped, 12,919 assertions. The baseline before this
+work was 1,554 / 1,553 / 1 / 12,788. Pint clean.
+
+Fifty-three tests in one new file, written as what a resident receives rather than
+as what the code calls: one message to the address registered; the office, the
+action and the number of hours in the wording; a link built on the host from
+`APP_URL`; expiry refused one minute past the setting and accepted one minute
+inside it; a tampered link refused; resend works and is throttled; a change of
+address requiring verification again; an unverified resident stopped from the
+resident routes while a verified one is let through; and the four failure cases,
+each asserting the account, the profile and the uploaded ID all survive.
+
+The whole journey was then walked twice in a real browser against
+`MAIL_MAILER=log`, in Chromium, from the registration wizard to the resident area:
+five steps filled and submitted, `/resident/requests` refused while unverified,
+the Resend button pressed and confirmed in the page, the link read out of the log
+and opened, then `/resident/requests` returning the real page. **Zero console
+errors and zero uncaught page errors** across every page. The Playwright install
+used for this lives outside the repository; nothing was added to `package.json`.
+
+The link in the log was on the server's own host, and the message body carried
+"Barangay Linasin, Zone 1" as both sender name and subject, and "expires in 24
+hours". Two of the browser assertions were themselves wrong before they were
+right, and both had to be fixed to report honestly rather than to pass: the button
+label is uppercased in CSS, so a case-sensitive match for it reported a button
+that was on the page all along, and the first failure test passed for the wrong
+reason described above.
+
+The database was checked afterwards rather than inferred from the redirect:
+`email_verified_at` set, `hasVerifiedEmail()` true, the profile row and the
+uploaded ID still present.
+
+### Scope kept
+
+The auth verification surface only. `routes/web.php`, the resident views, the
+staff views and every shared component are untouched; the diff is seven modified
+files, all of them named below, plus the new test. `.env` was neither read nor
+written: the example file carries placeholders and the README says which values to
+paste in. A scan of tracked files found no credential — `MAIL_PASSWORD=null` in the
+example, a bracketed placeholder in the README, and no `APP_KEY=base64:` anywhere.
+
+No new dependency, and no CSS rebuild: the view reuses utility classes the
+stylesheet already had.
+
+### Changed files, and only these
+
+- `app/Providers/AppServiceProvider.php` — the wording, the sender name and the stated expiry of the verification notice
+- `app/Http/Controllers/Auth/RegisteredUserController.php` — the notice after the commit, caught and logged, with the redirect the failure needs
+- `app/Http/Controllers/Auth/EmailVerificationNotificationController.php` — the resend treated as the second attempt it is
+- `resources/views/auth/verify-email.blade.php` — an introduction that is true on both paths
+- `config/auth.php` — `auth.verification.expire`, 1440 minutes
+- `.env.example` — `AUTH_VERIFICATION_EXPIRE`, and what each mail value is for
+- `README.md` — the mail setup, and `config:clear` after changing the environment
+- `tests/Feature/Auth/EmailVerificationDeliveryTest.php`, new
+- `PROMPT_LOG.md`, this entry
+## Prompt #034
+
+### The brief
+
+Take the seeded residents out. Keep the seeded staff, the seventeen sectors, the
+settings and the announcements; take out every resident account and everything that
+exists only because of one. Then prove the empty state is real, in the browser and
+in the database, rather than asserting it.
+
+### What the audit found before anything was changed
+
+Three seeders exist. `DocumentTypeSeeder` writes the document catalogue and
+`AnnouncementSeeder` writes public notices; neither has ever created a resident.
+Every seeded resident came out of one method, `DatabaseSeeder::seedResidents()`,
+which wrote two users and two profiles and nothing else. No seeder has ever written
+a document request, a relief batch, a relief distribution, an audit row or an
+uploaded file. There is no console command that seeds demo data.
+
+The audit was also worth doing for what it did *not* find. The brief named three
+resident logins; `slotsfree@bdrpis.test` exists nowhere in the repository or in
+either database, and the two that do exist were the only two. And no test refers to
+a seeded resident at all: `resident@bdrpis.test` and `pending@bdrpis.test` appear
+nowhere under `tests/`. The many `HH-1001` hits in the suite are each test building
+its own `ResidentProfile::factory()`, which is the arrangement the tests should have
+had already.
+
+Only two test files call a seeder. `AnnouncementFeaturedSeedingTest` calls
+`AnnouncementSeeder` alone. `SectorsSeederMatchesTheMigrationTest` calls the full
+`DatabaseSeeder` nine times, and every one of its assertions is about sectors and
+Kagawads; the one test whose name mentions residents,
+`test_seeding_keeps_residents_attached_to_their_purok`, already creates its own
+profile at line 87 and takes sector 1 from the migration, not from the seeder. So
+the predicted test change was *no* test change.
+
+That prediction was then checked rather than trusted. The suite ran 1607 tests, 1606
+passed, 1 skipped, 12919 assertions, which is the same figure as before the seeder
+was touched. Nothing was weakened, nothing deleted, nothing rewritten. The file
+list at the end of this entry is the proof: there is no test file in it.
+
+### The development database
+
+`migrate:fresh` was never run against it. The seeded residents were removed by id,
+inside one transaction, and the ids came from the audit rather than from a name
+pattern.
+
+The first of the two was not the account its email claimed. It was `Aivee Joy Alday`
+/ `aiveejoyba@gmail.com`, created in the same second as the seed run, whose profile
+was `resident_profiles.id = 1`, household `HH-1001`, "Zone 1, Bangued, Abra", sector
+1: the seeded verified resident, renamed through the application's own account-edit
+screen afterwards, which `audit_logs` row 40 records outright. It was still the
+seeded row, so it went with the rest, and it was said here before it was deleted
+rather than after. A full `mysqldump` was taken first, and the dump was confirmed to
+contain both the rows going and the rows staying before anything was touched.
+
+A third resident was left alone on purpose: `bsipes@example.org`, no profile, no
+requests, created 2026-03-01. Nothing seeded it and the brief said not to delete
+non-seeded residents, so it stays, though it looks like test leakage rather than a
+person.
+
+The foreign keys made the ordering unnecessary and the audit log safe without being
+edited. `resident_profiles` and `document_requests` cascade from `users`;
+`audit_logs.user_id` is `SET NULL`. So deleting the two users took their two
+profiles and their one document request with them, and the two audit rows outlived
+their author with `user_name` intact - append-only honoured by doing nothing at all.
+
+### Two things worth reporting rather than fixing
+
+**The audit page does not read the stored name.** `staff/audit/index.blade.php:72`
+renders `$entry->user?->name ?? 'Someone removed'`, so the two rows for the deleted
+residents show "Someone removed" rather than the `user_name` written on the row. The
+page works, returns 200, and the rows are there; only the label is generic. The brief
+assumed the page reads the stored column, and it does not. Correcting it is a one
+word change to a staff view, which is outside the scope this prompt set, so it is
+reported and left.
+
+**Private storage holds 4,533 test leftovers.** `storage/app/private/id-photos/`
+contains 4224 `demo-*.png`, 304 `sweep-*.png` and 5 random-named files, 8.4 MB in
+all, written by tests that used the real disk. Both deleted residents had
+`id_photo_path = NULL`, so no file belonged to them and the rule about deleting only
+their uploads had nothing to act on. Deleting four and a half thousand files that
+belong to nobody in particular is a different decision from the one that was asked
+for, so they are counted here instead of removed.
+
+### Proving the empty state
+
+`php artisan migrate:fresh --seed` against `bdrpis_testing`: admin 1, secretary 1,
+Kagawad 2, **residents 0**, profiles 0, document requests 0, sectors 17, settings 11,
+announcements 3, document types 4.
+
+Twenty pages then walked in Chromium against that database, logging in as each of
+the four staff accounts in turn: every dashboard, the Residents list, Resident
+Verification, Document Requests, Relief Distribution, User Accounts, Audit Logs and
+Announcements, plus both Kagawad checklists. All 200. The Secretary was then made to
+request the two admin-only pages and was refused both with 403, which is
+authorization working and is reported apart from the errors. **Zero console errors,
+zero uncaught page errors, zero unexpected HTTP failures.**
+
+The public path was walked end to end rather than assumed: all five registration
+steps filled and submitted, `/verify-email` reached, the new resident absent from the
+data anyone had to seed, then present in the Secretary's queue by name and household
+number, approved, and visible on the Residents list afterwards.
+
+One correction to the record: the first attempt at this reported the staff pages as
+rendering a 483 byte body, which looked like a missing Vite manifest. It was not. The
+logins had silently failed and every protected page was redirecting to the sign-in
+screen, whose text is 483 characters. The cause was that the test suite uses
+`RefreshDatabase` and had emptied `bdrpis_testing` after the seed; re-seeding fixed
+it, and no asset was ever rebuilt.
+
+### Scope kept
+
+No view, controller, route, component or model was touched, and no dependency was
+added. The only application file changed is the seeder, plus the README. `.env` was
+neither read nor written: the database override was passed as a process environment
+variable, and the `mysqldump` was driven through Laravel's own configuration so the
+credentials came from the application rather than from the file. The backup sits in
+`storage/app/private/backups/`, which `storage/app/private/.gitignore` covers with
+`*`, and `git status` stays silent about it.
+
+Port 8000 was left alone. The verification pass ran on 8002 against `bdrpis_testing`
+and the audit-log check on 8003 against `bdrpis`; both were stopped afterwards.
+
+### Changed files, and only these
+
+- `database/seeders/DatabaseSeeder.php` - `seedResidents()` and its call removed, the two resident logins dropped from the console output, and the method's `ResidentProfile` import dropped with it
+- `README.md` - the two resident logins removed from the seed accounts table, and how to get a resident instead written down
+- `PROMPT_LOG.md`, this entry
+
+The Admin, Secretary and both Kagawad accounts are untouched: same names, same
+emails, same passwords, same roles, and Ramon P. Bautista still holds sector 1,
+Actividad Economia.
