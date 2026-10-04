@@ -71,8 +71,12 @@ run otherwise, so a misconfigured `.env` cannot make the suite touch real data.
 | `secretary@bdrpis.test` | Secretary | Operational staff screens; no admin-only pages. |
 | `kagawad@bdrpis.test` | Kagawad | Assigned to the first sector. |
 | `kagawad-unassigned@bdrpis.test` | Kagawad | Deliberately has **no** sector, so the empty state is demonstrable. |
-| `resident@bdrpis.test` | Resident | Verified. |
-| `pending@bdrpis.test` | Resident | Verification pending. |
+
+**No resident is seeded.** Residents are real records, not demo rows, so a fresh
+database starts with none. To get one, register through the public form at
+`/register` (five short steps), then sign in as the Secretary and approve them on
+**Staff → Resident Verification**. Only then do they appear in the Residents list
+and gain access to their own dashboard.
 
 ### The four roles
 

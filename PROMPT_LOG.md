@@ -6027,3 +6027,134 @@ stylesheet already had.
 - `README.md` — the mail setup, and `config:clear` after changing the environment
 - `tests/Feature/Auth/EmailVerificationDeliveryTest.php`, new
 - `PROMPT_LOG.md`, this entry
+## Prompt #034
+
+### The brief
+
+Take the seeded residents out. Keep the seeded staff, the seventeen sectors, the
+settings and the announcements; take out every resident account and everything that
+exists only because of one. Then prove the empty state is real, in the browser and
+in the database, rather than asserting it.
+
+### What the audit found before anything was changed
+
+Three seeders exist. `DocumentTypeSeeder` writes the document catalogue and
+`AnnouncementSeeder` writes public notices; neither has ever created a resident.
+Every seeded resident came out of one method, `DatabaseSeeder::seedResidents()`,
+which wrote two users and two profiles and nothing else. No seeder has ever written
+a document request, a relief batch, a relief distribution, an audit row or an
+uploaded file. There is no console command that seeds demo data.
+
+The audit was also worth doing for what it did *not* find. The brief named three
+resident logins; `slotsfree@bdrpis.test` exists nowhere in the repository or in
+either database, and the two that do exist were the only two. And no test refers to
+a seeded resident at all: `resident@bdrpis.test` and `pending@bdrpis.test` appear
+nowhere under `tests/`. The many `HH-1001` hits in the suite are each test building
+its own `ResidentProfile::factory()`, which is the arrangement the tests should have
+had already.
+
+Only two test files call a seeder. `AnnouncementFeaturedSeedingTest` calls
+`AnnouncementSeeder` alone. `SectorsSeederMatchesTheMigrationTest` calls the full
+`DatabaseSeeder` nine times, and every one of its assertions is about sectors and
+Kagawads; the one test whose name mentions residents,
+`test_seeding_keeps_residents_attached_to_their_purok`, already creates its own
+profile at line 87 and takes sector 1 from the migration, not from the seeder. So
+the predicted test change was *no* test change.
+
+That prediction was then checked rather than trusted. The suite ran 1607 tests, 1606
+passed, 1 skipped, 12919 assertions, which is the same figure as before the seeder
+was touched. Nothing was weakened, nothing deleted, nothing rewritten. The file
+list at the end of this entry is the proof: there is no test file in it.
+
+### The development database
+
+`migrate:fresh` was never run against it. The seeded residents were removed by id,
+inside one transaction, and the ids came from the audit rather than from a name
+pattern.
+
+The first of the two was not the account its email claimed. It was `Aivee Joy Alday`
+/ `aiveejoyba@gmail.com`, created in the same second as the seed run, whose profile
+was `resident_profiles.id = 1`, household `HH-1001`, "Zone 1, Bangued, Abra", sector
+1: the seeded verified resident, renamed through the application's own account-edit
+screen afterwards, which `audit_logs` row 40 records outright. It was still the
+seeded row, so it went with the rest, and it was said here before it was deleted
+rather than after. A full `mysqldump` was taken first, and the dump was confirmed to
+contain both the rows going and the rows staying before anything was touched.
+
+A third resident was left alone on purpose: `bsipes@example.org`, no profile, no
+requests, created 2026-03-01. Nothing seeded it and the brief said not to delete
+non-seeded residents, so it stays, though it looks like test leakage rather than a
+person.
+
+The foreign keys made the ordering unnecessary and the audit log safe without being
+edited. `resident_profiles` and `document_requests` cascade from `users`;
+`audit_logs.user_id` is `SET NULL`. So deleting the two users took their two
+profiles and their one document request with them, and the two audit rows outlived
+their author with `user_name` intact - append-only honoured by doing nothing at all.
+
+### Two things worth reporting rather than fixing
+
+**The audit page does not read the stored name.** `staff/audit/index.blade.php:72`
+renders `$entry->user?->name ?? 'Someone removed'`, so the two rows for the deleted
+residents show "Someone removed" rather than the `user_name` written on the row. The
+page works, returns 200, and the rows are there; only the label is generic. The brief
+assumed the page reads the stored column, and it does not. Correcting it is a one
+word change to a staff view, which is outside the scope this prompt set, so it is
+reported and left.
+
+**Private storage holds 4,533 test leftovers.** `storage/app/private/id-photos/`
+contains 4224 `demo-*.png`, 304 `sweep-*.png` and 5 random-named files, 8.4 MB in
+all, written by tests that used the real disk. Both deleted residents had
+`id_photo_path = NULL`, so no file belonged to them and the rule about deleting only
+their uploads had nothing to act on. Deleting four and a half thousand files that
+belong to nobody in particular is a different decision from the one that was asked
+for, so they are counted here instead of removed.
+
+### Proving the empty state
+
+`php artisan migrate:fresh --seed` against `bdrpis_testing`: admin 1, secretary 1,
+Kagawad 2, **residents 0**, profiles 0, document requests 0, sectors 17, settings 11,
+announcements 3, document types 4.
+
+Twenty pages then walked in Chromium against that database, logging in as each of
+the four staff accounts in turn: every dashboard, the Residents list, Resident
+Verification, Document Requests, Relief Distribution, User Accounts, Audit Logs and
+Announcements, plus both Kagawad checklists. All 200. The Secretary was then made to
+request the two admin-only pages and was refused both with 403, which is
+authorization working and is reported apart from the errors. **Zero console errors,
+zero uncaught page errors, zero unexpected HTTP failures.**
+
+The public path was walked end to end rather than assumed: all five registration
+steps filled and submitted, `/verify-email` reached, the new resident absent from the
+data anyone had to seed, then present in the Secretary's queue by name and household
+number, approved, and visible on the Residents list afterwards.
+
+One correction to the record: the first attempt at this reported the staff pages as
+rendering a 483 byte body, which looked like a missing Vite manifest. It was not. The
+logins had silently failed and every protected page was redirecting to the sign-in
+screen, whose text is 483 characters. The cause was that the test suite uses
+`RefreshDatabase` and had emptied `bdrpis_testing` after the seed; re-seeding fixed
+it, and no asset was ever rebuilt.
+
+### Scope kept
+
+No view, controller, route, component or model was touched, and no dependency was
+added. The only application file changed is the seeder, plus the README. `.env` was
+neither read nor written: the database override was passed as a process environment
+variable, and the `mysqldump` was driven through Laravel's own configuration so the
+credentials came from the application rather than from the file. The backup sits in
+`storage/app/private/backups/`, which `storage/app/private/.gitignore` covers with
+`*`, and `git status` stays silent about it.
+
+Port 8000 was left alone. The verification pass ran on 8002 against `bdrpis_testing`
+and the audit-log check on 8003 against `bdrpis`; both were stopped afterwards.
+
+### Changed files, and only these
+
+- `database/seeders/DatabaseSeeder.php` - `seedResidents()` and its call removed, the two resident logins dropped from the console output, and the method's `ResidentProfile` import dropped with it
+- `README.md` - the two resident logins removed from the seed accounts table, and how to get a resident instead written down
+- `PROMPT_LOG.md`, this entry
+
+The Admin, Secretary and both Kagawad accounts are untouched: same names, same
+emails, same passwords, same roles, and Ramon P. Bautista still holds sector 1,
+Actividad Economia.

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\ResidentProfile;
 use App\Models\Sector;
 use App\Models\Setting;
 use App\Models\User;
@@ -58,7 +57,6 @@ class DatabaseSeeder extends Seeder
         $sectors = $this->seedSectors();
 
         $this->seedAccounts($sectors);
-        $this->seedResidents($sectors);
 
         // Public notices. The seeder tops the table up to the number the
         // homepage features rather than assuming an empty announcements table.
@@ -69,8 +67,9 @@ class DatabaseSeeder extends Seeder
         $this->command?->info('  admin@bdrpis.test (Admin)');
         $this->command?->info('  secretary@bdrpis.test (Secretary)');
         $this->command?->info('  kagawad@bdrpis.test (Kagawad, assigned to the first sector)');
-        $this->command?->info('  resident@bdrpis.test (Resident, verified)');
-        $this->command?->info('  pending@bdrpis.test (Resident, verification pending)');
+        $this->command?->info('  kagawad-unassigned@bdrpis.test (Kagawad, no sector)');
+        $this->command?->info('No resident is seeded. Residents join through the public');
+        $this->command?->info('registration form and are activated by the Secretary.');
     }
 
     /**
@@ -110,51 +109,6 @@ class DatabaseSeeder extends Seeder
         User::factory()->kagawad()->create([
             'name' => 'Unassigned Kagawad',
             'email' => 'kagawad-unassigned@bdrpis.test',
-        ]);
-    }
-
-    /**
-     * Two residents, one verified and one still pending, because the whole point
-     * of the resident area is that those two states behave differently.
-     */
-    private function seedResidents(Collection $sectors): void
-    {
-        $sector = $sectors->first();
-
-        if ($sector === null) {
-            return;
-        }
-
-        $verified = User::factory()->resident()->create([
-            'name' => 'Ana Dela Cruz',
-            'email' => 'resident@bdrpis.test',
-        ]);
-
-        ResidentProfile::create([
-            'user_id' => $verified->id,
-            'household_number' => 'HH-1001',
-            'address' => 'Zone 1, Bangued, Abra',
-            'sector_id' => $sector->id,
-            'verification_status' => ResidentProfile::VERIFICATION_VERIFIED,
-            'verified_at' => now(),
-        ]);
-
-        $verified->update([
-            'is_verified' => true,
-            'assigned_sector_id' => $sector->id,
-        ]);
-
-        $pending = User::factory()->resident()->create([
-            'name' => 'Juan Dela Pending',
-            'email' => 'pending@bdrpis.test',
-        ]);
-
-        ResidentProfile::create([
-            'user_id' => $pending->id,
-            'household_number' => 'HH-1002',
-            'address' => 'Pending St., Zone 1, Bangued',
-            'sector_id' => $sector->id,
-            'verification_status' => ResidentProfile::VERIFICATION_PENDING,
         ]);
     }
 
